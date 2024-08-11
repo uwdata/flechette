@@ -1,0 +1,41 @@
+{
+  "name": "@uwdata/flechette",
+  "version": "0.0.1",
+  "description": "Fast and lightweight access to Apache Arrow data.",
+  "keywords": [
+    "arrow",
+    "data",
+    "access"
+  ],
+  "license": "BSD-3-Clause",
+  "author": "Jeffrey Heer (https://idl.uw.edu)",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "jsdelivr": "./dist/flechette.min.js",
+  "unpkg": "./dist/flechette.min.js",
+  "types": "./dist/types/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uwdata/flechette.git"
+  },
+  "scripts": {
+    "perf": "node perf/perf-test.js",
+    "prebuild": "rimraf dist && mkdir dist",
+    "build": "node esbuild.js flechette",
+    "build:types": "tsc --project tsconfig.json",
+    "postbuild": "npm run build:types",
+    "lint": "eslint src test",
+    "test": "mocha 'test/**/*-test.js'",
+    "prepublishOnly": "npm run test && npm run lint && npm run build"
+  },
+  "devDependencies": {
+    "@uwdata/mosaic-duckdb": "^0.10.0",
+    "apache-arrow": "^17.0.0",
+    "esbuild": "^0.23.0",
+    "eslint": "^9.9.0",
+    "mocha": "^10.7.3",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.5.4"
+  }
+}

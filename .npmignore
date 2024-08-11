@@ -1,0 +1,6 @@
+.temp
+.DS_Store
+node_modules/
+perf/
+temp/
+test/

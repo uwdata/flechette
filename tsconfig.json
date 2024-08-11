@@ -1,0 +1,15 @@
+{
+  "include": ["src/index.js"],
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "esModuleInterop": true,
+    "module": "node16",
+    "moduleResolution": "node16",
+    "outDir": "dist/types",
+    "target": "es2022",
+    "skipLibCheck": true
+  }
+}
