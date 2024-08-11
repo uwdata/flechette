@@ -88,11 +88,11 @@ export class Table {
    */
   toColumns() {
     const { children } = this;
+    /** @type {Record<string, import('./types.js').ColumnArray<any>>} */
     const cols = {};
     for (const c of children) {
       cols[c.name] = c.toArray();
     }
-    // @ts-ignore
     return cols;
   }
 

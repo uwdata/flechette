@@ -59,7 +59,7 @@ export function decodeDataType(buf, index, typeId, children) {
 
 /**
  * Construct an integer data type.
- * @param {8|16|32|64} bitWidth The integer bit width.
+ * @param {import('../types.js').IntBitWidth} bitWidth The integer bit width.
  * @param {boolean} signed Flag for signed or unsigned integers.
  * @returns {import('../types.js').IntType} The integer data type.
  */
@@ -83,8 +83,8 @@ export function decodeInt(buf, index) {
   //  6: isSigned
   const get = table(buf, index);
   return typeInt(
-    // @ts-ignore
-    get(4, readInt32, 0), // bitwidth
+    /** @type {import('../types.js').IntBitWidth} */
+    (get(4, readInt32, 0)), // bitwidth
     get(6, readBoolean, false) // signed
   );
 }

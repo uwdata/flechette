@@ -163,6 +163,9 @@ export interface Field {
   metadata: Metadata;
 }
 
+/** Valid integer bit widths. */
+export type IntBitWidth = 8 | 16 | 32 | 64;
+
 /** None data type. */
 export type NoneType = { typeId: TypeId.NONE };
 
@@ -170,7 +173,7 @@ export type NoneType = { typeId: TypeId.NONE };
 export type NullType = { typeId: TypeId.Null };
 
 /** Integer data type. */
-export type IntType = { typeId: TypeId.Int, bitWidth: 8 | 16 | 32 | 64, signed: boolean, values: IntArrayConstructor };
+export type IntType = { typeId: TypeId.Int, bitWidth: IntBitWidth, signed: boolean, values: IntArrayConstructor };
 
 /** Floating point number data type. */
 export type FloatType = { typeId: TypeId.Float, precision: Precision, values: FloatArrayConstructor };
@@ -200,22 +203,22 @@ export type TimestampType = { typeId: TypeId.Timestamp, unit: TimeUnit, timezone
 export type IntervalType = { typeId: TypeId.Interval, unit: IntervalUnit };
 
 /** List data type. */
-export type ListType = { typeId: TypeId.List, children: [DataType], offsets: Int32ArrayConstructor };
+export type ListType = { typeId: TypeId.List, children: [Field], offsets: Int32ArrayConstructor };
 
 /** Struct data type. */
-export type StructType = { typeId: TypeId.Struct, children: DataType[] };
+export type StructType = { typeId: TypeId.Struct, children: Field[] };
 
 /** Union data type. */
-export type UnionType = { typeId: TypeId.Union, mode: UnionMode, typeIds: Int32Array, children: DataType[], offsets: Int32ArrayConstructor };
+export type UnionType = { typeId: TypeId.Union, mode: UnionMode, typeIds: Int32Array, children: Field[], offsets: Int32ArrayConstructor };
 
 /** Fixed-size opaque binary data type. */
 export type FixedSizeBinaryType = { typeId: TypeId.FixedSizeBinary, stride: number };
 
 /** Fixed-size list data type. */
-export type FixedSizeListType = { typeId: TypeId.FixedSizeList, stride: number, children: DataType[] };
+export type FixedSizeListType = { typeId: TypeId.FixedSizeList, stride: number, children: Field[] };
 
 /** Key-value map data type. */
-export type MapType = { typeId: TypeId.Map, keysSorted: boolean, children: [DataType, DataType], offsets: Int32ArrayConstructor };
+export type MapType = { typeId: TypeId.Map, keysSorted: boolean, children: [Field, Field], offsets: Int32ArrayConstructor };
 
 /** Duration data type. */
 export type DurationType = { typeId: TypeId.Duration, unit: TimeUnit, values: BigInt64ArrayConstructor };
@@ -227,7 +230,7 @@ export type LargeBinaryType = { typeId: TypeId.LargeBinary, offsets: BigInt64Arr
 export type LargeUtf8Type = { typeId: TypeId.LargeUtf8, offsets: BigInt64ArrayConstructor };
 
 /** List data type with 64-bit integer offsets for larger data. */
-export type LargeListType = { typeId: TypeId.LargeList, children: [DataType], offsets: BigInt64ArrayConstructor };
+export type LargeListType = { typeId: TypeId.LargeList, children: [Field], offsets: BigInt64ArrayConstructor };
 
 /** Dictionary-encoded data type. */
 export type DictionaryType = { typeId: TypeId.Dictionary, type: DataType, id: number, keys: IntType, ordered: boolean };

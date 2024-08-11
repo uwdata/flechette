@@ -79,8 +79,7 @@ export class Batch {
    * @returns {T} The value, ignoring the validity bitmap.
    */
   value(index) {
-    // @ts-ignore
-    return this.values[index];
+    return /** @type {T} */ (this.values[index]);
   }
 
   /**
@@ -174,7 +173,7 @@ export class Int64Batch extends NumberBatch {
    * @param {number} index The value index
    */
   value(index) {
-    return toNumber(this.values[index]);
+    return toNumber(/** @type {bigint} */ (this.values[index]));
   }
 }
 
@@ -187,9 +186,7 @@ export class Float16Batch extends NumberBatch {
    * @param {number} index The value index
    */
   value(index) {
-    /** @type {number} */
-    // @ts-ignore
-    const v = this.values[index];
+    const v = /** @type {number} */ (this.values[index]);
     const expo = (v & 0x7C00) >> 10;
     const sigf = (v & 0x03FF) / 1024;
     const sign = (-1) ** ((v & 0x8000) >> 15);
@@ -210,8 +207,7 @@ export class BoolBatch extends ArrayBatch {
    * @param {number} index The value index
    */
   value(index) {
-    // @ts-ignore
-    return decodeBit(this.values, index);
+    return decodeBit(/** @type {Uint8Array} */ (this.values), index);
   }
 }
 
@@ -230,10 +226,9 @@ const BASE32 = Array.from(
 export class DecimalBatch extends NumberBatch {
   constructor(options) {
     super(options);
-    // @ts-ignore
-    const { bitWidth, scale } = this.type;
-    this.stride = bitWidth >> 5; // 8 bits/byte and 4 bytes/uint32;
-    this.scale = Math.pow(10, scale);
+    const type = /** @type {import('./types.js').DecimalType} */ (this.type);
+    this.stride = type.bitWidth >> 5; // 8 bits/byte and 4 bytes/uint32;
+    this.scale = Math.pow(10, type.scale);
   }
   /**
    * @param {number} index The value index
@@ -241,23 +236,21 @@ export class DecimalBatch extends NumberBatch {
   value(index) {
     // TODO: check magnitude, use slower but more accurate BigInt ops if needed?
     // Using numbers we can prep with integers up to MAX_SAFE_INTEGER (2^53 - 1)
-    const { values: v, stride: n, scale: s } = this;
+    const v = /** @type {Uint32Array} */ (this.values);
+    const n = this.stride;
     const off = index << 2;
     let x = 0;
-    // @ts-ignore
     if ((v[n - 1] | 0) < 0) {
       for (let i = 0; i < n; ++i) {
-        // @ts-ignore
         x += ~v[i + off] * BASE32[i];
       }
       x = -(x + 1);
     } else {
       for (let i = 0; i < n; ++i) {
-        // @ts-ignore
         x += v[i + off] * BASE32[i];
       }
     }
-    return x / s;
+    return x / this.scale;
   }
 }
 
@@ -289,8 +282,8 @@ export class DateDayBatch extends NumberBatch {
    * @returns {number}
    */
   value(index) {
-    // @ts-ignore
-    return 86400000 * this.values[index]; // epoch days to milliseconds
+    // epoch days to milliseconds
+    return 86400000 * /** @type {number} */ (this.values[index]);
   }
 }
 
@@ -324,8 +317,8 @@ export class TimestampMicrosecondBatch extends Int64Batch {
    * @param {number} index The value index
    */
   value(index) {
-    // @ts-ignore
-    return divide(this.values[index], 1000n); // microseconds to milliseconds
+    // microseconds to milliseconds
+    return divide(/** @type {bigint} */ (this.values[index]), 1000n);
   }
 }
 
@@ -337,8 +330,8 @@ export class TimestampNanosecondBatch extends Int64Batch {
    * @param {number} index The value index
    */
   value(index) {
-    // @ts-ignore
-    return divide(this.values[index], 1000000n); // nanoseconds to milliseconds
+    // nanoseconds to milliseconds
+    return divide(/** @type {bigint} */ (this.values[index]), 1000000n);
   }
 }
 
@@ -352,8 +345,8 @@ export class IntervalDayTimeBatch extends ArrayBatch {
    * @returns {Int32Array}
    */
   value(index) {
-    // @ts-ignore
-    return this.values.subarray(index << 1, (index + 1) << 1);
+    const values = /** @type {Int32Array} */ (this.values);
+    return values.subarray(index << 1, (index + 1) << 1);
   }
 }
 
@@ -366,9 +359,7 @@ export class IntervalYearMonthBatch extends ArrayBatch {
    * @param {number} index The value index
    */
   value(index) {
-    /** @type {number} */
-    // @ts-ignore
-    const v = this.values[index];
+    const v = /** @type {number} */ (this.values[index]);
     return Int32Array.of(
       Math.trunc(v / 12), // years
       Math.trunc(v % 12)  // months
@@ -385,9 +376,7 @@ export class IntervalMonthDayNanoBatch extends ArrayBatch {
    * @param {number} index The value index
    */
   value(index) {
-    /** @type {Uint8Array} */
-    // @ts-ignore
-    const values = this.values;
+    const values = /** @type {Uint8Array} */ (this.values);
     const base = index << 2;
     return Float64Array.of(
       readInt32(values, base),
@@ -470,9 +459,8 @@ export class ListBatch extends ArrayBatch {
    * @returns {import('./types.js').ColumnArray<V>}
    */
   value(index) {
-    const { offsets, children } = this;
-    // @ts-ignore
-    return children[0].slice(offsets[index], offsets[index + 1]);
+    const offsets = /** @type {Int32Array} */ (this.offsets);
+    return this.children[0].slice(offsets[index], offsets[index + 1]);
   }
 }
 
@@ -489,8 +477,8 @@ export class LargeListBatch extends ArrayBatch {
    * @returns {import('./types.js').ColumnArray<V>}
    */
   value(index) {
-    const { offsets, children } = this;
-    return children[0].slice(toNumber(offsets[index]), toNumber(offsets[index + 1]));
+    const offsets = /** @type {BigInt64Array} */ (this.offsets);
+    return this.children[0].slice(toNumber(offsets[index]), toNumber(offsets[index + 1]));
   }
 }
 
@@ -505,10 +493,9 @@ export class FixedBatch extends ArrayBatch {
    * @returns {Uint8Array}
    */
   value(index) {
-    // @ts-ignore
-    const { stride } = this.type;
-    // @ts-ignore
-    return this.values.subarray(index * stride, (index + 1) * stride);
+    const { stride } = /** @type {import('./types.js').FixedSizeBinaryType} */ (this.type);
+    const values = /** @type {Uint8Array} */ (this.values);
+    return values.subarray(index * stride, (index + 1) * stride);
   }
 }
 
@@ -524,23 +511,22 @@ export class FixedListBatch extends ArrayBatch {
    */
   value(index) {
     const { type, children } = this;
-    // @ts-ignore
-    const { stride } = type;
+    const { stride } = /** @type {import('./types.js').FixedSizeListType} */ (type);
     return children[0].slice(index * stride, (index + 1) * stride);
   }
 }
 
-// extract Map key-value pairs from parallel child batches
+/**
+ * Extract Map key-value pairs from parallel child batches.
+ */
 const pairs = ({ children, offsets }, index) => {
   const [ keys, vals ] = children[0].children;
   const start = offsets[index];
   const end = offsets[index + 1];
   const entries = [];
   for (let i = start; i < end; ++i) {
-    // @ts-ignore
     entries.push([keys.at(i), vals.at(i)]);
   }
-  // @ts-ignore
   return entries;
 }
 
@@ -557,8 +543,7 @@ export class MapEntryBatch extends ArrayBatch {
    * @returns {[K, V][]} The map entries as an array of [key, value] arrays.
    */
   value(index) {
-    // @ts-ignore
-    return pairs(this, index);
+    return /** @type {[K, V][]} */ (pairs(this, index));
   }
 }
 
@@ -575,8 +560,7 @@ export class MapBatch extends ArrayBatch {
    * @returns {Map<K, V>} The map value.
    */
   value(index) {
-    // @ts-ignore
-    return new Map(pairs(this, index));
+    return new Map(/** @type {[K, V][]} */ (pairs(this, index)));
   }
 }
 
@@ -613,8 +597,7 @@ export class DenseUnionBatch extends SparseUnionBatch {
    * @param {number} index The value index.
    */
   value(index) {
-    // @ts-ignore
-    return super.value(this.offsets[index]);
+    return super.value(/** @type {number} */ (this.offsets[index]));
   }
 }
 
@@ -626,9 +609,8 @@ export class DenseUnionBatch extends SparseUnionBatch {
 export class StructBatch extends ArrayBatch {
   constructor(options) {
     super(options);
-    /** @type {string} */
-    // @ts-ignore
-    this.names = this.type.children.map(child => child.name);
+    const type = /** @type {import('./types.js').StructType} */ (this.type);
+    this.names = type.children.map(child => child.name);
   }
   /**
    * @param {number} index The value index.
@@ -662,15 +644,13 @@ export class DictionaryBatch extends ArrayBatch {
    * @param {number} index The value index.
    */
   value(index) {
-    // @ts-ignore
-    return this.cache[this.values[index]];
+    return /** @type {T} */ (this.cache[this.key(index)]);
   }
   /**
    * @param {number} index The value index.
    * @returns {number} The dictionary key
    */
   key(index) {
-    // @ts-ignore
-    return this.values[index];
+    return /** @type {number} */ (this.values[index]);
   }
 }

@@ -86,8 +86,9 @@ export function parseIPCStream(data) {
     }
   }
 
-  // @ts-ignore
-  return { schema, dictionaries, records, metadata: null };
+  return /** @type {import('./types.js').ArrowData} */ (
+    { schema, dictionaries, records, metadata: null }
+  );
 }
 
 /**
@@ -113,12 +114,10 @@ export function parseIPCFile(data) {
   const dicts = get(8, decodeBlocks, []);
   const recs = get(10, decodeBlocks, []);
 
-  return {
+  return /** @type {import('./types.js').ArrowData} */ ({
     schema: get(6, (buf, index) => decodeSchema(buf, index, version)),
-    // @ts-ignore
     dictionaries: dicts.map(({ offset }) => decodeMessage(data, offset).content),
-    // @ts-ignore
     records: recs.map(({ offset }) => decodeMessage(data, offset).content),
     metadata: get(12, decodeMetadata)
-  };
+  });
 }

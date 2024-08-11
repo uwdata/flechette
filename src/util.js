@@ -37,15 +37,13 @@ export function keyFor(object, value) {
 }
 
 /**
- * Ensure a numerical value (number of BigInt) is a number. Throws an error
- * if a BigInt value is outside the range of what a number can represent.
- * @param {number | bigint} value The value to check and possibly convert.
- * @returns {number}
+ * Coerce a bigint value to a number. Throws an error if the bigint value
+ * lies outside the range of what a number can precisely represent.
+ * @param {bigint} value The value to check and possibly convert.
+ * @returns {number} The converted number value.
  */
 export function toNumber(value) {
-  if (typeof value === 'bigint' && (
-    value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER
-  )) {
+  if (value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER) {
     throw Error(`BigInt exceeds integer number representation: ${value}`);
   }
   return Number(value);
