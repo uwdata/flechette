@@ -1,13 +1,13 @@
 import { int8 } from './array-types.js';
 import {
-  BinaryBatch,
-  BoolBatch, DateBatch, DateDayBatch, DateDayMillisecondBatch, DecimalBatch,
-  DenseUnionBatch, DictionaryBatch, DirectBatch, FixedBatch, FixedListBatch,
-  Float16Batch, Int64Batch, IntervalDayTimeBatch, IntervalMonthDayNanoBatch,
-  IntervalYearMonthBatch, LargeBinaryBatch, LargeListBatch, LargeUtf8Batch,
-  ListBatch, MapBatch, MapEntryBatch, NullBatch, SparseUnionBatch, StructBatch,
-  TimestampMicrosecondBatch, TimestampMillisecondBatch, TimestampNanosecondBatch,
-  TimestampSecondBatch, Utf8Batch
+  BinaryBatch, BoolBatch, DateBatch, DateDayBatch, DateDayMillisecondBatch,
+  DecimalBatch, DenseUnionBatch, DictionaryBatch, DirectBatch, FixedBatch,
+  FixedListBatch, Float16Batch, Int64Batch, IntervalDayTimeBatch,
+  IntervalMonthDayNanoBatch, IntervalYearMonthBatch, LargeBinaryBatch,
+  LargeListBatch, LargeUtf8Batch, ListBatch, MapBatch, MapEntryBatch,
+  NullBatch, SparseUnionBatch, StructBatch, TimestampMicrosecondBatch,
+  TimestampMillisecondBatch, TimestampNanosecondBatch, TimestampSecondBatch,
+  Utf8Batch
 } from './batch.js';
 import { columnBuilder } from './column.js';
 import {
@@ -99,7 +99,6 @@ function contextGenerator(options, version, dictionaryMap) {
     return {
       ...base,
       length,
-      debug: () => ({nodeIndex, bufferIndex, nodes, buffers}),
       node: () => nodes[++nodeIndex],
       buffer: (ArrayType) => {
         const { length, offset } = buffers[++bufferIndex];
@@ -172,15 +171,13 @@ function visit(type, ctx) {
       return date(unit === TimeUnit.SECOND ? TimestampSecondBatch
         : unit === TimeUnit.MILLISECOND ? TimestampMillisecondBatch
         : unit === TimeUnit.MICROSECOND ? TimestampMicrosecondBatch
-        : unit === TimeUnit.NANOSECOND ? TimestampNanosecondBatch
-        : null);
+        : TimestampNanosecondBatch);
     case Type.Decimal:
       return value(DecimalBatch);
     case Type.Interval:
       return value(unit === IntervalUnit.DAY_TIME ? IntervalDayTimeBatch
         : unit === IntervalUnit.YEAR_MONTH ? IntervalYearMonthBatch
-        : unit === IntervalUnit.MONTH_DAY_NANO ? IntervalMonthDayNanoBatch
-        : null);
+        : IntervalMonthDayNanoBatch);
     case Type.FixedSizeBinary:
       return value(FixedBatch);
 
