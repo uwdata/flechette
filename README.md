@@ -8,7 +8,7 @@ Flechette provides fast extraction of data in the Arrow binary IPC format, suppo
 
 In the process of developing multiple data analysis packages that consume Apache Arrow data (including Arquero, Mosaic, and Vega), we had to develop workarounds for the performance and correctness of the Apache Arrow JavaScript reference implementation. Instead of workarounds, Flechette seeks to address these issues head-on.
 
-* _Speed_. Flechette provides faster decoding. Across varied datasets, our initial performance tests find that Flechette provides 1.3-1.6x faster value iteration, 2-7x faster array extraction, and 5-9x faster row object extraction.
+* _Speed_. Flechette provides faster decoding. Across varied datasets, initial performance tests show 1.3-1.6x faster value iteration, 2-7x faster array extraction, and 5-9x faster row object extraction.
 
 * _Size_. Flechette is ~16k minified (~6k gzip'd), versus 163k minified (~43k gzip'd) for Arrow JS.
 
@@ -18,7 +18,7 @@ In the process of developing multiple data analysis packages that consume Apache
 
 * _Simplicity_. Our goal is to provide a smaller, simpler code base in the hope that it will make it easier for ourselves and others to improve the library. If you'd like to see support for additional Arrow data types or features, please [file an issue](https://github.com/uwdata/flechette/issues) or [open a pull request](https://github.com/uwdata/flechette/pulls).
 
-That said, no tool is without limitations or trade-offs. Flechette is *consumption oriented*: it assumes Arrow data is generated elsewhere and then needs to be transformed and/or visualized in JavaScript. It does yet support encoding, though please [upvote encoding support](https://github.com/uwdata/flechette/issues/1) if you would use it. In addition, Flechette requires simpler inputs (byte buffers, no promises or streams), currently has less comprehensive TypeScript typings, and can have a slightly slower initial parse (as Flechette decodes dictionary-encoded data upfront for faster downstream access).
+That said, no tool is without limitations or trade-offs. Flechette is *consumption oriented*: it does yet support encoding, though please [upvote encoding support](https://github.com/uwdata/flechette/issues/1) if you would use it. Flechette also requires simpler inputs (byte buffers, no promises or streams), has less comprehensive TypeScript typings, and may have a slightly slower initial parse (as it decodes dictionary data upfront for faster downstream access).
 
 ## What's with the name?
 
