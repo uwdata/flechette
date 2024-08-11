@@ -29,7 +29,7 @@ The project name stems from the French word [fléchette](https://en.wikipedia.or
 ### Load and Access Arrow Data
 
 ```js
-import { tableFromIPC } from 'flechette';
+import { tableFromIPC } from '@uwdata/flechette';
 
 const url = 'https://vega.github.io/vega-datasets/data/flights-200k.arrow';
 const ipc = await fetch(url).then(r => r.arrayBuffer());
