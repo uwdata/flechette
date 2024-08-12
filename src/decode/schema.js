@@ -7,7 +7,7 @@ import { decodeMetadata } from './metadata.js';
  * Decode a table schema describing the fields and their data types.
  * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
  * @param {number} index The starting index in the byte buffer
- * @param {import('../types.js').Version} version Arrow version value
+ * @param {import('../types.js').Version_} version Arrow version value
  * @returns {import('../types.js').Schema} The schema
  */
 export function decodeSchema(buf, index, version) {
@@ -19,7 +19,8 @@ export function decodeSchema(buf, index, version) {
   const get = table(buf, index);
   return {
     version,
-    endianness: get(4, readInt16, 0),
+    endianness: /** @type {import('../types.js').Endianness_} */
+      (get(4, readInt16, 0)),
     fields: get(6, (buf, off) => decodeSchemaFields(buf, off, dictionaryTypes), []),
     metadata: get(8, decodeMetadata),
     dictionaryTypes

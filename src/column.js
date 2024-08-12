@@ -1,5 +1,4 @@
 import { DirectBatch } from './batch.js';
-import { $iterator } from './util.js';
 
 /**
  * Build up a column from batches.
@@ -79,13 +78,20 @@ export class Column {
   }
 
   /**
-   * Return an iterator over the values in this column.
-   * @returns {Generator<T>}
+   * Provide an informative object string tag.
    */
-  [$iterator]() {
+  get [Symbol.toStringTag]() {
+    return 'Column';
+  }
+
+  /**
+   * Return an iterator over the values in this column.
+   * @returns {Iterator<T?>}
+   */
+  [Symbol.iterator]() {
     const data = this.data;
     return data.length === 1
-      ? data[0][$iterator]()
+      ? data[0][Symbol.iterator]()
       : batchedIterator(data);
   }
 
@@ -120,7 +126,7 @@ export class Column {
   /**
    * Extract column values into a single array instance. When possible,
    * a zero-copy subarray of the input Arrow data is returned.
-   * @returns {import('./types.js').ColumnArray<T>}
+   * @returns {import('./types.js').ValueArray<T?>}
    */
   toArray() {
     const { length, nullCount, data } = this;
@@ -128,6 +134,7 @@ export class Column {
 
     if (copy && data.length === 1) {
       // use batch array directly
+      // @ts-ignore
       return data[0].values;
     }
 
@@ -135,9 +142,17 @@ export class Column {
     const ArrayType = nullCount > 0 ? Array
       // @ts-ignore
       : (data[0].constructor.ArrayType ?? data[0].values.constructor);
-    const array = new ArrayType(length);
 
+    const array = new ArrayType(length);
     return copy ? copyArray(array, data) : extractArray(array, data);
+  }
+
+  /**
+   * Return an array of cached column values.
+   * Used internally to accelerate dictionary types.
+   */
+  cache() {
+    return this._cache ?? (this._cache = this.toArray());
   }
 }
 

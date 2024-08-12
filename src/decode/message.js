@@ -46,8 +46,10 @@ export function decodeMessage(buf, index) {
   //  8: headerIndex
   // 10: bodyLength
   const get = table(head, 0);
-  const version = get(4, readInt16, Version.V1);
-  const type = get(6, readUint8, MessageHeader.NONE);
+  const version = /** @type {import('../types.js').Version_} */
+    (get(4, readInt16, Version.V1));
+  const type = /** @type {import('../types.js').MessageHeader_} */
+    (get(6, readUint8, MessageHeader.NONE));
   const offset = get(8, readOffset, 0);
   const bodyLength = get(10, readInt64AsNum, 0);
   let content;

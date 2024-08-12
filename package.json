@@ -23,8 +23,9 @@
     "perf": "node perf/perf-test.js",
     "prebuild": "rimraf dist && mkdir dist",
     "build": "node esbuild.js flechette",
-    "build:types": "tsc --project tsconfig.json",
-    "postbuild": "npm run build:types",
+    "types": "tsc --project tsconfig.json && npm run types:merge",
+    "types:merge": "cd dist/types; cat types.d.ts >> index.d.ts",
+    "postbuild": "npm run types",
     "lint": "eslint src test",
     "test": "mocha 'test/**/*-test.js'",
     "prepublishOnly": "npm run test && npm run lint && npm run build"

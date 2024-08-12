@@ -1,93 +1,42 @@
-/** Arrow version. */
-export enum Version {
-  V1 = 0,
-  V2 = 1,
-  V3 = 2,
-  V4 = 3,
-  V5 = 4
-}
+import {
+  Version,
+  Endianness,
+  MessageHeader,
+  Precision,
+  DateUnit,
+  TimeUnit,
+  IntervalUnit,
+  UnionMode
+} from './constants.js';
 
-/** Endianness of Arrow-encoded data. */
-export enum Endianness {
-  Little = 0,
-  Big = 1
-}
+// additional jsdoc types to export
+export { Batch } from './batch.js';
+export { Column } from './column.js';
+export { Table } from './table.js';
 
-/** Message header type codes. */
-export enum MessageHeader {
-  NONE = 0,
-  Schema = 1,
-  DictionaryBatch = 2,
-  RecordBatch = 3,
-  Tensor = 4,
-  SparseTensor = 5
-}
+/** A valid Arrow version number. */
+export type Version_ = typeof Version[keyof typeof Version];
 
-/** Floating point number precision. */
-export enum Precision {
-  HALF = 0,
-  SINGLE = 1,
-  DOUBLE = 2
-};
+/** A valid endianness value. */
+export type Endianness_ = typeof Endianness[keyof typeof Endianness];
 
-/** Date units. */
-export enum DateUnit {
-  DAY = 0,
-  MILLISECOND = 1
-};
+/** A valid message header type value. */
+export type MessageHeader_ = typeof MessageHeader[keyof typeof MessageHeader];
 
-/** Time units. */
-export enum TimeUnit {
-  SECOND = 0,
-  MILLISECOND = 1,
-  MICROSECOND = 2,
-  NANOSECOND = 3
-};
+/** A valid floating point precision value. */
+export type Precision_ = typeof Precision[keyof typeof Precision];
 
-/** Date/time interval units. */
-export enum IntervalUnit {
-  YEAR_MONTH = 0,
-  DAY_TIME = 1,
-  MONTH_DAY_NANO = 2
-};
+/** A valid date unit value. */
+export type DateUnit_ = typeof DateUnit[keyof typeof DateUnit];
 
-/** Union type modes. */
-export enum UnionMode {
-  Sparse = 0,
-  Dense = 1
-};
+/** A valid time unit value. */
+export type TimeUnit_ = typeof TimeUnit[keyof typeof TimeUnit];
 
-/** Field data type ids. */
-export enum TypeId {
-  Dictionary = -1,
-  NONE = 0,
-  Null = 1,
-  Int = 2,
-  Float = 3,
-  Binary = 4,
-  Utf8 = 5,
-  Bool = 6,
-  Decimal = 7,
-  Date = 8,
-  Time = 9,
-  Timestamp = 10,
-  Interval = 11,
-  List = 12,
-  Struct = 13,
-  Union = 14,
-  FixedSizeBinary = 15,
-  FixedSizeList = 16,
-  Map = 17,
-  Duration = 18,
-  LargeBinary = 19,
-  LargeUtf8 = 20,
-  LargeList = 21,
-  RunEndEncoded = 22,
-  BinaryView = 23,
-  Utf8View = 24,
-  ListView = 25,
-  LargeListView = 26
-}
+/** A valid date/time interval unit value. */
+export type IntervalUnit_ = typeof IntervalUnit[keyof typeof IntervalUnit];
+
+/** A valid union type mode value. */
+export type UnionMode_ = typeof UnionMode[keyof typeof UnionMode];
 
 export type TypedArray =
   | Uint8Array
@@ -137,7 +86,9 @@ export type TypedArrayConstructor =
   | Float64ArrayConstructor;
 
 /** An extracted array of column values. */
-export type ColumnArray<T> = T[] | TypedArray;
+export interface ValueArray<T> extends ArrayLike<T>, Iterable<T> {
+  slice(start?: number, end?: number): ValueArray<T>;
+}
 
 /** Custom metadata. */
 export type Metadata = Map<string, string>;
@@ -146,8 +97,8 @@ export type Metadata = Map<string, string>;
  * Arrow table schema.
  */
 export interface Schema {
-  version: Version;
-  endianness: Endianness;
+  version: Version_;
+  endianness: Endianness_;
   fields: Field[];
   metadata?: Metadata | null;
   dictionaryTypes: Map<number, DataType>;
@@ -166,74 +117,74 @@ export interface Field {
 /** Valid integer bit widths. */
 export type IntBitWidth = 8 | 16 | 32 | 64;
 
+/** Dictionary-encoded data type. */
+export type DictionaryType = { typeId: -1, type: DataType, id: number, keys: IntType, ordered: boolean };
+
 /** None data type. */
-export type NoneType = { typeId: TypeId.NONE };
+export type NoneType = { typeId: 0 };
 
 /** Null data type. */
-export type NullType = { typeId: TypeId.Null };
+export type NullType = { typeId: 1 };
 
 /** Integer data type. */
-export type IntType = { typeId: TypeId.Int, bitWidth: IntBitWidth, signed: boolean, values: IntArrayConstructor };
+export type IntType = { typeId: 2, bitWidth: IntBitWidth, signed: boolean, values: IntArrayConstructor };
 
 /** Floating point number data type. */
-export type FloatType = { typeId: TypeId.Float, precision: Precision, values: FloatArrayConstructor };
+export type FloatType = { typeId: 3, precision: Precision_, values: FloatArrayConstructor };
 
 /** Opaque binary data type. */
-export type BinaryType = { typeId: TypeId.Binary, offsets: Int32ArrayConstructor };
+export type BinaryType = { typeId: 4, offsets: Int32ArrayConstructor };
 
 /** UTF-8 encoded string data type. */
-export type Utf8Type = { typeId: TypeId.Utf8, offsets: Int32ArrayConstructor };
+export type Utf8Type = { typeId: 5, offsets: Int32ArrayConstructor };
 
 /** Boolean data type. */
-export type BoolType = { typeId: TypeId.Bool };
+export type BoolType = { typeId: 6 };
 
 /** Fixed decimal number data type. */
-export type DecimalType = { typeId: TypeId.Decimal, precision: number, scale: number, bitWidth: 128 | 256, values: Uint32ArrayConstructor };
+export type DecimalType = { typeId: 7, precision: number, scale: number, bitWidth: 128 | 256, values: Uint32ArrayConstructor };
 
 /** Date data type. */
-export type DateType = { typeId: TypeId.Date, unit: DateUnit, values: DateTimeArrayConstructor };
+export type DateType = { typeId: 8, unit: DateUnit_, values: DateTimeArrayConstructor };
 
 /** Time data type. */
-export type TimeType = { typeId: TypeId.Time, unit: TimeUnit, bitWidth: 32 | 64, signed: boolean, values: DateTimeArrayConstructor };
+export type TimeType = { typeId: 9, unit: TimeUnit_, bitWidth: 32 | 64, values: DateTimeArrayConstructor };
 
 /** Timestamp data type. */
-export type TimestampType = { typeId: TypeId.Timestamp, unit: TimeUnit, timezone: string | null, values: BigInt64ArrayConstructor };
+export type TimestampType = { typeId: 10, unit: TimeUnit_, timezone: string | null, values: BigInt64ArrayConstructor };
 
 /** Date/time interval data type. */
-export type IntervalType = { typeId: TypeId.Interval, unit: IntervalUnit };
+export type IntervalType = { typeId: 11, unit: IntervalUnit_, values?: Int32ArrayConstructor };
 
 /** List data type. */
-export type ListType = { typeId: TypeId.List, children: [Field], offsets: Int32ArrayConstructor };
+export type ListType = { typeId: 12, children: [Field], offsets: Int32ArrayConstructor };
 
 /** Struct data type. */
-export type StructType = { typeId: TypeId.Struct, children: Field[] };
+export type StructType = { typeId: 13, children: Field[] };
 
 /** Union data type. */
-export type UnionType = { typeId: TypeId.Union, mode: UnionMode, typeIds: Int32Array, children: Field[], offsets: Int32ArrayConstructor };
+export type UnionType = { typeId: 14, mode: UnionMode_, typeIds: Int32Array, children: Field[], offsets: Int32ArrayConstructor };
 
 /** Fixed-size opaque binary data type. */
-export type FixedSizeBinaryType = { typeId: TypeId.FixedSizeBinary, stride: number };
+export type FixedSizeBinaryType = { typeId: 15, stride: number };
 
 /** Fixed-size list data type. */
-export type FixedSizeListType = { typeId: TypeId.FixedSizeList, stride: number, children: Field[] };
+export type FixedSizeListType = { typeId: 16, stride: number, children: Field[] };
 
 /** Key-value map data type. */
-export type MapType = { typeId: TypeId.Map, keysSorted: boolean, children: [Field, Field], offsets: Int32ArrayConstructor };
+export type MapType = { typeId: 17, keysSorted: boolean, children: [Field, Field], offsets: Int32ArrayConstructor };
 
 /** Duration data type. */
-export type DurationType = { typeId: TypeId.Duration, unit: TimeUnit, values: BigInt64ArrayConstructor };
+export type DurationType = { typeId: 18, unit: TimeUnit_, values: BigInt64ArrayConstructor };
 
 /** Opaque binary data type with 64-bit integer offsets for larger data. */
-export type LargeBinaryType = { typeId: TypeId.LargeBinary, offsets: BigInt64ArrayConstructor };
+export type LargeBinaryType = { typeId: 19, offsets: BigInt64ArrayConstructor };
 
 /** UTF-8 encoded string data type with 64-bit integer offsets for larger data. */
-export type LargeUtf8Type = { typeId: TypeId.LargeUtf8, offsets: BigInt64ArrayConstructor };
+export type LargeUtf8Type = { typeId: 20, offsets: BigInt64ArrayConstructor };
 
 /** List data type with 64-bit integer offsets for larger data. */
-export type LargeListType = { typeId: TypeId.LargeList, children: [Field], offsets: BigInt64ArrayConstructor };
-
-/** Dictionary-encoded data type. */
-export type DictionaryType = { typeId: TypeId.Dictionary, type: DataType, id: number, keys: IntType, ordered: boolean };
+export type LargeListType = { typeId: 21, children: [Field], offsets: BigInt64ArrayConstructor };
 
 /**
  * Arrow field data types.
@@ -298,9 +249,9 @@ export interface ArrowData {
  */
 export interface Message {
   /** The Arrow version. */
-  version: number;
+  version: Version_;
   /** The message header type. */
-  type: number;
+  type: MessageHeader_;
   /** The buffer integer index after the message. */
   index: number;
   /** The message content. */

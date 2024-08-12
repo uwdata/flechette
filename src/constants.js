@@ -1,4 +1,7 @@
-export const Version = {
+/**
+ * Apache Arrow version.
+ */
+export const Version = /** @type {const} */ ({
   /** 0.1.0 (October 2016). */
   V1: 0,
   /** 0.2.0 (February 2017). Non-backwards compatible with V1. */
@@ -13,12 +16,24 @@ export const Version = {
    * V4 compatibility mode with V5 format changes disabled.
    *
    * Incompatible changes between V4 and V5:
-   * - Union buffer layout has changed. In V5, Unions don't have a validity bitmap buffer.
+   * - Union buffer layout has changed.
+   *   In V5, Unions don't have a validity bitmap buffer.
    */
   V5: 4
-};
+});
 
-export const MessageHeader = {
+/**
+ * Endianness of Arrow-encoded data.
+ */
+export const Endianness = /** @type {const} */ ({
+  Little: 0,
+  Big: 1
+});
+
+/**
+ * Message header type codes.
+ */
+export const MessageHeader = /** @type {const} */ ({
   NONE: 0,
   /**
    * A Schema describes the columns in a record batch.
@@ -55,13 +70,13 @@ export const MessageHeader = {
    * Not currently supported by Flechette.
    */
   SparseTensor: 5
-};
+});
 
 /**
- * Top-level data type values, enabling extensible type-specific metadata.
+ * Field data type ids.
  * Only non-negative values ever occur in IPC flatbuffer binary data.
  */
-export const Type = {
+export const Type = /** @type {const} */ ({
   /**
    * Dictionary types compress data by using a set of integer indices to
    * lookup potentially repeated vales in a separate dictionary of values.
@@ -222,8 +237,6 @@ export const Type = {
   /**
    * Same as List, but with 64-bit offsets, allowing representation of
    * extremely large data values.
-   *
-   * Not currently supported by Flechette.
    */
   LargeList: 21,
   /**
@@ -274,25 +287,37 @@ export const Type = {
    * Not currently supported by Flechette.
    */
   LargeListView: 26
-}
+});
 
-export const Precision = {
+/**
+ * Floating point number precision.
+ */
+export const Precision = /** @type {const} */ ({
+  /** 16-bit floating point number. */
   HALF: 0,
+  /** 32-bit floating point number. */
   SINGLE: 1,
+  /** 64-bit floating point number. */
   DOUBLE: 2
-};
+});
 
-export const DateUnit = {
-  /* Days (32 bits) since the UNIX epoch. */
+/**
+ * Date units.
+ */
+export const DateUnit = /** @type {const} */ ({
+  /* Days (as 32 bit int) since the UNIX epoch. */
   DAY: 0,
   /**
-   * Milliseconds (64 bits) indicating UNIX time elapsed since the epoch (no
-   * leap seconds), where the values are evenly divisible by 86400000.
+   * Milliseconds (as 64 bit int) indicating UNIX time elapsed since the epoch
+   * (no leap seconds), with values evenly divisible by 86400000.
    */
   MILLISECOND: 1
-};
+});
 
-export const TimeUnit = {
+/**
+ * Time units.
+ */
+export const TimeUnit = /** @type {const} */ ({
   /** Seconds. */
   SECOND: 0,
   /** Milliseconds. */
@@ -301,9 +326,12 @@ export const TimeUnit = {
   MICROSECOND: 2,
   /** Nanoseconds. */
   NANOSECOND: 3
-};
+});
 
-export const IntervalUnit = {
+/**
+ * Date/time interval units.
+ */
+export const IntervalUnit = /** @type {const} */ ({
   /**
    * Indicates the number of elapsed whole months, stored as 4-byte signed
    * integers.
@@ -325,9 +353,14 @@ export const IntervalUnit = {
    * day's worth of time).
    */
   MONTH_DAY_NANO: 2
-};
+});
 
-export const UnionMode = {
+/**
+ * Union type modes.
+ */
+export const UnionMode = /** @type {const} */ ({
+  /** Sparse union layout with full arrays for each sub-type. */
   Sparse: 0,
+  /** Dense union layout with offsets into value arrays. */
   Dense: 1
-};
+});

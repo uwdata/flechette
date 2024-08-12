@@ -22,6 +22,13 @@ export class Table {
   }
 
   /**
+   * Provide an informative object string tag.
+   */
+  get [Symbol.toStringTag]() {
+    return 'Table';
+  }
+
+  /**
    * The number of columns in this table.
    * @return {number} The number of columns.
    */
@@ -84,11 +91,11 @@ export class Table {
 
   /**
    * Return an object mapping column names to extracted value arrays.
-   * @returns {Record<string, import('./types.js').ColumnArray<any>>}
+   * @returns {Record<string, import('./types.js').ValueArray<any>>}
    */
   toColumns() {
     const { children } = this;
-    /** @type {Record<string, import('./types.js').ColumnArray<any>>} */
+    /** @type {Record<string, import('./types.js').ValueArray<any>>} */
     const cols = {};
     for (const c of children) {
       cols[c.name] = c.toArray();
@@ -97,28 +104,51 @@ export class Table {
   }
 
   /**
+   * Return an iterator over objects representing the rows of this table.
+   * @returns {Generator<Record<string, any>, any, null>}
+   */
+  *[Symbol.iterator]() {
+    const { children } = this;
+    const batches = children[0].data.length;
+    const names = children.map(c => c.name);
+    // for each batch...
+    for (let b = 0; b < batches; ++b) {
+      const data = children.map(c => c.data[b]);
+      const rows = data[0].length;
+      // for each row...
+      for (let i = 0; i < rows; ++i) {
+        yield rowObject(names, data, i);
+      }
+    }
+  }
+
+  /**
    * Return an array of objects representing the rows of this table.
    * @returns {Record<string, any>[]}
    */
   toArray() {
-    const { children, numCols, numRows } = this;
-    const numBatches = children[0].data.length;
+    const { children, numRows } = this;
+    const batches = children[0].data.length;
     const names = children.map(c => c.name);
     const output = Array(numRows);
     // for each batch...
-    for (let b = 0, row = -1; b < numBatches; ++b) {
+    for (let b = 0, row = -1; b < batches; ++b) {
       const data = children.map(c => c.data[b]);
-      const batchRows = data[0].length;
+      const rows = data?.[0].length;
       // for each row...
-      for (let i = 0; i < batchRows; ++i) {
-        const o = {};
-        // for each column...
-        for (let j = 0; j < numCols; ++j) {
-          o[names[j]] = data[j].at(i);
-        }
-        output[++row] = o;
+      for (let i = 0; i < rows; ++i) {
+        output[++row] = rowObject(names, data, i);
       }
     }
     return output;
   }
+}
+
+function rowObject(names, data, index) {
+  const o = {};
+  // for each column...
+  for (let j = 0; j < names.length; ++j) {
+    o[names[j]] = data[j].at(index);
+  }
+  return o;
 }

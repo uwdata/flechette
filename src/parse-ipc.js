@@ -110,7 +110,8 @@ export function parseIPCFile(data) {
   // 10: batches (vector)
   // 12: metadata
   const get = table(data, offset - length);
-  const version = get(4, readInt16, Version.V1);
+  const version = /** @type {import('./types.js').Version_} */
+    (get(4, readInt16, Version.V1));
   const dicts = get(8, decodeBlocks, []);
   const recs = get(10, decodeBlocks, []);
 

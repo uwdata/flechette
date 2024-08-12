@@ -89,26 +89,38 @@ export function decodeInt(buf, index) {
   );
 }
 
+/**
+ * Decode a float type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').FloatType}
+ */
 function decodeFloat(buf, index) {
   //  4: precision
   const get = table(buf, index);
-  const precision = get(4, readInt16, Precision.HALF);
+  const precision = /** @type {typeof Precision[keyof Precision]} */
+    (get(4, readInt16, Precision.HALF));
   return {
     typeId: Type.Float,
     precision,
     values: precision === Precision.HALF ? uint16
       : precision === Precision.SINGLE ? float32
-      : precision === Precision.DOUBLE ? float64
-      : null
+      : float64
   };
 }
 
+/**
+ * Decode a decimal type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').DecimalType}
+ */
 function decodeDecimal(buf, index) {
   //  4: precision
   //  6: scale
   //  8: bitWidth
   const get = table(buf, index);
-  const bitWidth = get(8, readInt32, 128);
+  const bitWidth = /** @type {128 | 256 } */ (get(8, readInt32, 128));
   return {
     typeId: Type.Decimal,
     precision: get(4, readInt32, 0),
@@ -118,10 +130,17 @@ function decodeDecimal(buf, index) {
   };
 }
 
+/**
+ * Decode a date type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').DateType}
+ */
 function decodeDate(buf, index) {
   //  4: unit
   const get = table(buf, index);
-  const unit = get(4, readInt16, DateUnit.MILLISECOND);
+  const unit = /** @type {typeof DateUnit[keyof DateUnit]} */
+   (get(4, readInt16, DateUnit.MILLISECOND));
   return {
     typeId: Type.Date,
     unit,
@@ -129,35 +148,56 @@ function decodeDate(buf, index) {
   };
 }
 
+/**
+ * Decode a time type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').TimeType}
+ */
 function decodeTime(buf, index) {
   //  4: unit
   //  6: bitWidth
   const get = table(buf, index);
-  const bitWidth = get(6, readInt32, 32);
+  const bitWidth = /** @type {32 | 64 } */ (get(6, readInt32, 32));
   return {
     typeId: Type.Time,
-    unit: get(4, readInt16, TimeUnit.MILLISECOND),
+    unit: /** @type {typeof TimeUnit[keyof TimeUnit]} */
+      (get(4, readInt16, TimeUnit.MILLISECOND)),
     bitWidth,
     values: bitWidth === 32 ? int32 : int64
   };
 }
 
+/**
+ * Decode a timestamp type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').TimestampType}
+ */
 function decodeTimestamp(buf, index) {
   //  4: unit
   //  6: timezone
   const get = table(buf, index);
   return {
     typeId: Type.Timestamp,
-    unit: get(4, readInt16, TimeUnit.SECOND),
+    unit: /** @type {typeof TimeUnit[keyof TimeUnit]} */
+      (get(4, readInt16, TimeUnit.SECOND)),
     timezone: get(6, readString),
     values: int64
   };
 }
 
+/**
+ * Decode an interval type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').IntervalType}
+ */
 function decodeInterval(buf, index) {
   //  4: unit
   const get = table(buf, index);
-  const unit = get(4, readInt16, IntervalUnit.YEAR_MONTH);
+  const unit = /** @type {typeof IntervalUnit[keyof IntervalUnit]} */
+    (get(4, readInt16, IntervalUnit.YEAR_MONTH));
   return {
     typeId: Type.Interval,
     unit,
@@ -165,16 +205,29 @@ function decodeInterval(buf, index) {
   };
 }
 
+/**
+ * Decode a duration type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').DurationType}
+ */
 function decodeDuration(buf, index) {
   //  4: unit
   const get = table(buf, index);
   return {
     typeId: Type.Duration,
-    unit: get(4, readInt16, TimeUnit.MILLISECOND),
+    unit: /** @type {typeof TimeUnit[keyof TimeUnit]} */
+      (get(4, readInt16, TimeUnit.MILLISECOND)),
     values: int64
   };
 }
 
+/**
+ * Decode a fixed size binary type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').FixedSizeBinaryType}
+ */
 function decodeFixedSizeBinary(buf, index) {
   //  4: size (byteWidth)
   const get = table(buf, index);
@@ -184,6 +237,12 @@ function decodeFixedSizeBinary(buf, index) {
   };
 }
 
+/**
+ * Decode a fixed size list type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').FixedSizeListType}
+ */
 function decodeFixedSizeList(buf, index, children) {
   //  4: size (listSize)
   const get = table(buf, index);
@@ -194,6 +253,12 @@ function decodeFixedSizeList(buf, index, children) {
   };
 }
 
+/**
+ * Decode a map type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').MapType}
+ */
 function decodeMap(buf, index, children) {
   //  4: keysSorted (bool)
   const get = table(buf, index);
@@ -205,6 +270,12 @@ function decodeMap(buf, index, children) {
   };
 }
 
+/**
+ * Decode a union type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
+ * @param {number} index The starting index in the byte buffer
+ * @returns {import('../types.js').UnionType}
+ */
 function decodeUnion(buf, index, children) {
   //  4: mode
   //  6: typeIds
@@ -212,7 +283,8 @@ function decodeUnion(buf, index, children) {
   const { length, base } = readVector(buf, get(6, readOffset));
   return {
     typeId: Type.Union,
-    mode: get(4, readInt16, UnionMode.Sparse),
+    mode: /** @type {typeof UnionMode[keyof UnionMode]} */
+      (get(4, readInt16, UnionMode.Sparse)),
     typeIds: new int32(buf.buffer, buf.byteOffset + base, length),
     children: children ?? [],
     offsets: int32

@@ -57,16 +57,16 @@ export function createTable(data, options = {}) {
   for (const dict of dictionaries) {
     const { id, data, isDelta, body } = dict;
     const type = dictionaryTypes.get(id);
-    const chunk = visit(type, context({ ...data, body }));
+    const batch = visit(type, context({ ...data, body }));
     if (!dicts.has(id)) {
       if (isDelta) {
         throw new Error('Delta update can not be first dictionary batch.');
       }
-      dicts.set(id, columnBuilder(`${id}`, type).add(chunk));
+      dicts.set(id, columnBuilder(`${id}`, type).add(batch));
     } else {
       const dict = dicts.get(id);
       if (!isDelta) dict.clear();
-      dict.add(chunk);
+      dict.add(batch);
     }
   }
   dicts.forEach((value, key) => dictionaryMap.set(key, value.done()));

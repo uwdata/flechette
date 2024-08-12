@@ -1,7 +1,5 @@
 export const SIZEOF_INT = 4;
 
-export const $iterator = Symbol.iterator;
-
 /**
  * Return a boolean for a single bit in a bitmap.
  * @param {Uint8Array} bitmap The bitmap.

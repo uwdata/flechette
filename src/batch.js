@@ -1,5 +1,5 @@
 import { float64 } from './array-types.js';
-import { $iterator, decodeBit, decodeUtf8, divide, readInt32, readInt64AsNum, toNumber } from './util.js';
+import { decodeBit, decodeUtf8, divide, readInt32, readInt64AsNum, toNumber } from './util.js';
 
 /**
  * Column values from a single record batch.
@@ -54,6 +54,13 @@ export class Batch {
   }
 
   /**
+   * Provide an informative object string tag.
+   */
+  get [Symbol.toStringTag]() {
+    return 'Batch';
+  }
+
+  /**
    * Return the value at the given index.
    * @param {number} index The value index.
    * @returns {T | null} The value.
@@ -86,7 +93,7 @@ export class Batch {
    * Extract an array of values within the given index range.
    * @param {number} start The starting index, inclusive
    * @param {number} end The ending index, exclusive
-   * @returns {T[] | import('./types.js').TypedArray} The slice of values
+   * @returns {import('./types.js').ValueArray<T?>} The slice of values
    */
   slice(start, end) {
     const n = end - start;
@@ -99,9 +106,9 @@ export class Batch {
 
   /**
    * Return an iterator over the values in this batch.
-   * @returns {Generator<T, any, null>}
+   * @returns {Iterator<T?>}
    */
-  *[$iterator]() {
+  *[Symbol.iterator]() {
     const { length } = this;
     for (let i = 0; i < length; ++i) {
       yield this.at(i);
@@ -120,16 +127,23 @@ export class DirectBatch extends Batch {
    * When feasible, a zero-copy subarray of a typed array is returned.
    * @param {number} start The starting index, inclusive
    * @param {number} end The ending index, exclusive
-   * @returns {T[] | import('./types.js').TypedArray} The slice of values
+   * @returns {import('./types.js').ValueArray<T?>} The slice of values
    */
   slice(start, end) {
+    // @ts-ignore
     return this.nullCount
       ? super.slice(start, end)
       : this.values.subarray(start, end);
   }
 
-  [$iterator]() {
-    return this.nullCount ? super[$iterator]() : this.values[$iterator]();
+  /**
+   * Return an iterator over the values in this batch.
+   * @returns {Iterator<T?>}
+   */
+  [Symbol.iterator]() {
+    return this.nullCount
+      ? super[Symbol.iterator]()
+      : /** @type {Iterator<T?>} */ (this.values[Symbol.iterator]());
   }
 }
 
@@ -230,6 +244,7 @@ export class DecimalBatch extends NumberBatch {
     this.stride = type.bitWidth >> 5; // 8 bits/byte and 4 bytes/uint32;
     this.scale = Math.pow(10, type.scale);
   }
+
   /**
    * @param {number} index The value index
    */
@@ -265,6 +280,7 @@ export class DateBatch extends ArrayBatch {
     super(batch);
     this.source = batch;
   }
+
   /**
    * @param {number} index The value index
    */
@@ -451,12 +467,12 @@ export class LargeUtf8Batch extends ArrayBatch {
  * A batch of list (array) values of variable length. The list offsets are
  * 32-bit ints.
  * @template V
- * @extends {ArrayBatch<import('./types.js').ColumnArray<V>>}
+ * @extends {ArrayBatch<import('./types.js').ValueArray<V>>}
  */
 export class ListBatch extends ArrayBatch {
   /**
    * @param {number} index
-   * @returns {import('./types.js').ColumnArray<V>}
+   * @returns {import('./types.js').ValueArray<V>}
    */
   value(index) {
     const offsets = /** @type {Int32Array} */ (this.offsets);
@@ -469,12 +485,12 @@ export class ListBatch extends ArrayBatch {
  * 64-bit ints. Value extraction will fail if an offset exceeds
  * `Number.MAX_SAFE_INTEGER`.
  * @template V
- * @extends {ArrayBatch<import('./types.js').ColumnArray<V>>}
+ * @extends {ArrayBatch<import('./types.js').ValueArray<V>>}
  */
 export class LargeListBatch extends ArrayBatch {
   /**
    * @param {number} index
-   * @returns {import('./types.js').ColumnArray<V>}
+   * @returns {import('./types.js').ValueArray<V>}
    */
   value(index) {
     const offsets = /** @type {BigInt64Array} */ (this.offsets);
@@ -502,12 +518,12 @@ export class FixedBatch extends ArrayBatch {
 /**
  * A batch of list (array) values of fixed length.
  * @template V
- * @extends {ArrayBatch<import('./types.js').ColumnArray<V>>}
+ * @extends {ArrayBatch<import('./types.js').ValueArray<V>>}
  */
 export class FixedListBatch extends ArrayBatch {
   /**
    * @param {number} index
-   * @returns {import('./types.js').ColumnArray<V>}
+   * @returns {import('./types.js').ValueArray<V>}
    */
   value(index) {
     const { type, children } = this;
@@ -519,7 +535,7 @@ export class FixedListBatch extends ArrayBatch {
 /**
  * Extract Map key-value pairs from parallel child batches.
  */
-const pairs = ({ children, offsets }, index) => {
+function pairs({ children, offsets }, index) {
   const [ keys, vals ] = children[0].children;
   const start = offsets[index];
   const end = offsets[index + 1];
@@ -577,6 +593,7 @@ export class SparseUnionBatch extends ArrayBatch {
     /** @type {Record<number,number>} */
     this.map = typeIds.reduce((map, id, i) => ((map[id] = i), map), {});
   }
+
   /**
    * @param {number} index The value index.
    */
@@ -612,6 +629,7 @@ export class StructBatch extends ArrayBatch {
     const type = /** @type {import('./types.js').StructType} */ (this.type);
     this.names = type.children.map(child => child.name);
   }
+
   /**
    * @param {number} index The value index.
    * @returns {Record<string, any>}
@@ -633,18 +651,26 @@ export class StructBatch extends ArrayBatch {
  * @extends {ArrayBatch<T>}
  */
 export class DictionaryBatch extends ArrayBatch {
+  /**
+   * Create a new dictionary batch.
+   * @param {object} options Batch options.
+   * @param {import('./types.js').DataType} options.type The field data type
+   * @param {number} options.length The length of the batch
+   * @param {number} options.nullCount The null value count
+   * @param {Uint8Array} [options.validity] Validity bitmap buffer
+   * @param {import('./types.js').TypedArray} [options.values] Values buffer
+   * @param {import('./column.js').Column<T>} options.dictionary
+   *  The dictionary of column values.
+   */
   constructor(options) {
     super(options);
-    // extract and cache dictionary data (if not already done)
-    const { dictionary: d } = options;
-    /** @type {import('./types.js').ColumnArray<T>} */
-    this.cache = d.cache ?? (d.cache = d.toArray());
+    this.cache = options.dictionary.cache();
   }
   /**
    * @param {number} index The value index.
    */
   value(index) {
-    return /** @type {T} */ (this.cache[this.key(index)]);
+    return this.cache[this.key(index)];
   }
   /**
    * @param {number} index The value index.
