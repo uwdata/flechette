@@ -1,28 +1,28 @@
 # Flechette
 
-**Flechette** is a JavaScript library for reading [Apache Arrow](https://arrow.apache.org/) data. It provides a faster, lighter, zero-dependency alternative to the Apache Arrow [JavaScript reference implementation](https://github.com/apache/arrow/tree/main/js).
+**Flechette** is a JavaScript library for reading the [Apache Arrow](https://arrow.apache.org/) columnar in-memory data format. It provides a faster, lighter, zero-dependency alternative to the [Arrow JS reference implementation](https://github.com/apache/arrow/tree/main/js).
 
-Flechette provides fast extraction of data in the Arrow binary IPC format, supporting ingestion of Arrow data (from sources such as [DuckDB](https://duckdb.org/)) for downstream use in JavaScript data analysis tools like [Arquero](https://github.com/uwdata/arquero), [Mosaic](https://github.com/uwdata/mosaic), [Observable Plot](https://observablehq.com/plot/), and [Vega-Lite](https://vega.github.io/vega-lite/).
+Flechette performs fast extraction of data columns in the Arrow binary IPC format, supporting ingestion of Arrow data (from sources such as [DuckDB](https://duckdb.org/)) for downstream use in JavaScript data analysis tools like [Arquero](https://github.com/uwdata/arquero), [Mosaic](https://github.com/uwdata/mosaic), [Observable Plot](https://observablehq.com/plot/), and [Vega-Lite](https://vega.github.io/vega-lite/).
 
 ## Why Flechette?
 
-In the process of developing multiple data analysis packages that consume Apache Arrow data (including Arquero, Mosaic, and Vega), we had to develop workarounds for the performance and correctness of the Apache Arrow JavaScript reference implementation. Instead of workarounds, Flechette seeks to address these issues head-on.
+In the process of developing multiple data analysis packages that consume Arrow data (including Arquero, Mosaic, and Vega), we've had to develop workarounds for the performance and correctness of the Arrow JavaScript reference implementation. Instead of workarounds, Flechette addresses these issues head-on.
 
 * _Speed_. Flechette provides faster decoding. Across varied datasets, initial performance tests show 1.3-1.6x faster value iteration, 2-7x faster array extraction, and 5-9x faster row object extraction.
 
 * _Size_. Flechette is ~16k minified (~6k gzip'd), versus 163k minified (~43k gzip'd) for Arrow JS.
 
-* _Coverage_. At the time of writing, Flechette supports multiple data types unsupported by the reference implementation, including decimal-to-number conversion and support for month/day/nanosecond time intervals (as used, for example, by DuckDB).
+* _Coverage_. Flechette supports multiple data types unsupported by the reference implementation at the time of writing, including decimal-to-number conversion and support for month/day/nanosecond time intervals (as used, for example, by DuckDB).
 
 * _Flexibility_. Flechette includes options to control data value conversion, such as numerical timestamps vs. Date objects for temporal data, and numbers vs. bigint values for 64-bit integer data.
 
 * _Simplicity_. Our goal is to provide a smaller, simpler code base in the hope that it will make it easier for ourselves and others to improve the library. If you'd like to see support for additional Arrow data types or features, please [file an issue](https://github.com/uwdata/flechette/issues) or [open a pull request](https://github.com/uwdata/flechette/pulls).
 
-That said, no tool is without limitations or trade-offs. Flechette is *consumption oriented*: it does yet support encoding, though please [upvote encoding support](https://github.com/uwdata/flechette/issues/1) if you would use it. Flechette also requires simpler inputs (byte buffers, no promises or streams), has less comprehensive TypeScript typings, and may have a slightly slower initial parse (as it decodes dictionary data upfront for faster downstream access).
+That said, no tool is without limitations or trade-offs. Flechette is *consumption oriented*: it does yet support encoding (though feel free to [upvote encoding support](https://github.com/uwdata/flechette/issues/1)!). Flechette also requires simpler inputs (byte buffers, no promises or streams), has less strict TypeScript typings, and at times has a slightly slower initial parse (as it decodes dictionary data upfront for faster downstream access).
 
 ## What's with the name?
 
-The project name stems from the French word [fléchette](https://en.wikipedia.org/wiki/Flechette), which means a "little arrow" or "dart". 🎯
+The project name stems from the French word [fléchette](https://en.wikipedia.org/wiki/Flechette), which means "little arrow" or "dart". 🎯
 
 ## Examples
 
@@ -64,6 +64,10 @@ const columns = table.toColumns();
 // convert Arrow data to an array of standard JS objects
 // [ { delay: 14, distance: 405, time: 0.01666666753590107 }, ... ]
 const objects = table.toArray();
+
+// create a new table with a selected subset of columns
+// use this first to limit toColumns or toArray to fewer columns
+const subtable = table.select(['delay', 'time']);
 ```
 
 ### Customize Data Extraction
