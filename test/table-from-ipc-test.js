@@ -1,17 +1,20 @@
 import assert from 'node:assert';
-import { arrowFromDuckDB } from './util/arrow-from-duckdb.js';
+import { arrowFromDuckDB, arrowQuery } from './util/arrow-from-duckdb.js';
 import { tableFromIPC } from '../src/index.js';
 
 const toDate = v => new Date(v);
 const toBigInt = v => BigInt(v);
 
-async function valueTest(values, dbType = null, arrayType = Array, opt = undefined, transform = undefined) {
+async function valueTest(values, dbType = null, arrayType, opt = undefined, transform = undefined) {
   const array = transform
     ? values.map((v, i) => v == null ? v : transform(v, i))
     : Array.from(values);
   const bytes = await arrowFromDuckDB(values, dbType);
   const column = tableFromIPC(bytes, opt).getChild('value');
+  compare(column, array, arrayType);
+}
 
+function compare(column, array, arrayType = Array) {
   // test values extracted using toArray
   const data = column.toArray();
   assert.ok(data instanceof arrayType, 'toArray type check');
@@ -227,5 +230,17 @@ describe('tableFromIPC', () => {
     await valueTest([ {a: 1, b: 'foo'}, null, {a: 2, b: 'baz'} ]);
     await valueTest([ {a: null, b: 'foo'}, {a: 2, b: null} ]);
     await valueTest([ {a: ['a', 'b'], b: Math.E}, {a: ['c', 'd'], b: Math.PI} ]);
+  });
+
+  it('decodes empty data', async () => {
+    // For empty result sets, DuckDB node only returns a zero byte
+    // Other variants may include a schema message
+    const sql = 'SELECT schema_name FROM information_schema.schemata WHERE false';
+    const table = tableFromIPC(await arrowQuery(sql));
+    assert.strictEqual(table.numRows, 0);
+    assert.strictEqual(table.numCols, 0);
+    assert.deepStrictEqual(table.toColumns(), {});
+    assert.deepStrictEqual(table.toArray(), []);
+    assert.deepStrictEqual([...table], []);
   });
 });

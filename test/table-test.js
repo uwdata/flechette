@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import { arrowFromDuckDB } from './util/arrow-from-duckdb.js';
 import { tableFromIPC } from '../src/index.js';
+import { Table } from '../src/table.js';
 
 const values = [
   {a: 1, b: 'foo', c: [1, null, 3] },
@@ -41,11 +42,61 @@ describe('Table', () => {
     assert.strictEqual(sel.getChildAt(1), col);
   });
 
+  it('provides select by index with rename', async () => {
+    const sel = table.selectAt([0, 0], ['foo', 'bar']);
+    const col = table.getChild('value');
+    assert.strictEqual(sel.schema.fields.length, 2);
+    assert.strictEqual(sel.getChildAt(0), col);
+    assert.strictEqual(sel.getChildAt(1), col);
+    assert.strictEqual(sel.getChild('foo'), col);
+    assert.strictEqual(sel.getChild('bar'), col);
+  });
+
   it('provides select by name', async () => {
     const sel = table.select(['value', 'value']);
     const col = table.getChild('value');
     assert.strictEqual(sel.schema.fields.length, 2);
     assert.strictEqual(sel.getChildAt(0), col);
     assert.strictEqual(sel.getChildAt(1), col);
+  });
+
+  it('provides select by name with rename', async () => {
+    const sel = table.select(['value', 'value'], ['foo', 'bar']);
+    const col = table.getChild('value');
+    assert.strictEqual(sel.schema.fields.length, 2);
+    assert.strictEqual(sel.getChildAt(0), col);
+    assert.strictEqual(sel.getChildAt(1), col);
+    assert.strictEqual(sel.getChild('foo'), col);
+    assert.strictEqual(sel.getChild('bar'), col);
+  });
+
+  it('handles empty table with no schema', async () => {
+    const test = (table) => {
+      assert.strictEqual(table.numRows, 0);
+      assert.strictEqual(table.numCols, 0);
+      assert.deepStrictEqual(table.toColumns(), {});
+      assert.deepStrictEqual(table.toArray(), []);
+      assert.deepStrictEqual([...table], []);
+    }
+    test(new Table({ fields: [] }, []));
+    test(new Table({ fields: [] }, []).select([]));
+    test(new Table({ fields: [] }, []).selectAt([]));
+  });
+
+  it('handles empty table with schema', async () => {
+    const fields = [
+      { name: 'foo', type: { typeId: 2, bitWidth: 32, signed: true } },
+      { name: 'bar', type: { typeId: 5 } }
+    ];
+    const test = (table) => {
+      assert.strictEqual(table.numRows, 0);
+      assert.strictEqual(table.numCols, 2);
+      assert.deepStrictEqual(table.toColumns(), { foo: [], bar: [] });
+      assert.deepStrictEqual(table.toArray(), []);
+      assert.deepStrictEqual([...table], []);
+    }
+    test(new Table({ fields }, []));
+    test(new Table({ fields }, []).select(['foo', 'bar']));
+    test(new Table({ fields }, []).selectAt([0, 1]));
   });
 });
