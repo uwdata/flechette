@@ -62,7 +62,7 @@ export function createTable(data, options = {}) {
       if (isDelta) {
         throw new Error('Delta update can not be first dictionary batch.');
       }
-      dicts.set(id, columnBuilder().add(batch));
+      dicts.set(id, columnBuilder(type).add(batch));
     } else {
       const dict = dicts.get(id);
       if (!isDelta) dict.clear();
@@ -72,7 +72,7 @@ export function createTable(data, options = {}) {
   dicts.forEach((value, key) => dictionaryMap.set(key, value.done()));
 
   // decode column fields
-  const cols = fields.map(() => columnBuilder());
+  const cols = fields.map(f => columnBuilder(f.type));
   for (const batch of records) {
     const ctx = context(batch);
     fields.forEach((f, i) => cols[i].add(visit(f.type, ctx)));

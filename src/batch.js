@@ -2,6 +2,16 @@ import { float64 } from './array-types.js';
 import { decodeBit, decodeUtf8, divide, readInt32, readInt64AsNum, toNumber } from './util.js';
 
 /**
+ * Check if the input is a batch that supports direct access to
+ * binary data in the form of typed arrays.
+ * @param {Batch<any>?} batch The data batch to check.
+ * @returns {boolean} True if a direct batch, false otherwise.
+ */
+export function isDirectBatch(batch) {
+  return batch instanceof DirectBatch;
+}
+
+/**
  * Column values from a single record batch.
  * A column may contain multiple batches.
  * @template T

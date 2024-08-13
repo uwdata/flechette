@@ -1,14 +1,14 @@
-import { DirectBatch } from './batch.js';
+import { isDirectBatch } from './batch.js';
 
 /**
  * Build up a column from batches.
  */
-export function columnBuilder() {
+export function columnBuilder(type) {
   let data = [];
   return {
     add(batch) { data.push(batch); return this; },
     clear: () => data = [],
-    done: () => new Column(data)
+    done: () => new Column(type, data)
   };
 }
 
@@ -23,20 +23,30 @@ export function columnBuilder() {
 export class Column {
   /**
    * Create a new column instance.
+   * @param {import('./types.js').DataType} type The data type.
    * @param {import('./batch.js').Batch<T>[]} data The value batches.
    */
-  constructor(data) {
+  constructor(type, data) {
     /**
+     * The column data type.
+     * @type {import('./types.js').DataType}
+     * @readonly
+     */
+    this.type = type;
+    /**
+     * The column length.
      * @type {number}
      * @readonly
      */
     this.length = data.reduce((m, c) => m + c.length, 0);
     /**
+     * The count of null values in the column.
      * @type {number}
      * @readonly
      */
     this.nullCount = data.reduce((m, c) => m + c.nullCount, 0);
     /**
+     * An array of column data batches.
      * @type {readonly import('./batch.js').Batch<T>[]}
      * @readonly
      */
@@ -56,6 +66,8 @@ export class Column {
     }
 
     /**
+     * Index offsets for data batches.
+     * Used to map a column row index to a batch-specific index.
      * @type {Int32Array}
      * @readonly
      */
@@ -115,7 +127,7 @@ export class Column {
    */
   toArray() {
     const { length, nullCount, data } = this;
-    const copy = !nullCount && isDirect(data);
+    const copy = !nullCount && isDirectBatch(data[0]);
     const n = data.length;
 
     if (copy && n === 1) {
@@ -149,10 +161,6 @@ function *batchedIterator(data) {
       yield next.value;
     }
   }
-}
-
-function isDirect(data) {
-  return data.length && data[0] instanceof DirectBatch;
 }
 
 function copyArray(array, data) {
