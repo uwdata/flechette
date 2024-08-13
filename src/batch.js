@@ -87,7 +87,8 @@ export class Batch {
   }
 
   /**
-   * Extract an array of values within the given index range.
+   * Extract an array of values within the given index range. Unlike
+   * Array.slice, all arguments are required and may not be negative indices.
    * @param {number} start The starting index, inclusive
    * @param {number} end The ending index, exclusive
    * @returns {import('./types.js').ValueArray<T?>} The slice of values
@@ -120,7 +121,24 @@ export class Batch {
  */
 export class DirectBatch extends Batch {
   /**
-   * Extract an array of values within the given index range.
+   * Create a new column batch with direct value array access.
+   * @param {object} options
+   * @param {number} options.length The length of the batch
+   * @param {number} options.nullCount The null value count
+   * @param {Uint8Array} [options.validity] Validity bitmap buffer
+   * @param {import('./types.js').TypedArray} options.values Values buffer
+   */
+  constructor(options) {
+    super(options);
+    // underlying buffers may be padded, exceeding the logical batch length
+    // we trim the values array so we can safely access it directly
+    const { length, values } = this;
+    this.values = values.subarray(0, length);
+  }
+
+  /**
+   * Extract an array of values within the given index range. Unlike
+   * Array.slice, all arguments are required and may not be negative indices.
    * When feasible, a zero-copy subarray of a typed array is returned.
    * @param {number} start The starting index, inclusive
    * @param {number} end The ending index, exclusive
