@@ -97,11 +97,11 @@ export type Metadata = Map<string, string>;
  * Arrow table schema.
  */
 export interface Schema {
-  version: Version_;
-  endianness: Endianness_;
+  version?: Version_;
+  endianness?: Endianness_;
   fields: Field[];
   metadata?: Metadata | null;
-  dictionaryTypes: Map<number, DataType>;
+  dictionaryTypes?: Map<number, DataType>;
 }
 
 /**
@@ -238,7 +238,7 @@ export interface DictionaryBatch {
  * Parsed Arrow IPC data, prior to table construction.
  */
 export interface ArrowData {
-  schema: Schema;
+  schema?: Schema;
   dictionaries: DictionaryBatch[] | null;
   records: RecordBatch[] | null;
   metadata: Metadata | null;

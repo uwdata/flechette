@@ -18,7 +18,6 @@ export class Batch {
   /**
    * Create a new column batch.
    * @param {object} options
-   * @param {import('./types.js').DataType} options.type The field data type
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
@@ -28,7 +27,6 @@ export class Batch {
    * @param {Batch[]} [options.children] Children batches
    */
   constructor({
-    type,
     length,
     nullCount,
     validity,
@@ -37,7 +35,6 @@ export class Batch {
     typeIds,
     children
   }) {
-    this.type = type;
     this.length = length;
     this.nullCount = nullCount;
     this.validity = validity;
@@ -238,11 +235,20 @@ const BASE32 = Array.from(
  * a 64-bit floating point format.
  */
 export class DecimalBatch extends NumberBatch {
+  /**
+   * Create a new decimal batch.
+   * @param {object} options
+   * @param {number} options.length The length of the batch
+   * @param {number} options.nullCount The null value count
+   * @param {Uint8Array} [options.validity] Validity bitmap buffer
+   * @param {import('./types.js').TypedArray} options.values Values buffer
+   * @param {number} options.bitWidth The decimal bit width
+   * @param {number} options.scale The number of decimal digits
+   */
   constructor(options) {
     super(options);
-    const type = /** @type {import('./types.js').DecimalType} */ (this.type);
-    this.stride = type.bitWidth >> 5; // 8 bits/byte and 4 bytes/uint32;
-    this.scale = Math.pow(10, type.scale);
+    this.stride = options.bitWidth >> 5, // 8 bits/byte and 4 bytes/uint32;
+    this.scale = Math.pow(10, options.scale);
   }
 
   /**
@@ -276,6 +282,10 @@ export class DecimalBatch extends NumberBatch {
  * @extends {ArrayBatch<Date>}
  */
 export class DateBatch extends ArrayBatch {
+  /**
+   * Create a new date batch.
+   * @param {Batch<number>} batch A batch of timestamp values.
+   */
   constructor(batch) {
     super(batch);
     this.source = batch;
@@ -499,35 +509,57 @@ export class LargeListBatch extends ArrayBatch {
 }
 
 /**
+ * A batch with a fixed stride.
+ * @template T
+ * @extends {ArrayBatch<T>}
+ */
+class FixedBatch extends ArrayBatch {
+  /**
+   * Create a new column batch with fixed stride.
+   * @param {object} options
+   * @param {number} options.length The length of the batch
+   * @param {number} options.nullCount The null value count
+   * @param {Uint8Array} [options.validity] Validity bitmap buffer
+   * @param {import('./types.js').TypedArray} [options.values] Values buffer
+   * @param {Batch[]} [options.children] Children batches
+   * @param {number} options.stride The fixed stride (size) of values.
+   */
+  constructor(options) {
+    super(options);
+    /** @type {number} */
+    this.stride = options.stride;
+  }
+}
+
+/**
  * A batch of binary blobs of fixed size, returned as byte buffers of unsigned
  * 8-bit integers.
- * @extends {ArrayBatch<Uint8Array>}
+ * @extends {FixedBatch<Uint8Array>}
  */
-export class FixedBatch extends ArrayBatch {
+export class FixedBinaryBatch extends FixedBatch {
   /**
    * @param {number} index
    * @returns {Uint8Array}
    */
   value(index) {
-    const { stride } = /** @type {import('./types.js').FixedSizeBinaryType} */ (this.type);
-    const values = /** @type {Uint8Array} */ (this.values);
-    return values.subarray(index * stride, (index + 1) * stride);
+    const { stride, values } = this;
+    return /** @type {Uint8Array} */ (values)
+      .subarray(index * stride, (index + 1) * stride);
   }
 }
 
 /**
  * A batch of list (array) values of fixed length.
  * @template V
- * @extends {ArrayBatch<import('./types.js').ValueArray<V>>}
+ * @extends {FixedBatch<import('./types.js').ValueArray<V>>}
  */
-export class FixedListBatch extends ArrayBatch {
+export class FixedListBatch extends FixedBatch {
   /**
    * @param {number} index
    * @returns {import('./types.js').ValueArray<V>}
    */
   value(index) {
-    const { type, children } = this;
-    const { stride } = /** @type {import('./types.js').FixedSizeListType} */ (type);
+    const { children, stride } = this;
     return children[0].slice(index * stride, (index + 1) * stride);
   }
 }
@@ -587,11 +619,21 @@ export class MapBatch extends ArrayBatch {
  * @extends {ArrayBatch<T>}
  */
 export class SparseUnionBatch extends ArrayBatch {
+  /**
+   * Create a new column batch.
+   * @param {object} options
+   * @param {number} options.length The length of the batch
+   * @param {number} options.nullCount The null value count
+   * @param {Uint8Array} [options.validity] Validity bitmap buffer
+   * @param {import('./types.js').OffsetArray} [options.offsets] Offsets buffer
+   * @param {Int8Array} options.typeIds Union type ids buffer
+   * @param {Batch[]} options.children Children batches
+   * @param {Record<string,number>} options.map A typeId to children index map
+   */
   constructor(options) {
     super(options);
-    const { typeIds } = options.type;
     /** @type {Record<number,number>} */
-    this.map = typeIds.reduce((map, id, i) => ((map[id] = i), map), {});
+    this.map = options.map;
   }
 
   /**
@@ -624,10 +666,19 @@ export class DenseUnionBatch extends SparseUnionBatch {
  * @extends {ArrayBatch<Record<string, any>>}
  */
 export class StructBatch extends ArrayBatch {
+  /**
+   * Create a new column batch.
+   * @param {object} options
+   * @param {number} options.length The length of the batch
+   * @param {number} options.nullCount The null value count
+   * @param {Uint8Array} [options.validity] Validity bitmap buffer
+   * @param {Batch[]} options.children Children batches
+   * @param {string[]} options.names Child batch names
+   */
   constructor(options) {
     super(options);
-    const type = /** @type {import('./types.js').StructType} */ (this.type);
-    this.names = type.children.map(child => child.name);
+    /** @type {string[]} */
+    this.names = options.names;
   }
 
   /**

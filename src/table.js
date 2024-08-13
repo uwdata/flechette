@@ -14,6 +14,8 @@ export class Table {
   constructor(schema, children) {
     /** @readonly */
     this.schema = schema;
+    /** @readonly */
+    this.names = schema.fields.map(f => f.name);
     /**
      * @type {import('./column.js').Column[]}
      * @readonly
@@ -33,7 +35,7 @@ export class Table {
    * @return {number} The number of columns.
    */
   get numCols() {
-    return this.children.length;
+    return this.names.length;
   }
 
   /**
@@ -41,7 +43,7 @@ export class Table {
    * @return {number} The number of rows.
    */
   get numRows() {
-    return this.children?.[0].length ?? 0;
+    return this.children[0]?.length ?? 0;
   }
 
   /**
@@ -59,20 +61,26 @@ export class Table {
    * @returns {import('./column.js').Column<any>}
    */
   getChild(name) {
-    return this.children.find(c => c.name === name);
+    const i = this.names.findIndex(x => x === name);
+    return i > -1 ? this.children[i] : undefined;
   }
 
   /**
    * Construct a new table containing only columns at the specified indices.
    * The order of columns in the new table matches the order of input indices.
    * @param {number[]} indices The indices of columns to keep.
+   * @param {string[]} [as] Optional new names for selected columns.
    * @returns {Table} A new table with columns at the specified indices.
    */
-  selectAt(indices) {
-    const { fields } = this.schema;
+  selectAt(indices, as = []) {
+    const { children, schema } = this;
+    const { fields } = schema;
     return new Table(
-      { ...this.schema, fields: indices.map(i => fields[i]) },
-      indices.map(i => this.children[i])
+      {
+        ...schema,
+        fields: indices.map((i, j) => renameField(fields[i], as[j]))
+      },
+      indices.map(i => children[i])
     );
   }
 
@@ -81,12 +89,13 @@ export class Table {
    * If columns have duplicate names, the first (with lowest index) is used.
    * The order of columns in the new table matches the order of input names.
    * @param {string[]} names Names of columns to keep.
+   * @param {string[]} [as] Optional new names for selected columns.
    * @returns {Table} A new table with columns matching the specified names.
    */
-  select(names) {
-    const all = this.children.map(c => c.name);
-    const indices = names.map(name => all.indexOf(name)).filter(i => i > -1);
-    return this.selectAt(indices);
+  select(names, as) {
+    const all = this.names;
+    const indices = names.map(name => all.indexOf(name));
+    return this.selectAt(indices, as);
   }
 
   /**
@@ -94,12 +103,10 @@ export class Table {
    * @returns {Record<string, import('./types.js').ValueArray<any>>}
    */
   toColumns() {
-    const { children } = this;
+    const { children, names } = this;
     /** @type {Record<string, import('./types.js').ValueArray<any>>} */
     const cols = {};
-    for (const c of children) {
-      cols[c.name] = c.toArray();
-    }
+    names.forEach((name, i) => cols[name] = children[i]?.toArray() ?? [] );
     return cols;
   }
 
@@ -108,9 +115,8 @@ export class Table {
    * @returns {Generator<Record<string, any>, any, null>}
    */
   *[Symbol.iterator]() {
-    const { children } = this;
-    const batches = children[0].data.length;
-    const names = children.map(c => c.name);
+    const { children, names } = this;
+    const batches = children[0]?.data.length ?? 0;
     // for each batch...
     for (let b = 0; b < batches; ++b) {
       const data = children.map(c => c.data[b]);
@@ -127,9 +133,8 @@ export class Table {
    * @returns {Record<string, any>[]}
    */
   toArray() {
-    const { children, numRows } = this;
-    const batches = children[0].data.length;
-    const names = children.map(c => c.name);
+    const { children, numRows, names } = this;
+    const batches = children[0]?.data.length ?? 0;
     const output = Array(numRows);
     // for each batch...
     for (let b = 0, row = -1; b < batches; ++b) {
@@ -142,6 +147,12 @@ export class Table {
     }
     return output;
   }
+}
+
+function renameField(field, name) {
+  return (name != null && name !== field.name)
+    ? { ...field, name }
+    : field;
 }
 
 function rowObject(names, data, index) {

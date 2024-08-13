@@ -1,13 +1,13 @@
 import { int8 } from './array-types.js';
 import {
   BinaryBatch, BoolBatch, DateBatch, DateDayBatch, DateDayMillisecondBatch,
-  DecimalBatch, DenseUnionBatch, DictionaryBatch, DirectBatch, FixedBatch,
-  FixedListBatch, Float16Batch, Int64Batch, IntervalDayTimeBatch,
-  IntervalMonthDayNanoBatch, IntervalYearMonthBatch, LargeBinaryBatch,
-  LargeListBatch, LargeUtf8Batch, ListBatch, MapBatch, MapEntryBatch,
-  NullBatch, SparseUnionBatch, StructBatch, TimestampMicrosecondBatch,
-  TimestampMillisecondBatch, TimestampNanosecondBatch, TimestampSecondBatch,
-  Utf8Batch
+  DecimalBatch, DenseUnionBatch, DictionaryBatch, DirectBatch,
+  FixedBinaryBatch, FixedListBatch, Float16Batch, Int64Batch,
+  IntervalDayTimeBatch, IntervalMonthDayNanoBatch, IntervalYearMonthBatch,
+  LargeBinaryBatch, LargeListBatch, LargeUtf8Batch, ListBatch, MapBatch,
+  MapEntryBatch, NullBatch, SparseUnionBatch, StructBatch,
+  TimestampMicrosecondBatch, TimestampMillisecondBatch,
+  TimestampNanosecondBatch, TimestampSecondBatch, Utf8Batch
 } from './batch.js';
 import { columnBuilder } from './column.js';
 import {
@@ -47,7 +47,7 @@ export function tableFromIPC(data, options) {
  * @returns {Table} A Table instance.
  */
 export function createTable(data, options = {}) {
-  const { schema, dictionaries, records } = data;
+  const { schema = { fields: [] }, dictionaries, records } = data;
   const { version, fields, dictionaryTypes } = schema;
   const dictionaryMap = new Map;
   const context = contextGenerator(options, version, dictionaryMap);
@@ -62,7 +62,7 @@ export function createTable(data, options = {}) {
       if (isDelta) {
         throw new Error('Delta update can not be first dictionary batch.');
       }
-      dicts.set(id, columnBuilder(`${id}`, type).add(batch));
+      dicts.set(id, columnBuilder().add(batch));
     } else {
       const dict = dicts.get(id);
       if (!isDelta) dict.clear();
@@ -72,10 +72,10 @@ export function createTable(data, options = {}) {
   dicts.forEach((value, key) => dictionaryMap.set(key, value.done()));
 
   // decode column fields
-  const cols = fields.map(({ name, type }) => columnBuilder(name, type));
+  const cols = fields.map(() => columnBuilder());
   for (const batch of records) {
     const ctx = context(batch);
-    cols.forEach(c => c.add(visit(c.type, ctx)));
+    fields.forEach((f, i) => cols[i].add(visit(f.type, ctx)));
   }
 
   return new Table(schema, cols.map(c => c.done()));
@@ -115,38 +115,39 @@ function contextGenerator(options, version, dictionaryMap) {
  * Visit a field, instantiating views of buffer regions.
  */
 function visit(type, ctx) {
-  const { typeId, bitWidth, precision, unit } = type;
+  const { typeId, bitWidth, precision, scale, stride, unit } = type;
   const { useBigInt, useDate, useMap } = ctx.options;
 
   // no field node, no buffers
   if (typeId === Type.Null) {
     const { length } = ctx;
-    return new NullBatch({ type, length, nullCount: length });
+    return new NullBatch({ length, nullCount: length });
   }
 
   // extract the next { length, nullCount } field node
   const node = ctx.node();
-  const opt = { ...node, type };
 
   // batch constructors
-  const value = (BatchType) => new BatchType({
+  const value = (BatchType, opt) => new BatchType({
+    ...node,
     ...opt,
     validity: ctx.buffer(),
     values: ctx.buffer(type.values)
   });
   const offset = (BatchType) => new BatchType({
-    ...opt,
+    ...node,
     validity: ctx.buffer(),
     offsets: ctx.buffer(type.offsets),
     values: ctx.buffer()
   });
   const list = (BatchType) => new BatchType({
-    ...opt,
+    ...node,
     validity: ctx.buffer(),
     offsets: ctx.buffer(type.offsets),
     children: ctx.visitAll(type.children)
   });
-  const kids = (BatchType) => new BatchType({
+  const kids = (BatchType, opt) => new BatchType({
+    ...node,
     ...opt,
     validity: ctx.buffer(),
     children: ctx.visitAll(type.children)
@@ -173,13 +174,13 @@ function visit(type, ctx) {
         : unit === TimeUnit.MICROSECOND ? TimestampMicrosecondBatch
         : TimestampNanosecondBatch);
     case Type.Decimal:
-      return value(DecimalBatch);
+      return value(DecimalBatch, { bitWidth, scale });
     case Type.Interval:
       return value(unit === IntervalUnit.DAY_TIME ? IntervalDayTimeBatch
         : unit === IntervalUnit.YEAR_MONTH ? IntervalYearMonthBatch
         : IntervalMonthDayNanoBatch);
     case Type.FixedSizeBinary:
-      return value(FixedBatch);
+      return value(FixedBinaryBatch, { stride });
 
     // validity, offset, and value buffers
     case Type.Utf8: return offset(Utf8Batch);
@@ -193,14 +194,16 @@ function visit(type, ctx) {
     case Type.Map: return list(useMap ? MapBatch : MapEntryBatch);
 
     // validity and children
-    case Type.FixedSizeList: return kids(FixedListBatch);
-    case Type.Struct: return kids(StructBatch);
+    case Type.FixedSizeList: return kids(FixedListBatch, { stride });
+    case Type.Struct: return kids(StructBatch, {
+      names: type.children.map(child => child.name)
+    });
 
     // dictionary
     case Type.Dictionary: {
       const { id, keys } = type;
       return new DictionaryBatch({
-        ...opt,
+        ...node,
         validity: ctx.buffer(),
         values: ctx.buffer(keys.values),
         dictionary: ctx.dictionary(id)
@@ -216,7 +219,8 @@ function visit(type, ctx) {
       const typeIds = ctx.buffer(int8);
       const offsets = isSparse ? null : ctx.buffer(type.offsets);
       const children = ctx.visitAll(type.children);
-      const options = { ...opt, typeIds, offsets, children };
+      const map = type.typeIds.reduce((map, id, i) => ((map[id] = i), map), {});
+      const options = { ...node, map, typeIds, offsets, children };
       return isSparse ? new SparseUnionBatch(options) : new DenseUnionBatch(options);
     }
 

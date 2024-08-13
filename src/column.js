@@ -2,16 +2,13 @@ import { DirectBatch } from './batch.js';
 
 /**
  * Build up a column from batches.
- * @param {string} name The column name.
- * @param {import('./types.js').DataType} type The column data type.
  */
-export function columnBuilder(name, type) {
+export function columnBuilder() {
   let data = [];
   return {
-    type,
     add(batch) { data.push(batch); return this; },
     clear: () => data = [],
-    done: () => new Column(name, type, data)
+    done: () => new Column(data)
   };
 }
 
@@ -26,21 +23,9 @@ export function columnBuilder(name, type) {
 export class Column {
   /**
    * Create a new column instance.
-   * @param {string} name The name of the column.
-   * @param {import('./types.js').DataType} type The column data type.
    * @param {import('./batch.js').Batch<T>[]} data The value batches.
    */
-  constructor(name, type, data) {
-    /**
-     * @type {string}
-     * @readonly
-     */
-    this.name = name;
-    /**
-     * @type {import('./types.js').DataType}
-     * @readonly
-     */
-    this.type = type;
+  constructor(data) {
     /**
      * @type {number}
      * @readonly
@@ -131,15 +116,16 @@ export class Column {
   toArray() {
     const { length, nullCount, data } = this;
     const copy = !nullCount && isDirect(data);
+    const n = data.length;
 
-    if (copy && data.length === 1) {
+    if (copy && n === 1) {
       // use batch array directly
       // @ts-ignore
       return data[0].values;
     }
 
     // determine output array type
-    const ArrayType = nullCount > 0 ? Array
+    const ArrayType = !n || nullCount > 0 ? Array
       // @ts-ignore
       : (data[0].constructor.ArrayType ?? data[0].values.constructor);
 
