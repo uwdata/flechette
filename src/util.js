@@ -57,6 +57,29 @@ export function divide(num, div) {
   return toNumber(num / div) + toNumber(num % div) / toNumber(div);
 }
 
+/**
+ * Determine the correct index into an offset array for a given
+ * full column row index.
+ * @param {Int32Array} offsets The offsets array.
+ * @param {number} index The full column row index.
+ */
+export function bisectOffsets(offsets, index) {
+  // binary search for batch index
+  // we use a fast unsigned bit shift for division by two
+  // this assumes offsets.length <= Math.pow(2, 31), which seems safe
+  // otherwise that is a whole lotta record batches to handle in JS...
+  let a = 0;
+  let b = offsets.length;
+  do {
+    const mid = (a + b) >>> 1;
+    if (offsets[mid] <= index) a = mid + 1;
+    else b = mid;
+  } while (a < b);
+
+  // decrement to the desired offset array index
+  return --a;
+}
+
 // -- flatbuffer utilities -----
 
 /**

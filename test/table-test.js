@@ -12,26 +12,40 @@ const values = [
 const table = tableFromIPC(await arrowFromDuckDB(values));
 
 describe('Table', () => {
-  it('provides row count', async () => {
+  it('provides row count', () => {
     assert.deepStrictEqual(table.numRows, 3);
   });
 
-  it('provides column count', async () => {
+  it('provides column count', () => {
     assert.deepStrictEqual(table.numCols, 1);
   });
 
-  it('provides child column accessors', async () => {
+  it('provides child column accessors', () => {
     const col = table.getChild('value');
     assert.strictEqual(col, table.getChildAt(0));
     assert.deepStrictEqual(col.toArray(), values);
   });
 
-  it('provides object array', async () => {
+  it('provides object array', () => {
     assert.deepStrictEqual(table.toArray(), values.map(value => ({ value })));
   });
 
-  it('provides column array map', async () => {
+  it('provides column array map', () => {
     assert.deepStrictEqual(table.toColumns(), { value: values });
+  });
+
+  it('provides random access via at/get', () => {
+    const idx = [0, 1, 2];
+
+    // table object random access
+    const obj = values.map(value => ({ value }));
+    assert.deepStrictEqual(idx.map(i => table.at(i)), obj);
+    assert.deepStrictEqual(idx.map(i => table.get(i)), obj);
+
+    // column value random access
+    const col = table.getChildAt(0);
+    assert.deepStrictEqual(idx.map(i => col.at(i)), values);
+    assert.deepStrictEqual(idx.map(i => col.get(i)), values);
   });
 
   it('provides select by index', async () => {

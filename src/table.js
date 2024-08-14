@@ -1,3 +1,5 @@
+import { bisectOffsets } from './util.js';
+
 /**
  * A table consists of a collection of named columns (or 'children').
  * To work with table data directly in JavaScript, usse `toColumns()`
@@ -111,41 +113,56 @@ export class Table {
   }
 
   /**
-   * Return an iterator over objects representing the rows of this table.
-   * @returns {Generator<Record<string, any>, any, null>}
-   */
-  *[Symbol.iterator]() {
-    const { children, names } = this;
-    const batches = children[0]?.data.length ?? 0;
-    // for each batch...
-    for (let b = 0; b < batches; ++b) {
-      const data = children.map(c => c.data[b]);
-      const rows = data[0].length;
-      // for each row...
-      for (let i = 0; i < rows; ++i) {
-        yield rowObject(names, data, i);
-      }
-    }
-  }
-
-  /**
    * Return an array of objects representing the rows of this table.
    * @returns {Record<string, any>[]}
    */
   toArray() {
     const { children, numRows, names } = this;
-    const batches = children[0]?.data.length ?? 0;
+    const data = children[0]?.data ?? [];
     const output = Array(numRows);
-    // for each batch...
-    for (let b = 0, row = -1; b < batches; ++b) {
-      const data = children.map(c => c.data[b]);
-      const rows = data?.[0].length;
-      // for each row...
-      for (let i = 0; i < rows; ++i) {
-        output[++row] = rowObject(names, data, i);
+    for (let b = 0, row = -1; b < data.length; ++b) {
+      for (let i = 0; i < data[b].length; ++i) {
+        output[++row] = rowObject(names, children, b, i);
       }
     }
     return output;
+  }
+
+  /**
+   * Return an iterator over objects representing the rows of this table.
+   * @returns {Generator<Record<string, any>, any, null>}
+   */
+  *[Symbol.iterator]() {
+    const { children, names } = this;
+    const data = children[0]?.data ?? [];
+    for (let b = 0; b < data.length; ++b) {
+      for (let i = 0; i < data[b].length; ++i) {
+        yield rowObject(names, children, b, i);
+      }
+    }
+  }
+
+  /**
+   * Return a row object for the given index.
+   * @param {number} index The row index.
+   * @returns {Record<string, any>} The row object.
+   */
+  at(index) {
+    const { names, children, numRows } = this;
+    if (index < 0 || index >= numRows) return null;
+    const [{ offsets }] = children;
+    const i = bisectOffsets(offsets, index);
+    return rowObject(names, children, i, index - offsets[i]);
+  }
+
+  /**
+   * Return a row object for the given index. This method is the same as
+   * `at()` and is provided for better compatibility with Apache Arrow JS.
+   * @param {number} index The row index.
+   * @returns {Record<string, any>} The row object.
+   */
+  get(index) {
+    return this.at(index);
   }
 }
 
@@ -155,11 +172,10 @@ function renameField(field, name) {
     : field;
 }
 
-function rowObject(names, data, index) {
+function rowObject(names, children, batch, index) {
   const o = {};
-  // for each column...
   for (let j = 0; j < names.length; ++j) {
-    o[names[j]] = data[j].at(index);
+    o[names[j]] = children[j].data[batch].at(index);
   }
   return o;
 }
