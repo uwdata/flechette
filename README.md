@@ -72,7 +72,7 @@ const subtable = table.select(['delay', 'time']);
 
 ### Customize Data Extraction
 
-Data extraction can be customized using options provided to the table generation method. By default, temporal data is returned as numeric timestamps, 64-int integers are coerced to numbers, and map-typed data is returned as an array of [key, value] pairs. These defaults can be changed via conversion options that push (or remove) transformations to the underlying data batches.
+Data extraction can be customized using options provided to the table generation method. By default, temporal data is returned as numeric timestamps, 64-bit integers are coerced to numbers, and map-typed data is returned as an array of [key, value] pairs. These defaults can be changed via conversion options that push (or remove) transformations to the underlying data batches.
 
 ```js
 const table = tableFromIPC(ipc, {
