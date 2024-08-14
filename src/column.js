@@ -1,4 +1,5 @@
 import { isDirectBatch } from './batch.js';
+import { bisectOffsets } from './util.js';
 
 /**
  * Build up a column from batches.
@@ -99,25 +100,25 @@ export class Column {
    * lookup less efficient than a standard array access. If making a full
    * scan of a column, consider extracting arrays via `toArray()` or using an
    * iterator (`for (const value of column) {...}`).
-   * @param {number} index The index
+   * @param {number} index The row index.
    * @returns {T | null} The value.
    */
   at(index) {
     // NOTE: if there is only one batch, this method is replaced with an
-    // optimized version within the Column constructor.
+    // optimized version in the Column constructor.
     const { data, offsets } = this;
+    const i = bisectOffsets(offsets, index);
+    return data[i]?.at(index - offsets[i]); // undefined if out of range
+  }
 
-    // binary search for batch index
-    let a = 0;
-    let b = offsets.length;
-    do {
-      const mid = (a + b) >>> 1;
-      if (offsets[mid] <= index) a = mid + 1;
-      else b = mid;
-    } while (a < b);
-
-    // returns undefined if index is out of range
-    return data[--a]?.at(index - offsets[a]);
+  /**
+   * Return the column value at the given index. This method is the same as
+   * `at()` and is provided for better compatibility with Apache Arrow JS.
+   * @param {number} index The row index.
+   * @returns {T | null} The value.
+   */
+  get(index) {
+    return this.at(index);
   }
 
   /**

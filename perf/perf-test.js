@@ -28,6 +28,20 @@ function iterateValues(table) {
   names.forEach(name => Array.from(table.getChild(name)));
 }
 
+// random access to each column value
+// this will be slower if there are multiple record batches
+// due to the need for binary search over the offsets array
+function randomAccess(table) {
+  const { numRows, numCols } = table;
+  const vals = Array(numCols);
+  for (let j = 0; j < numCols; ++j) {
+    const col = table.getChildAt(j);
+    for (let i = 0; i < numRows; ++i) {
+      vals[j] = col.at(i);
+    }
+  }
+}
+
 // generate row objects, access each property
 function visitObjects(table) {
   const nr = table.numRows;
@@ -58,6 +72,7 @@ async function run(file) {
   trial('Parse Table from IPC', file, bytes, parseIPC, 10);
   trial('Extract Arrays', file, bytes, extractArrays, 10);
   trial('Iterate Values', file, bytes, iterateValues, 10);
+  trial('Random Access', file, bytes, randomAccess, 10);
   trial('Visit Row Objects', file, bytes, visitObjects, 5);
   console.log();
 }
