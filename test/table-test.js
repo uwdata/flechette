@@ -113,4 +113,9 @@ describe('Table', () => {
     test(new Table({ fields }, []).select(['foo', 'bar']));
     test(new Table({ fields }, []).selectAt([0, 1]));
   });
+
+  it('is not concat spreadable', () => {
+    assert.ok(!table[Symbol.isConcatSpreadable]);
+    assert.deepStrictEqual([].concat(table), [table]);
+  });
 });

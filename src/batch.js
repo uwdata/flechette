@@ -33,7 +33,6 @@ export class Batch {
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
    * @param {import('./types.js').TypedArray} [options.values] Values buffer
    * @param {import('./types.js').OffsetArray} [options.offsets] Offsets buffer
-   * @param {Int8Array} [options.typeIds] Union type ids buffer
    * @param {Batch[]} [options.children] Children batches
    */
   constructor({
@@ -42,7 +41,6 @@ export class Batch {
     validity,
     values,
     offsets,
-    typeIds,
     children
   }) {
     this.length = length;
@@ -50,7 +48,6 @@ export class Batch {
     this.validity = validity;
     this.values = values;
     this.offsets = offsets;
-    this.typeIds = typeIds;
     this.children = children;
 
     // optimize access if this batch has no null values
@@ -117,8 +114,7 @@ export class Batch {
    * @returns {Iterator<T?>}
    */
   *[Symbol.iterator]() {
-    const { length } = this;
-    for (let i = 0; i < length; ++i) {
+    for (let i = 0; i < this.length; ++i) {
       yield this.at(i);
     }
   }
@@ -273,10 +269,10 @@ export class DecimalBatch extends NumberBatch {
    * @param {number} options.bitWidth The decimal bit width
    * @param {number} options.scale The number of decimal digits
    */
-  constructor(options) {
-    super(options);
-    this.stride = options.bitWidth >> 5, // 8 bits/byte and 4 bytes/uint32;
-    this.scale = Math.pow(10, options.scale);
+  constructor({ bitWidth, scale, ...rest }) {
+    super(rest);
+    this.stride = bitWidth >> 5, // 8 bits/byte and 4 bytes/uint32;
+    this.scale = Math.pow(10, scale);
   }
 
   /**
@@ -548,14 +544,14 @@ class FixedBatch extends ArrayBatch {
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
-   * @param {import('./types.js').TypedArray} [options.values] Values buffer
+   * @param {Uint8Array} [options.values] Values buffer
    * @param {Batch[]} [options.children] Children batches
    * @param {number} options.stride The fixed stride (size) of values.
    */
-  constructor(options) {
-    super(options);
+  constructor({ stride, ...rest }) {
+    super(rest);
     /** @type {number} */
-    this.stride = options.stride;
+    this.stride = stride;
   }
 }
 
@@ -653,15 +649,17 @@ export class SparseUnionBatch extends ArrayBatch {
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
-   * @param {import('./types.js').OffsetArray} [options.offsets] Offsets buffer
-   * @param {Int8Array} options.typeIds Union type ids buffer
+   * @param {Int32Array} [options.offsets] Offsets buffer
    * @param {Batch[]} options.children Children batches
-   * @param {Record<string,number>} options.map A typeId to children index map
+   * @param {Int8Array} options.typeIds Union type ids buffer
+   * @param {Record<string, number>} options.map A typeId to children index map
    */
-  constructor(options) {
-    super(options);
-    /** @type {Record<number,number>} */
-    this.map = options.map;
+  constructor({ typeIds, map, ...rest }) {
+    super(rest);
+    /** @type {Int8Array} */
+    this.typeIds = typeIds;
+    /** @type {Record<string, number>} */
+    this.map = map;
   }
 
   /**
@@ -703,10 +701,10 @@ export class StructBatch extends ArrayBatch {
    * @param {Batch[]} options.children Children batches
    * @param {string[]} options.names Child batch names
    */
-  constructor(options) {
-    super(options);
+  constructor({ names, ...rest }) {
+    super(rest);
     /** @type {string[]} */
-    this.names = options.names;
+    this.names = names;
   }
 
   /**
@@ -733,24 +731,25 @@ export class DictionaryBatch extends ArrayBatch {
   /**
    * Create a new dictionary batch.
    * @param {object} options Batch options.
-   * @param {import('./types.js').DataType} options.type The field data type
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
-   * @param {import('./types.js').TypedArray} [options.values] Values buffer
+   * @param {import('./types.js').IntegerArray} options.values Values buffer
    * @param {import('./column.js').Column<T>} options.dictionary
    *  The dictionary of column values.
    */
-  constructor(options) {
-    super(options);
-    this.cache = options.dictionary.cache();
+  constructor({ dictionary, ...rest }) {
+    super(rest);
+    this.cache = dictionary.cache();
   }
+
   /**
    * @param {number} index The value index.
    */
   value(index) {
     return this.cache[this.key(index)];
   }
+
   /**
    * @param {number} index The value index.
    * @returns {number} The dictionary key
