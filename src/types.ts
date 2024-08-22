@@ -38,7 +38,7 @@ export type IntervalUnit_ = typeof IntervalUnit[keyof typeof IntervalUnit];
 /** A valid union type mode value. */
 export type UnionMode_ = typeof UnionMode[keyof typeof UnionMode];
 
-export type TypedArray =
+export type IntegerArray =
   | Uint8Array
   | Uint16Array
   | Uint32Array
@@ -46,7 +46,10 @@ export type TypedArray =
   | Int16Array
   | Int32Array
   | BigUint64Array
-  | BigInt64Array
+  | BigInt64Array;
+
+export type TypedArray =
+  | IntegerArray
   | Float32Array
   | Float64Array;
 
