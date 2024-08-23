@@ -1,5 +1,5 @@
 import { isDirectBatch } from './batch.js';
-import { bisectOffsets } from './util.js';
+import { bisect } from './util.js';
 
 /**
  * Build up a column from batches.
@@ -107,7 +107,7 @@ export class Column {
     // NOTE: if there is only one batch, this method is replaced with an
     // optimized version in the Column constructor.
     const { data, offsets } = this;
-    const i = bisectOffsets(offsets, index);
+    const i = bisect(offsets, index) - 1;
     return data[i]?.at(index - offsets[i]); // undefined if out of range
   }
 

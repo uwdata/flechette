@@ -189,6 +189,9 @@ export type LargeUtf8Type = { typeId: 20, offsets: BigInt64ArrayConstructor };
 /** List data type with 64-bit integer offsets for larger data. */
 export type LargeListType = { typeId: 21, children: [Field], offsets: BigInt64ArrayConstructor };
 
+/** RunEndEncoded data type. */
+export type RunEndEncodedType = { typeId: 22, children: [Field, Field] };
+
 /** ListView data type. */
 export type ListViewType = { typeId: 25, children: [Field], offsets: Int32ArrayConstructor };
 
@@ -221,6 +224,7 @@ export type DataType =
   | LargeBinaryType
   | LargeUtf8Type
   | LargeListType
+  | RunEndEncodedType
   | ListViewType
   | LargeListViewType
   | DictionaryType;

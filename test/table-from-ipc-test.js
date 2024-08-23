@@ -255,6 +255,26 @@ describe('tableFromIPC', () => {
     await valueTest([ {a: ['a', 'b'], b: Math.E}, {a: ['c', 'd'], b: Math.PI} ]);
   });
 
+  it('decodes run-end-encoded data', async () => {
+    const buf = await readFile(`test/data/runendencoded.arrows`);
+    const table = tableFromIPC(new Uint8Array(buf));
+    const column = table.getChild('value');
+    const [{ children: [runs, vals] }] = column.data;
+    assert.deepStrictEqual([...runs], [2, 3, 4, 6, 8, 9]);
+    assert.deepStrictEqual([...vals], ['foo', null, 'bar', 'baz', null, 'foo']);
+    compare(column, ['foo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo']);
+  });
+
+  it('decodes run-end-encoded data with 64-bit run ends', async () => {
+    const buf = await readFile(`test/data/runendencoded64.arrows`);
+    const table = tableFromIPC(new Uint8Array(buf), { useBigInt: true });
+    const column = table.getChild('value');
+    const [{ children: [runs, vals] }] = column.data;
+    assert.deepStrictEqual([...runs], [2n, 3n, 4n, 6n, 8n, 9n]);
+    assert.deepStrictEqual([...vals], ['foo', null, 'bar', 'baz', null, 'foo']);
+    compare(column, ['foo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo']);
+  });
+
   it('decodes empty data', async () => {
     // For empty result sets, DuckDB node only returns a zero byte
     // Other variants may include a schema message

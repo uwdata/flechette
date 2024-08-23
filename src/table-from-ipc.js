@@ -25,6 +25,7 @@ import {
   MapBatch,
   MapEntryBatch,
   NullBatch,
+  RunEndEncodedBatch,
   SparseUnionBatch,
   StructBatch,
   TimestampMicrosecondBatch,
@@ -232,6 +233,12 @@ function visit(type, ctx) {
     case Type.FixedSizeList: return kids(FixedListBatch, { stride });
     case Type.Struct: return kids(StructBatch, {
       names: type.children.map(child => child.name)
+    });
+
+    // children only
+    case Type.RunEndEncoded: return new RunEndEncodedBatch({
+      ...node,
+      children: ctx.visitAll(type.children)
     });
 
     // dictionary
