@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import { readFile } from 'node:fs/promises';
 import { arrowFromDuckDB, arrowQuery } from './util/arrow-from-duckdb.js';
 import { tableFromIPC } from '../src/index.js';
 
@@ -205,6 +206,28 @@ describe('tableFromIPC', () => {
     await valueTest(svalues, 'VARCHAR[]');
     await valueTest(spnulls, 'VARCHAR[]');
     await valueTest(scnulls, 'VARCHAR[]');
+  });
+
+  it('decodes list view data', async () => {
+    const buf = await readFile(`test/data/listview.arrows`);
+    const column = tableFromIPC(new Uint8Array(buf)).getChild('value');
+    compare(column, [
+      ['foo', 'bar', 'baz'],
+      null,
+      ['baz', null, 'foo'],
+      ['foo']
+    ]);
+  });
+
+  it('decodes large list view data', async () => {
+    const buf = await readFile(`test/data/largelistview.arrows`);
+    const column = tableFromIPC(new Uint8Array(buf)).getChild('value');
+    compare(column, [
+      ['foo', 'bar', 'baz'],
+      null,
+      ['baz', null, 'foo'],
+      ['foo']
+    ]);
   });
 
   it('decodes union data', async () => {

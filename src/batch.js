@@ -33,6 +33,7 @@ export class Batch {
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
    * @param {import('./types.js').TypedArray} [options.values] Values buffer
    * @param {import('./types.js').OffsetArray} [options.offsets] Offsets buffer
+   * @param {import('./types.js').OffsetArray} [options.sizes] Sizes buffer
    * @param {Batch[]} [options.children] Children batches
    */
   constructor({
@@ -41,6 +42,7 @@ export class Batch {
     validity,
     values,
     offsets,
+    sizes,
     children
   }) {
     this.length = length;
@@ -48,6 +50,7 @@ export class Batch {
     this.validity = validity;
     this.values = values;
     this.offsets = offsets;
+    this.sizes = sizes;
     this.children = children;
 
     // optimize access if this batch has no null values
@@ -529,6 +532,43 @@ export class LargeListBatch extends ArrayBatch {
   value(index) {
     const offsets = /** @type {BigInt64Array} */ (this.offsets);
     return this.children[0].slice(toNumber(offsets[index]), toNumber(offsets[index + 1]));
+  }
+}
+
+/**
+ * A batch of list (array) values of variable length. The list offsets and
+ * sizes are 32-bit ints.
+ * @template V
+ * @extends {ArrayBatch<import('./types.js').ValueArray<V>>}
+ */
+export class ListViewBatch extends ArrayBatch {
+  /**
+   * @param {number} index
+   * @returns {import('./types.js').ValueArray<V>}
+   */
+  value(index) {
+    const a = /** @type {number} */ (this.offsets[index]);
+    const b = a +  /** @type {number} */ (this.sizes[index]);
+    return this.children[0].slice(a, b);
+  }
+}
+
+/**
+ * A batch of list (array) values of variable length. The list offsets and
+ * sizes are 64-bit ints. Value extraction will fail if an offset or size
+ * exceeds `Number.MAX_SAFE_INTEGER`.
+ * @template V
+ * @extends {ArrayBatch<import('./types.js').ValueArray<V>>}
+ */
+export class LargeListViewBatch extends ArrayBatch {
+  /**
+   * @param {number} index
+   * @returns {import('./types.js').ValueArray<V>}
+   */
+  value(index) {
+    const a = /** @type {bigint} */ (this.offsets[index]);
+    const b = a +  /** @type {bigint} */ (this.sizes[index]);
+    return this.children[0].slice(toNumber(a), toNumber(b));
   }
 }
 
