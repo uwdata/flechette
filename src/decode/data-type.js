@@ -23,9 +23,11 @@ export function decodeDataType(buf, index, typeId, children) {
     case Type.LargeUtf8:
       return { typeId, offsets: int64 };
     case Type.List:
-      return { typeId, children: [children?.[0] ?? null], offsets: int32 };
+    case Type.ListView:
+      return { typeId, children: [children?.[0]], offsets: int32 };
     case Type.LargeList:
-      return { typeId, children: [children?.[0] ?? null], offsets: int64 };
+    case Type.LargeListView:
+      return { typeId, children: [children?.[0]], offsets: int64 };
     case Type.Struct:
       return { typeId, children };
     case Type.Int:
@@ -52,6 +54,7 @@ export function decodeDataType(buf, index, typeId, children) {
       return decodeMap(buf, index, children);
     case Type.Union:
       return decodeUnion(buf, index, children);
+
   }
   // TODO: collect errors, skip failures?
   throw new Error(`Unrecognized type: "${keyFor(Type, typeId)}" (id ${typeId})`);

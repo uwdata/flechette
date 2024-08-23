@@ -1,13 +1,37 @@
 import { int8 } from './array-types.js';
 import {
-  BinaryBatch, BoolBatch, DateBatch, DateDayBatch, DateDayMillisecondBatch,
-  DecimalBatch, DenseUnionBatch, DictionaryBatch, DirectBatch,
-  FixedBinaryBatch, FixedListBatch, Float16Batch, Int64Batch,
-  IntervalDayTimeBatch, IntervalMonthDayNanoBatch, IntervalYearMonthBatch,
-  LargeBinaryBatch, LargeListBatch, LargeUtf8Batch, ListBatch, MapBatch,
-  MapEntryBatch, NullBatch, SparseUnionBatch, StructBatch,
-  TimestampMicrosecondBatch, TimestampMillisecondBatch,
-  TimestampNanosecondBatch, TimestampSecondBatch, Utf8Batch
+  BinaryBatch,
+  BoolBatch,
+  DateBatch,
+  DateDayBatch,
+  DateDayMillisecondBatch,
+  DecimalBatch,
+  DenseUnionBatch,
+  DictionaryBatch,
+  DirectBatch,
+  FixedBinaryBatch,
+  FixedListBatch,
+  Float16Batch,
+  Int64Batch,
+  IntervalDayTimeBatch,
+  IntervalMonthDayNanoBatch,
+  IntervalYearMonthBatch,
+  LargeBinaryBatch,
+  LargeListBatch,
+  LargeListViewBatch,
+  LargeUtf8Batch,
+  ListBatch,
+  ListViewBatch,
+  MapBatch,
+  MapEntryBatch,
+  NullBatch,
+  SparseUnionBatch,
+  StructBatch,
+  TimestampMicrosecondBatch,
+  TimestampMillisecondBatch,
+  TimestampNanosecondBatch,
+  TimestampSecondBatch,
+  Utf8Batch
 } from './batch.js';
 import { columnBuilder } from './column.js';
 import {
@@ -146,6 +170,13 @@ function visit(type, ctx) {
     offsets: ctx.buffer(type.offsets),
     children: ctx.visitAll(type.children)
   });
+  const listview = (BatchType) => new BatchType({
+    ...node,
+    validity: ctx.buffer(),
+    offsets: ctx.buffer(type.offsets),
+    sizes: ctx.buffer(type.offsets),
+    children: ctx.visitAll(type.children)
+  });
   const kids = (BatchType, opt) => new BatchType({
     ...node,
     ...opt,
@@ -192,6 +223,10 @@ function visit(type, ctx) {
     case Type.List: return list(ListBatch);
     case Type.LargeList: return list(LargeListBatch);
     case Type.Map: return list(useMap ? MapBatch : MapEntryBatch);
+
+    // validity, offset, size, and list child
+    case Type.ListView: return listview(ListViewBatch);
+    case Type.LargeListView: return listview(LargeListViewBatch);
 
     // validity and children
     case Type.FixedSizeList: return kids(FixedListBatch, { stride });
