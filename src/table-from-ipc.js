@@ -1,6 +1,7 @@
 import { int8 } from './array-types.js';
 import {
   BinaryBatch,
+  BinaryViewBatch,
   BoolBatch,
   DateBatch,
   DateDayBatch,
@@ -32,7 +33,8 @@ import {
   TimestampMillisecondBatch,
   TimestampNanosecondBatch,
   TimestampSecondBatch,
-  Utf8Batch
+  Utf8Batch,
+  Utf8ViewBatch
 } from './batch.js';
 import { columnBuilder } from './column.js';
 import {
@@ -118,9 +120,10 @@ function contextGenerator(options, version, dictionaryMap) {
 
   // return a context generator
   return batch => {
-    const { length, nodes, buffers, body } = batch;
+    const { length, nodes, buffers, variadic, body } = batch;
     let nodeIndex = -1;
     let bufferIndex = -1;
+    let variadicIndex = -1;
     return {
       ...base,
       length,
@@ -131,6 +134,7 @@ function contextGenerator(options, version, dictionaryMap) {
           ? new ArrayType(body.buffer, body.byteOffset + offset, length / ArrayType.BYTES_PER_ELEMENT)
           : body.subarray(offset, offset + length)
       },
+      variadic: () => variadic[++variadicIndex],
       visitAll(list) { return list.map(x => visit(x.type, this)); }
     };
   };
@@ -164,6 +168,12 @@ function visit(type, ctx) {
     validity: ctx.buffer(),
     offsets: ctx.buffer(type.offsets),
     values: ctx.buffer()
+  });
+  const view = (BatchType) => new BatchType({
+    ...node,
+    validity: ctx.buffer(),
+    values: ctx.buffer(), // views buffer
+    data: Array.from({ length: ctx.variadic() }, () => ctx.buffer()) // data buffers
   });
   const list = (BatchType) => new BatchType({
     ...node,
@@ -220,6 +230,10 @@ function visit(type, ctx) {
     case Type.Binary: return offset(BinaryBatch);
     case Type.LargeBinary: return offset(LargeBinaryBatch);
 
+    // views with variadic buffers
+    case Type.BinaryView: return view(BinaryViewBatch);
+    case Type.Utf8View: return view(Utf8ViewBatch);
+
     // validity, offset, and list child
     case Type.List: return list(ListBatch);
     case Type.LargeList: return list(LargeListBatch);
@@ -258,16 +272,17 @@ function visit(type, ctx) {
         ctx.buffer(); // skip unused null bitmap
       }
       const isSparse = type.mode === UnionMode.Sparse;
-      const typeIds = ctx.buffer(int8);
-      const offsets = isSparse ? null : ctx.buffer(type.offsets);
-      const children = ctx.visitAll(type.children);
-      const map = type.typeIds.reduce((map, id, i) => ((map[id] = i), map), {});
-      const options = { ...node, map, typeIds, offsets, children };
-      return isSparse ? new SparseUnionBatch(options) : new DenseUnionBatch(options);
+      return new (isSparse ? SparseUnionBatch : DenseUnionBatch)({
+        ...node,
+        map: type.typeIds.reduce((map, id, i) => ((map[id] = i), map), {}),
+        typeIds: ctx.buffer(int8),
+        offsets: isSparse ? null : ctx.buffer(type.offsets),
+        children: ctx.visitAll(type.children)
+      });
     }
 
     // unsupported type
     default:
-      throw new Error(`Unsupported type: ${typeId}, (${keyFor(Type, typeId)})`);
+      throw new Error(`Unsupported type: ${typeId} ${keyFor(Type, typeId)}`);
   }
 }

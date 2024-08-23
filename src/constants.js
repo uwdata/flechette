@@ -254,8 +254,6 @@ export const Type = /** @type {const} */ ({
    *
    * Since it uses a variable number of data buffers, each Field with this type
    * must have a corresponding entry in `variadicBufferCounts`.
-   *
-   * Not currently supported by Flechette.
    */
   BinaryView: 23,
   /**
@@ -266,8 +264,6 @@ export const Type = /** @type {const} */ ({
    *
    * Since it uses a variable number of data buffers, each Field with this type
    * must have a corresponding entry in `variadicBufferCounts`.
-   *
-   * Not currently supported by Flechette.
    */
   Utf8View: 24,
   /**

@@ -19,8 +19,7 @@ export function decodeSchema(buf, index, version) {
   const get = table(buf, index);
   return {
     version,
-    endianness: /** @type {import('../types.js').Endianness_} */
-      (get(4, readInt16, 0)),
+    endianness: /** @type {import('../types.js').Endianness_} */ (get(4, readInt16, 0)),
     fields: get(6, (buf, off) => decodeSchemaFields(buf, off, dictionaryTypes), []),
     metadata: get(8, decodeMetadata),
     dictionaryTypes
@@ -31,12 +30,9 @@ export function decodeSchema(buf, index, version) {
  * @returns {import('../types.js').Field[] | null}
  */
 function decodeSchemaFields(buf, fieldsOffset, dictionaryTypes) {
-  const { length, base } = readVector(buf, fieldsOffset);
-  const fields = [];
-  for (let i = 0; i < length; ++i) {
-    fields.push(decodeField(buf, base + i * 4, dictionaryTypes));
-  }
-  return fields;
+  return readVector(buf, fieldsOffset, 4,
+    (buf, pos) => decodeField(buf, pos, dictionaryTypes)
+  );
 }
 
 /**
@@ -53,8 +49,8 @@ function decodeField(buf, index, dictionaryTypes) {
   const get = table(buf, index);
   const typeId = get(8, readUint8, Type.NONE);
   const typeOffset = get(10, readOffset, 0);
-  const dict = get(12, (buf, off) => decodeDictionary(buf, off));
-  const children = get(14, decodeFieldChildren);
+  const dict = get(12, decodeDictionary);
+  const children = get(14, (buf, off) => decodeFieldChildren(buf, off, dictionaryTypes));
 
   let type;
   if (dict) {
@@ -83,13 +79,10 @@ function decodeField(buf, index, dictionaryTypes) {
 /**
  * @returns {import('../types.js').Field[] | null}
  */
-function decodeFieldChildren(buf, fieldOffset, dictionaries) {
-  const { length, base } = readVector(buf, fieldOffset);
-  const children = [];
-  for (let i = 0; i < length; ++i) {
-    const pos = base + i * 4;
-    children.push(decodeField(buf, pos, dictionaries));
-  }
+function decodeFieldChildren(buf, fieldOffset, dictionaryTypes) {
+  const children = readVector(buf, fieldOffset, 4,
+    (buf, pos) => decodeField(buf, pos, dictionaryTypes)
+  );
   return children.length ? children : null;
 }
 

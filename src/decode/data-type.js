@@ -15,6 +15,8 @@ export function decodeDataType(buf, index, typeId, children) {
     case Type.NONE:
     case Type.Null:
     case Type.Bool:
+    case Type.BinaryView:
+    case Type.Utf8View:
       return { typeId };
     case Type.Binary:
     case Type.Utf8:
@@ -30,7 +32,7 @@ export function decodeDataType(buf, index, typeId, children) {
       return { typeId, children: [children?.[0]], offsets: int64 };
     case Type.Struct:
     case Type.RunEndEncoded:
-      // @ts-ignore
+      // @ts-ignore - suppress children length warning for run-end encoded
       return { typeId, children };
     case Type.Int:
       return decodeInt(buf, index);
@@ -56,9 +58,7 @@ export function decodeDataType(buf, index, typeId, children) {
       return decodeMap(buf, index, children);
     case Type.Union:
       return decodeUnion(buf, index, children);
-
   }
-  // TODO: collect errors, skip failures?
   throw new Error(`Unrecognized type: "${keyFor(Type, typeId)}" (id ${typeId})`);
 }
 
@@ -285,12 +285,10 @@ function decodeUnion(buf, index, children) {
   //  4: mode
   //  6: typeIds
   const get = table(buf, index);
-  const { length, base } = readVector(buf, get(6, readOffset));
   return {
     typeId: Type.Union,
-    mode: /** @type {typeof UnionMode[keyof UnionMode]} */
-      (get(4, readInt16, UnionMode.Sparse)),
-    typeIds: new int32(buf.buffer, buf.byteOffset + base, length),
+    mode: /** @type {typeof UnionMode[keyof UnionMode]} */ (get(4, readInt16, UnionMode.Sparse)),
+    typeIds: readVector(buf, get(6, readOffset), 4, readInt32),
     children: children ?? [],
     offsets: int32
   };
