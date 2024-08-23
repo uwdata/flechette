@@ -815,3 +815,69 @@ export class DictionaryBatch extends ArrayBatch {
     return /** @type {number} */ (this.values[index]);
   }
 }
+
+/**
+ * @template T
+ * @extends {ArrayBatch<T>}
+ */
+class ViewBatch extends ArrayBatch {
+  /**
+   * Create a new view batch.
+   * @param {object} options Batch options.
+   * @param {number} options.length The length of the batch
+   * @param {number} options.nullCount The null value count
+   * @param {Uint8Array} [options.validity] Validity bitmap buffer
+   * @param {Uint8Array} options.values Values buffer
+   * @param {Uint8Array[]} options.data View data buffers
+   */
+  constructor({ data, ...rest }) {
+    super(rest);
+    this.data = data;
+  }
+
+  /**
+   * Get the binary data at the provided index.
+   * @param {number} index The value index.
+   * @returns {Uint8Array}
+   */
+  view(index) {
+    const { values, data } = this;
+    const offset = index << 4; // each entry is 16 bytes
+    let start = offset + 4;
+    let buf = /** @type {Uint8Array} */ (values);
+    const length = readInt32(buf, offset);
+    if (length > 12) {
+      // longer strings are in a data buffer
+      start = readInt32(buf, offset + 12);
+      buf = data[readInt32(buf, offset + 8)];
+    }
+    return buf.subarray(start, start + length);
+  }
+}
+
+/**
+ * A batch of binary blobs from variable data buffers, returned as byte
+ * buffers of unsigned 8-bit integers.
+ * @extends {ViewBatch<Uint8Array>}
+ */
+export class BinaryViewBatch extends ViewBatch {
+  /**
+   * @param {number} index The value index.
+   */
+  value(index) {
+    return this.view(index);
+  }
+}
+
+/**
+ * A batch of UTF-8 strings from variable data buffers.
+ * @extends {ViewBatch<string>}
+ */
+export class Utf8ViewBatch extends ViewBatch {
+  /**
+   * @param {number} index The value index.
+   */
+  value(index) {
+    return decodeUtf8(this.view(index));
+  }
+}

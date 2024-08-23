@@ -166,7 +166,7 @@ export type ListType = { typeId: 12, children: [Field], offsets: Int32ArrayConst
 export type StructType = { typeId: 13, children: Field[] };
 
 /** Union data type. */
-export type UnionType = { typeId: 14, mode: UnionMode_, typeIds: Int32Array, children: Field[], offsets: Int32ArrayConstructor };
+export type UnionType = { typeId: 14, mode: UnionMode_, typeIds: number[], children: Field[], offsets: Int32ArrayConstructor };
 
 /** Fixed-size opaque binary data type. */
 export type FixedSizeBinaryType = { typeId: 15, stride: number };
@@ -191,6 +191,12 @@ export type LargeListType = { typeId: 21, children: [Field], offsets: BigInt64Ar
 
 /** RunEndEncoded data type. */
 export type RunEndEncodedType = { typeId: 22, children: [Field, Field] };
+
+/** Opaque binary data type with multi-buffer view layout. */
+export type BinaryViewType = { typeId: 23 };
+
+/** UTF-8 encoded string data type with multi-buffer view layout. */
+export type Utf8ViewType = { typeId: 24 };
 
 /** ListView data type. */
 export type ListViewType = { typeId: 25, children: [Field], offsets: Int32ArrayConstructor };
@@ -225,6 +231,8 @@ export type DataType =
   | LargeUtf8Type
   | LargeListType
   | RunEndEncodedType
+  | BinaryViewType
+  | Utf8ViewType
   | ListViewType
   | LargeListViewType
   | DictionaryType;
@@ -236,6 +244,7 @@ export interface RecordBatch {
   length: number;
   nodes: {length: number, nullCount: number}[];
   buffers: {offset: number, length: number}[];
+  variadic: number[];
   body?: Uint8Array;
 }
 

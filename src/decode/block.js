@@ -24,10 +24,5 @@ export function decodeBlock(buf, index) {
  * @returns An array of message blocks.
  */
 export function decodeBlocks(buf, index) {
-  const { length, base } = readVector(buf, index);
-  const batches = [];
-  for (let i = 0; i < length; ++i) {
-    batches.push(decodeBlock(buf, base + i * 24));
-  }
-  return batches;
+  return readVector(buf, index, 24, decodeBlock);
 }

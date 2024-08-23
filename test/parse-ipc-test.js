@@ -24,6 +24,7 @@ function decimalData() {
         { offset: 0, length: 0 },
         { offset: 0, length: 48 }
       ],
+      variadic: [],
       body: Uint8Array.of(232,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,224,46,0,0,0,0,0,0,0,0,0,0,0,0,0,0,208,132,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
     }],
     dictionaries: [],

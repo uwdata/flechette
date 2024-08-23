@@ -275,6 +275,30 @@ describe('tableFromIPC', () => {
     compare(column, ['foo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo']);
   });
 
+  it('decodes binary view data', async () => {
+    const f = ['foo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo'];
+    const s = ['foobazbarbipbopboodeedoozoo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo'];
+    const enc = new TextEncoder();
+    const binary = v => v != null ? enc.encode(v) : null;
+    const buf = await readFile(`test/data/binaryview.arrows`);
+    const table = tableFromIPC(new Uint8Array(buf));
+    const flat = table.getChild('flat'); // all strings under 12 bytes
+    const spill = table.getChild('spill'); // some strings spill to data buffer
+    compare(flat, f.map(binary));
+    compare(spill, s.map(binary));
+  });
+
+  it('decodes utf8 view data', async () => {
+    const f = ['foo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo'];
+    const s = ['foobazbarbipbopboodeedoozoo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo'];
+    const buf = await readFile(`test/data/utf8view.arrows`);
+    const table = tableFromIPC(new Uint8Array(buf));
+    const flat = table.getChild('flat'); // all strings under 12 bytes
+    const spill = table.getChild('spill'); // some strings spill to data buffer
+    compare(flat, f);
+    compare(spill, s);
+  });
+
   it('decodes empty data', async () => {
     // For empty result sets, DuckDB node only returns a zero byte
     // Other variants may include a schema message

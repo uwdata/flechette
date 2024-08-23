@@ -237,14 +237,17 @@ export function readString(buf, index) {
 }
 
 /**
- * Return the length and start of a vector with the given offset.
+ * Extract a flatbuffer vector to an array.
+ * @template T
  * @param {Uint8Array} buf The byte buffer.
  * @param {number} offset The offset location of the vector.
- * @returns {{length: number, base: number}} The vector length and base.
+ * @param {number} stride The stride between vector entries.
+ * @param {(buf: Uint8Array, pos: number) => T} extract Vector entry extraction function.
+ * @returns {T[]} The extracted vector entries.
  */
-export function readVector(buf, offset) {
-  return {
-    length: readInt32(buf, offset + readInt32(buf, offset)),
-    base: offset + readInt32(buf, offset) + SIZEOF_INT
-  };
+export function readVector(buf, offset, stride, extract) {
+  if (!offset) return [];
+  const length = readInt32(buf, offset + readInt32(buf, offset));
+  const base = offset + readInt32(buf, offset) + SIZEOF_INT;
+  return Array.from({ length }, (_, i) => extract(buf, base + i * stride))
 }

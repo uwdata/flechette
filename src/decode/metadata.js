@@ -7,15 +7,12 @@ import { readString, readVector, table } from '../util.js';
  * @returns {import('../types.js').Metadata | null} The custom metadata map
  */
 export function decodeMetadata(buf, index) {
-  const { length, base } = readVector(buf, index);
-  const metadata = length > 0 ? new Map : null;
-  for (let i = 0; i < length; ++i) {
-    //  4: key (string)
-    //  6: key (string)
-    const get = table(buf, base + i * 4);
-    const key = get(4, readString);
-    const val = get(6, readString);
-    if (key || val) metadata.set(key, val);
-  }
-  return metadata?.size ? metadata : null;
+  const entries = readVector(buf, index, 4, (buf, pos) => {
+    const get = table(buf, pos);
+    return /** @type {[string, string]} */ ([
+      get(4, readString), // 4: key (string)
+      get(6, readString)  // 6: key (string)
+    ]);
+  });
+  return entries.length ? new Map(entries) : null;
 }
