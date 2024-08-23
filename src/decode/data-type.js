@@ -29,6 +29,8 @@ export function decodeDataType(buf, index, typeId, children) {
     case Type.LargeListView:
       return { typeId, children: [children?.[0]], offsets: int64 };
     case Type.Struct:
+    case Type.RunEndEncoded:
+      // @ts-ignore
       return { typeId, children };
     case Type.Int:
       return decodeInt(buf, index);

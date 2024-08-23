@@ -244,8 +244,6 @@ export const Type = /** @type {const} */ ({
    * must be a 16/32/64-bit integer array which encodes the indices at which
    * the run with the value in  each corresponding index in the values child
    * array ends. Like list/struct types, the value array can be of any type.
-   *
-   * Not currently supported by Flechette.
    */
   RunEndEncoded: 22,
   /**
@@ -276,15 +274,11 @@ export const Type = /** @type {const} */ ({
    * Represents the same logical types that List can, but contains offsets and
    * sizes allowing for writes in any order and sharing of child values among
    * list values.
-   *
-   * Not currently supported by Flechette.
    */
   ListView: 25,
   /**
    * Same as ListView, but with 64-bit offsets and sizes, allowing to represent
    * extremely large data values.
-   *
-   * Not currently supported by Flechette.
    */
   LargeListView: 26
 });

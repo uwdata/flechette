@@ -1,4 +1,4 @@
-import { bisectOffsets } from './util.js';
+import { bisect } from './util.js';
 
 /**
  * A table consists of a collection of named columns (or 'children').
@@ -151,7 +151,7 @@ export class Table {
     const { names, children, numRows } = this;
     if (index < 0 || index >= numRows) return null;
     const [{ offsets }] = children;
-    const i = bisectOffsets(offsets, index);
+    const i = bisect(offsets, index) - 1;
     return rowObject(names, children, i, index - offsets[i]);
   }
 

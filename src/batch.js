@@ -1,5 +1,5 @@
 import { float64 } from './array-types.js';
-import { decodeBit, decodeUtf8, divide, readInt32, readInt64AsNum, toNumber } from './util.js';
+import { bisect, decodeBit, decodeUtf8, divide, readInt32, readInt64AsNum, toNumber } from './util.js';
 
 /**
  * Check if the input is a batch that supports direct access to
@@ -548,7 +548,7 @@ export class ListViewBatch extends ArrayBatch {
    */
   value(index) {
     const a = /** @type {number} */ (this.offsets[index]);
-    const b = a +  /** @type {number} */ (this.sizes[index]);
+    const b = a + /** @type {number} */ (this.sizes[index]);
     return this.children[0].slice(a, b);
   }
 }
@@ -567,7 +567,7 @@ export class LargeListViewBatch extends ArrayBatch {
    */
   value(index) {
     const a = /** @type {bigint} */ (this.offsets[index]);
-    const b = a +  /** @type {bigint} */ (this.sizes[index]);
+    const b = a + /** @type {bigint} */ (this.sizes[index]);
     return this.children[0].slice(toNumber(a), toNumber(b));
   }
 }
@@ -759,6 +759,23 @@ export class StructBatch extends ArrayBatch {
       struct[names[i]] = children[i].at(index);
     }
     return struct;
+  }
+}
+
+/**
+ * A batch of run-end-encoded values.
+ * @template T
+ * @extends {ArrayBatch<T>}
+ */
+export class RunEndEncodedBatch extends ArrayBatch {
+  /**
+   * @param {number} index The value index.
+   */
+  value(index) {
+    const [ { values: runs }, vals ] = this.children;
+    return vals.at(
+      bisect(/** @type {import('./types.js').IntegerArray} */(runs), index)
+    );
   }
 }
 

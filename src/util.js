@@ -59,25 +59,32 @@ export function divide(num, div) {
 
 /**
  * Determine the correct index into an offset array for a given
- * full column row index.
- * @param {Int32Array} offsets The offsets array.
+ * full column row index. Assumes offset indices can be manipulated
+ * as 32-bit signed integers.
+ * @param {import("./types.js").IntegerArray} offsets The offsets array.
  * @param {number} index The full column row index.
  */
-export function bisectOffsets(offsets, index) {
-  // binary search for batch index
-  // we use a fast unsigned bit shift for division by two
-  // this assumes offsets.length <= Math.pow(2, 31), which seems safe
-  // otherwise that is a whole lotta record batches to handle in JS...
+export function bisect(offsets, index) {
   let a = 0;
   let b = offsets.length;
-  do {
-    const mid = (a + b) >>> 1;
-    if (offsets[mid] <= index) a = mid + 1;
-    else b = mid;
-  } while (a < b);
-
-  // decrement to the desired offset array index
-  return --a;
+  if (b <= 2147483648) { // 2 ** 31
+    // fast version, use unsigned bit shift
+    // array length fits within 32-bit signed integer
+    do {
+      const mid = (a + b) >>> 1;
+      if (offsets[mid] <= index) a = mid + 1;
+      else b = mid;
+    } while (a < b);
+  } else {
+    // slow version, use division and truncate
+    // array length exceeds 32-bit signed integer
+    do {
+      const mid = Math.trunc((a + b) / 2);
+      if (offsets[mid] <= index) a = mid + 1;
+      else b = mid;
+    } while (a < b);
+  }
+  return a;
 }
 
 // -- flatbuffer utilities -----

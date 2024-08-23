@@ -10,9 +10,9 @@ In the process of developing multiple data analysis packages that consume Arrow 
 
 * _Speed_. Flechette provides faster decoding. Across varied datasets, initial performance tests show 1.3-1.6x faster value iteration, 2-7x faster array extraction, and 5-9x faster row object extraction.
 
-* _Size_. Flechette is ~16k minified (~6k gzip'd), versus 163k minified (~43k gzip'd) for Arrow JS.
+* _Size_. Flechette is ~17k minified (~6k gzip'd), versus 163k minified (~43k gzip'd) for Arrow JS.
 
-* _Coverage_. Flechette supports multiple data types unsupported by the reference implementation at the time of writing, including decimal-to-number conversion and support for month/day/nanosecond time intervals (as used, for example, by DuckDB).
+* _Coverage_. Flechette supports data types unsupported by the reference implementation at the time of writing, including decimal-to-number conversion, month/day/nanosecond time intervals (as used by DuckDB, for example), list views, and run-end encoded data.
 
 * _Flexibility_. Flechette includes options to control data value conversion, such as numerical timestamps vs. Date objects for temporal data, and numbers vs. bigint values for 64-bit integer data.
 
