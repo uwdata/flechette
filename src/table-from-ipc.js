@@ -42,7 +42,7 @@ import {
 } from './constants.js';
 import { parseIPC } from './parse-ipc.js';
 import { Table } from './table.js';
-import { keyFor } from './util.js';
+import { keyFor, objectFactory, proxyFactory } from './util.js';
 
 /**
  * Decode [Apache Arrow IPC data][1] and return a new Table. The input binary
@@ -105,7 +105,11 @@ export function createTable(data, options = {}) {
     fields.forEach((f, i) => cols[i].add(visit(f.type, ctx)));
   }
 
-  return new Table(schema, cols.map(c => c.done()));
+  return new Table(
+    schema,
+    cols.map(c => c.done()),
+    options.useProxy ? proxyFactory : objectFactory
+  );
 }
 
 /**
@@ -145,7 +149,7 @@ function contextGenerator(options, version, dictionaryMap) {
  */
 function visit(type, ctx) {
   const { typeId, bitWidth, precision, scale, stride, unit } = type;
-  const { useBigInt, useDate, useMap } = ctx.options;
+  const { useBigInt, useDate, useMap, useProxy } = ctx.options;
 
   // no field node, no buffers
   if (typeId === Type.Null) {
@@ -246,7 +250,8 @@ function visit(type, ctx) {
     // validity and children
     case Type.FixedSizeList: return kids(FixedListBatch, { stride });
     case Type.Struct: return kids(StructBatch, {
-      names: type.children.map(child => child.name)
+      names: type.children.map(child => child.name),
+      factory: useProxy ? proxyFactory : objectFactory
     });
 
     // children only

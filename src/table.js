@@ -1,4 +1,4 @@
-import { bisect } from './util.js';
+import { bisect, objectFactory } from './util.js';
 
 /**
  * A table consists of a collection of named columns (or 'children').
@@ -12,8 +12,12 @@ export class Table {
    * Create a new table with the given schema and columns (children).
    * @param {import('./types.js').Schema} schema The table schema.
    * @param {import('./column.js').Column[]} children The table columns.
+   * @param {(names: string[], batches: import('./batch.js').Batch[]) =>
+   *  (index: number) => Record<string, any>} [factoryMethod]
+   *  Row object factory creation method. By default, vanilla JS objects
+   *  are used, with property values extracted from Arrow data.
    */
-  constructor(schema, children) {
+  constructor(schema, children, factoryMethod = objectFactory) {
     /** @readonly */
     this.schema = schema;
     /** @readonly */
@@ -23,6 +27,19 @@ export class Table {
      * @readonly
      */
     this.children = children;
+
+    // lazily created row object generators
+    const gen = [];
+
+    /**
+     * Returns a row object generator for the given batch index.
+     * @private
+     * @readonly
+     * @param {number} b The batch index.
+     * @returns {(index: number) => Record<string,any>}
+     */
+    this.factory = (b) => gen[b] ??
+      (gen[b] = factoryMethod(this.names, children.map(c => c.data[b])));
   }
 
   /**
@@ -117,12 +134,13 @@ export class Table {
    * @returns {Record<string, any>[]}
    */
   toArray() {
-    const { children, numRows, names } = this;
+    const { children, factory, numRows } = this;
     const data = children[0]?.data ?? [];
     const output = Array(numRows);
     for (let b = 0, row = -1; b < data.length; ++b) {
+      const f = factory(b);
       for (let i = 0; i < data[b].length; ++i) {
-        output[++row] = rowObject(names, children, b, i);
+        output[++row] = f(i);
       }
     }
     return output;
@@ -133,11 +151,12 @@ export class Table {
    * @returns {Generator<Record<string, any>, any, null>}
    */
   *[Symbol.iterator]() {
-    const { children, names } = this;
+    const { children, factory } = this;
     const data = children[0]?.data ?? [];
     for (let b = 0; b < data.length; ++b) {
+      const f = factory(b);
       for (let i = 0; i < data[b].length; ++i) {
-        yield rowObject(names, children, b, i);
+        yield f(i);
       }
     }
   }
@@ -148,11 +167,11 @@ export class Table {
    * @returns {Record<string, any>} The row object.
    */
   at(index) {
-    const { names, children, numRows } = this;
+    const { children, factory, numRows } = this;
     if (index < 0 || index >= numRows) return null;
     const [{ offsets }] = children;
-    const i = bisect(offsets, index) - 1;
-    return rowObject(names, children, i, index - offsets[i]);
+    const b = bisect(offsets, index) - 1;
+    return factory(b)(index - offsets[b]);
   }
 
   /**
@@ -170,12 +189,4 @@ function renameField(field, name) {
   return (name != null && name !== field.name)
     ? { ...field, name }
     : field;
-}
-
-function rowObject(names, children, batch, index) {
-  const o = {};
-  for (let j = 0; j < names.length; ++j) {
-    o[names[j]] = children[j].data[batch].at(index);
-  }
-  return o;
 }

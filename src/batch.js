@@ -733,18 +733,20 @@ export class DenseUnionBatch extends SparseUnionBatch {
  */
 export class StructBatch extends ArrayBatch {
   /**
-   * Create a new column batch.
+   * Create a new struct batch.
    * @param {object} options
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
    * @param {Batch[]} options.children Children batches
    * @param {string[]} options.names Child batch names
+   * @param {(names: string[], batches: Batch[]) =>
+   *  (index: number) => Record<string, any>} options.factory
+   *  Struct object factory creation method
    */
-  constructor({ names, ...rest }) {
+  constructor({ names, factory, ...rest }) {
     super(rest);
-    /** @type {string[]} */
-    this.names = names;
+    this.factory = factory(names, this.children);
   }
 
   /**
@@ -752,13 +754,7 @@ export class StructBatch extends ArrayBatch {
    * @returns {Record<string, any>}
    */
   value(index) {
-    const { children, names } = this;
-    const n = names.length;
-    const struct = {};
-    for (let i = 0; i < n; ++i) {
-      struct[names[i]] = children[i].at(index);
-    }
-    return struct;
+    return this.factory(index);
   }
 }
 

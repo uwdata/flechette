@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { readFile } from 'node:fs/promises';
 import { arrowFromDuckDB, arrowQuery } from './util/arrow-from-duckdb.js';
 import { tableFromIPC } from '../src/index.js';
+import { RowIndex } from '../src/util.js';
 
 const toDate = v => new Date(v);
 const toBigInt = v => BigInt(v);
@@ -253,6 +254,26 @@ describe('tableFromIPC', () => {
     await valueTest([ {a: 1, b: 'foo'}, null, {a: 2, b: 'baz'} ]);
     await valueTest([ {a: null, b: 'foo'}, {a: 2, b: null} ]);
     await valueTest([ {a: ['a', 'b'], b: Math.E}, {a: ['c', 'd'], b: Math.PI} ]);
+  });
+
+  it('decodes struct data with useProxy', async () => {
+    const values = [ {a: 1, b: 'foo'}, null, {a: 2, b: 'baz'} ];
+    const bytes = await arrowFromDuckDB(values);
+    const column = tableFromIPC(bytes, { useProxy: true }).getChild('value');
+    const proxies = column.toArray();
+    assert.strictEqual(proxies[0][RowIndex], 0);
+    for (let i = 0; i < values.length; ++i) {
+      const proxy = proxies[i];
+      const value = values[i];
+      if (value === null) {
+        assert.strictEqual(proxy, value);
+      } else {
+        assert.ok(proxy[RowIndex] >= 0);
+        for (const key of Object.keys(value)) {
+          assert.strictEqual(proxy[key], value[key]);
+        }
+      }
+    }
   });
 
   it('decodes run-end-encoded data', async () => {

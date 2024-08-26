@@ -8,13 +8,13 @@ Flechette performs fast extraction of data columns in the Arrow binary IPC forma
 
 In the process of developing multiple data analysis packages that consume Arrow data (including Arquero, Mosaic, and Vega), we've had to develop workarounds for the performance and correctness of the Arrow JavaScript reference implementation. Instead of workarounds, Flechette addresses these issues head-on.
 
-* _Speed_. Flechette provides faster decoding. Across varied datasets, initial performance tests show 1.3-1.6x faster value iteration, 2-7x faster array extraction, and 5-9x faster row object extraction.
+* _Speed_. Flechette provides faster decoding. Initial performance tests show 1.3-1.6x faster value iteration, 2-2.5x faster random value access, 2-7x faster array extraction, and 7-11x faster row object extraction.
 
 * _Size_. Flechette is ~17k minified (~6k gzip'd), versus 163k minified (~43k gzip'd) for Arrow JS.
 
 * _Coverage_. Flechette supports data types unsupported by the reference implementation at the time of writing, including decimal-to-number conversion, month/day/nanosecond time intervals (as used by DuckDB, for example), list views, and run-end encoded data.
 
-* _Flexibility_. Flechette includes options to control data value conversion, such as numerical timestamps vs. Date objects for temporal data, and numbers vs. bigint values for 64-bit integer data.
+* _Flexibility_. Flechette includes options to control data value conversion, such as numerical timestamps vs. Date objects for temporal data, numbers vs. bigint values for 64-bit integer data, and vanilla JS objects vs. optimized proxy objects for structs.
 
 * _Simplicity_. Our goal is to provide a smaller, simpler code base in the hope that it will make it easier for ourselves and others to improve the library. If you'd like to see support for additional Arrow data types or features, please [file an issue](https://github.com/uwdata/flechette/issues) or [open a pull request](https://github.com/uwdata/flechette/pulls).
 
@@ -61,7 +61,7 @@ const time0 = table.getChild('time').at(0);
 // { delay: Int16Array, distance: Int16Array, time: Float32Array }
 const columns = table.toColumns();
 
-// convert Arrow data to an array of standard JS objects
+// convert Arrow data to an array of JS objects
 // [ { delay: 14, distance: 405, time: 0.01666666753590107 }, ... ]
 const objects = table.toArray();
 
@@ -72,13 +72,14 @@ const subtable = table.select(['delay', 'time']);
 
 ### Customize Data Extraction
 
-Data extraction can be customized using options provided to the table generation method. By default, temporal data is returned as numeric timestamps, 64-bit integers are coerced to numbers, and map-typed data is returned as an array of [key, value] pairs. These defaults can be changed via conversion options that push (or remove) transformations to the underlying data batches.
+Data extraction can be customized using options provided to the table generation method. By default, temporal data is returned as numeric timestamps, 64-bit integers are coerced to numbers, map-typed data is returned as an array of [key, value] pairs, and struct/row objects are returned as vanilla JS objects with extracted property values. These defaults can be changed via conversion options that push (or remove) transformations to the underlying data batches.
 
 ```js
 const table = tableFromIPC(ipc, {
-  useDate: true,   // map temporal data to Date objects
-  useBigInt: true, // use BigInt, do not coerce to number
-  useMap: true     // create Map objects for [key, value] pair lists
+  useDate: true,   // use Date objects for temporal (Date, Timestamp) data
+  useBigInt: true, // use BigInt for large integers, do not coerce to number
+  useMap: true,    // use Map objects for [key, value] pair lists
+  useProxy: true   // use zero-copy proxies for struct and table row objects
 });
 ```
 

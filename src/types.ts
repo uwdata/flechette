@@ -303,4 +303,12 @@ export interface ExtractionOptions {
    * both `Map` and `Object.fromEntries` (default).
    */
   useMap?: boolean;
+  /**
+   * If true, extract Arrow 'Struct' values and table row objects using
+   * zero-copy proxy objects that extract data from underlying Arrow batches.
+   * The proxy objects can improve performance and reduce memory usage, but
+   * do not support property enumeration (`Object.keys`, `Object.values`,
+   * `Object.entries`) or spreading (`{ ...object }`).
+   */
+  useProxy?: boolean;
 }
