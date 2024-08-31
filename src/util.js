@@ -247,7 +247,13 @@ export function readString(buf, index) {
  */
 export function readVector(buf, offset, stride, extract) {
   if (!offset) return [];
-  const length = readInt32(buf, offset + readInt32(buf, offset));
-  const base = offset + readInt32(buf, offset) + SIZEOF_INT;
-  return Array.from({ length }, (_, i) => extract(buf, base + i * stride))
+
+  // get base position by adding offset delta
+  const base = offset + readInt32(buf, offset);
+
+  // read vector size, extract entries
+  return Array.from(
+    { length: readInt32(buf, base) },
+    (_, i) => extract(buf, base + SIZEOF_INT + i * stride)
+  );
 }
