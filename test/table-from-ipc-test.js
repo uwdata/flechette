@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import { readFile } from 'node:fs/promises';
 import { arrowFromDuckDB, arrowQuery } from './util/arrow-from-duckdb.js';
 import { tableFromIPC } from '../src/index.js';
-import { RowIndex } from '../src/util.js';
+import { RowIndex } from '../src/struct.js';
 
 const toDate = v => new Date(v);
 const toBigInt = v => BigInt(v);
@@ -257,22 +257,18 @@ describe('tableFromIPC', () => {
   });
 
   it('decodes struct data with useProxy', async () => {
-    const values = [ {a: 1, b: 'foo'}, null, {a: 2, b: 'baz'} ];
-    const bytes = await arrowFromDuckDB(values);
-    const column = tableFromIPC(bytes, { useProxy: true }).getChild('value');
-    const proxies = column.toArray();
-    assert.strictEqual(proxies[0][RowIndex], 0);
-    for (let i = 0; i < values.length; ++i) {
-      const proxy = proxies[i];
-      const value = values[i];
-      if (value === null) {
-        assert.strictEqual(proxy, value);
-      } else {
-        assert.ok(proxy[RowIndex] >= 0);
-        for (const key of Object.keys(value)) {
-          assert.strictEqual(proxy[key], value[key]);
-        }
-      }
+    const data = [
+      [ {a: 1, b: 'foo'}, {a: 2, b: 'baz'} ],
+      [ {a: 1, b: 'foo'}, null, {a: 2, b: 'baz'} ],
+      [ {a: null, b: 'foo'}, {a: 2, b: null} ],
+      [ {a: ['a', 'b'], b: Math.E}, {a: ['c', 'd'], b: Math.PI} ]
+    ];
+    for (const values of data) {
+      const bytes = await arrowFromDuckDB(values);
+      const column = tableFromIPC(bytes, { useProxy: true }).getChild('value');
+      const proxies = column.toArray();
+      assert.strictEqual(proxies.every(p => p === null || p[RowIndex] >= 0), true);
+      assert.deepStrictEqual(proxies.map(p => p ? p.toJSON() : null), values);
     }
   });
 

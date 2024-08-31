@@ -1,3 +1,4 @@
+import { Batch } from './batch.js';
 import {
   Version,
   Endianness,
@@ -92,6 +93,9 @@ export type TypedArrayConstructor =
 export interface ValueArray<T> extends ArrayLike<T>, Iterable<T> {
   slice(start?: number, end?: number): ValueArray<T>;
 }
+
+/** Struct/row object factory method. */
+export type StructFactory = (names: string[], batches: Batch<any>[]) => (index: number) => Record<string, any>;
 
 /** Custom metadata. */
 export type Metadata = Map<string, string>;

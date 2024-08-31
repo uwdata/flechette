@@ -42,7 +42,8 @@ import {
 } from './constants.js';
 import { parseIPC } from './parse-ipc.js';
 import { Table } from './table.js';
-import { keyFor, objectFactory, proxyFactory } from './util.js';
+import { objectFactory, proxyFactory } from './struct.js';
+import { keyFor } from './util.js';
 
 /**
  * Decode [Apache Arrow IPC data][1] and return a new Table. The input binary
