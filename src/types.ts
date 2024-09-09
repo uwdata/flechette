@@ -61,10 +61,13 @@ export type IntArrayConstructor =
   | Uint8ArrayConstructor
   | Uint16ArrayConstructor
   | Uint32ArrayConstructor
-  | BigUint64ArrayConstructor
   | Int8ArrayConstructor
   | Int16ArrayConstructor
   | Int32ArrayConstructor
+  | Int64ArrayConstructor;
+
+export type Int64ArrayConstructor =
+  | BigUint64ArrayConstructor
   | BigInt64ArrayConstructor;
 
 export type FloatArrayConstructor =
@@ -145,7 +148,7 @@ export type Utf8Type = { typeId: 5, offsets: Int32ArrayConstructor };
 export type BoolType = { typeId: 6 };
 
 /** Fixed decimal number data type. */
-export type DecimalType = { typeId: 7, precision: number, scale: number, bitWidth: 128 | 256, values: Uint32ArrayConstructor };
+export type DecimalType = { typeId: 7, precision: number, scale: number, bitWidth: 128 | 256, values: BigUint64ArrayConstructor };
 
 /** Date data type. */
 export type DateType = { typeId: 8, unit: DateUnit_, values: DateTimeArrayConstructor };
@@ -166,7 +169,7 @@ export type ListType = { typeId: 12, children: [Field], offsets: Int32ArrayConst
 export type StructType = { typeId: 13, children: Field[] };
 
 /** Union data type. */
-export type UnionType = { typeId: 14, mode: UnionMode_, typeIds: number[], children: Field[], offsets: Int32ArrayConstructor };
+export type UnionType = { typeId: 14, mode: UnionMode_, typeIds: number[], typeMap: Record<number, number>, children: Field[], typeIdForValue?: (value: any, index: number) => number, offsets: Int32ArrayConstructor };
 
 /** Fixed-size opaque binary data type. */
 export type FixedSizeBinaryType = { typeId: 15, stride: number };
@@ -175,7 +178,7 @@ export type FixedSizeBinaryType = { typeId: 15, stride: number };
 export type FixedSizeListType = { typeId: 16, stride: number, children: Field[] };
 
 /** Key-value map data type. */
-export type MapType = { typeId: 17, keysSorted: boolean, children: [Field, Field], offsets: Int32ArrayConstructor };
+export type MapType = { typeId: 17, keysSorted: boolean, children: [Field], offsets: Int32ArrayConstructor };
 
 /** Duration data type. */
 export type DurationType = { typeId: 18, unit: TimeUnit_, values: BigInt64ArrayConstructor };
@@ -284,7 +287,7 @@ export interface Message {
 
 /**
  * Options for controlling how values are transformed when extracted
- * from am Arrow binary representation.
+ * from an Arrow binary representation.
  */
 export interface ExtractionOptions {
   /**
@@ -292,6 +295,12 @@ export interface ExtractionOptions {
    * Otherwise, return numerical timestamp values (default).
    */
   useDate?: boolean;
+  /**
+   * If true, extract decimal-type data as BigInt values, where fractional
+   * digits are scaled to integers. Otherwise, return converted floating-point
+   * numbers (default).
+   */
+  useDecimalBigInt?: boolean;
   /**
    * If true, extract 64-bit integers as JavaScript `BigInt` values.
    * Otherwise, coerce long integers to JavaScript number values (default).
@@ -303,4 +312,26 @@ export interface ExtractionOptions {
    * both `Map` and `Object.fromEntries` (default).
    */
   useMap?: boolean;
+}
+
+/**
+ * Options for building new columns and controlling how values are
+ * transformed when extracted from an Arrow binary representation.
+ */
+export interface ColumnBuilderOptions extends ExtractionOptions {
+  /**
+   * The maximum number of rows to include in a single record batch.
+   */
+  maxBatchRows?: number;
+}
+
+/**
+ * Options for building new tables and controlling how values are
+ * transformed when extracted from an Arrow binary representation.
+ */
+export interface TableBuilderOptions extends ColumnBuilderOptions {
+  /**
+   * A map from column names to Arrow data types.
+   */
+  types?: Record<string, DataType>;
 }

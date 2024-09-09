@@ -1,5 +1,6 @@
 import { MessageHeader, Version } from '../constants.js';
-import { SIZEOF_INT, keyFor, readInt16, readInt32, readInt64AsNum, readOffset, readUint8, table } from '../util.js';
+import { keyFor } from '../util/objects.js';
+import { SIZEOF_INT, readInt16, readInt32, readInt64, readObject, readOffset, readUint8 } from '../util/read.js';
 import { decodeDictionaryBatch } from './dictionary-batch.js';
 import { decodeRecordBatch } from './record-batch.js';
 import { decodeSchema } from './schema.js';
@@ -45,13 +46,13 @@ export function decodeMessage(buf, index) {
   //  6: headerType
   //  8: headerIndex
   // 10: bodyLength
-  const get = table(head, 0);
+  const get = readObject(head, 0);
   const version = /** @type {import('../types.js').Version_} */
     (get(4, readInt16, Version.V1));
   const type = /** @type {import('../types.js').MessageHeader_} */
     (get(6, readUint8, MessageHeader.NONE));
   const offset = get(8, readOffset, 0);
-  const bodyLength = get(10, readInt64AsNum, 0);
+  const bodyLength = get(10, readInt64, 0);
   let content;
 
   if (offset) {

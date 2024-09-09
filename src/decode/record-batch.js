@@ -1,5 +1,5 @@
 import { Version } from '../constants.js';
-import { readInt64AsNum, readOffset, readVector, table } from '../util.js';
+import { readInt64, readObject, readOffset, readVector } from '../util/read.js';
 
 /**
  * Decode a record batch.
@@ -14,7 +14,7 @@ export function decodeRecordBatch(buf, index, version) {
   //  8: buffers
   // 10: compression (not supported)
   // 12: variadicBuffers (buffer counts for view-typed fields)
-  const get = table(buf, index);
+  const get = readObject(buf, index);
   if (get(10, readOffset, 0)) {
     throw new Error('Record batch compression not implemented');
   }
@@ -24,15 +24,15 @@ export function decodeRecordBatch(buf, index, version) {
   const offset = version < Version.V4 ? 8 : 0;
 
   return {
-    length: get(4, readInt64AsNum, 0),
+    length: get(4, readInt64, 0),
     nodes: readVector(buf, get(6, readOffset), 16, (buf, pos) => ({
-      length: readInt64AsNum(buf, pos),
-      nullCount: readInt64AsNum(buf, pos + 8)
+      length: readInt64(buf, pos),
+      nullCount: readInt64(buf, pos + 8)
     })),
     buffers: readVector(buf, get(8, readOffset), 16 + offset, (buf, pos) => ({
-      offset: readInt64AsNum(buf, pos + offset),
-      length: readInt64AsNum(buf, pos + offset + 8)
+      offset: readInt64(buf, pos + offset),
+      length: readInt64(buf, pos + offset + 8)
     })),
-    variadic: readVector(buf, get(12, readOffset), 8, readInt64AsNum)
+    variadic: readVector(buf, get(12, readOffset), 8, readInt64)
   };
 }

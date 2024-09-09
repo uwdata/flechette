@@ -1,4 +1,4 @@
-import { readBoolean, readInt64AsNum, table } from '../util.js';
+import { readBoolean, readInt64, readObject } from '../util/read.js';
 import { decodeRecordBatch } from './record-batch.js';
 
 /**
@@ -12,9 +12,9 @@ export function decodeDictionaryBatch(buf, index, version) {
   //  4: id
   //  6: data
   //  8: isDelta
-  const get = table(buf, index);
+  const get = readObject(buf, index);
   return {
-    id: get(4, readInt64AsNum, 0),
+    id: get(4, readInt64, 0),
     data: get(6, (buf, off) => decodeRecordBatch(buf, off, version)),
     /**
      * If isDelta is true the values in the dictionary are to be appended to a

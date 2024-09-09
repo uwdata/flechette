@@ -1,4 +1,11 @@
+import { toNumber } from './numbers.js';
+import { decodeUtf8 } from './strings.js';
+
+/** The size in bytes of a 32-bit integer. */
 export const SIZEOF_INT = 4;
+
+/** The size in bytes of a 16-bit integer. */
+export const SIZEOF_SHORT = 2;
 
 /**
  * Return a boolean for a single bit in a bitmap.
@@ -10,91 +17,12 @@ export function decodeBit(bitmap, index) {
   return (bitmap[index >> 3] & 1 << (index % 8)) !== 0;
 }
 
-const textDecoder = new TextDecoder('utf-8');
-
 /**
- * Return a UTF-8 string decoded from a byte buffer.
- * @param {Uint8Array} buf a byte buffer
- * @returns {String} A decoded string.
- */
-export function decodeUtf8(buf) {
-  return textDecoder.decode(buf);
-}
-
-/**
- * Return the first object key that pairs with the given value.
- * @param {Record<string,any>} object The object to search.
- * @param {any} value The value to lookup.
- * @returns {string} The first matching key, or '<Unknown>' if not found.
- */
-export function keyFor(object, value) {
-  for (const [key, val] of Object.entries(object)) {
-    if (val === value) return key;
-  }
-  return '<Unknown>';
-}
-
-/**
- * Coerce a bigint value to a number. Throws an error if the bigint value
- * lies outside the range of what a number can precisely represent.
- * @param {bigint} value The value to check and possibly convert.
- * @returns {number} The converted number value.
- */
-export function toNumber(value) {
-  if (value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER) {
-    throw Error(`BigInt exceeds integer number representation: ${value}`);
-  }
-  return Number(value);
-}
-
-/**
- * Divide one BigInt value by another, and return the result as a number.
- * @param {bigint} num The numerator
- * @param {bigint} div The divisor
- * @returns {number} The result of the division as a floating point number.
- */
-export function divide(num, div) {
-  return toNumber(num / div) + toNumber(num % div) / toNumber(div);
-}
-
-/**
- * Determine the correct index into an offset array for a given
- * full column row index. Assumes offset indices can be manipulated
- * as 32-bit signed integers.
- * @param {import("./types.js").IntegerArray} offsets The offsets array.
- * @param {number} index The full column row index.
- */
-export function bisect(offsets, index) {
-  let a = 0;
-  let b = offsets.length;
-  if (b <= 2147483648) { // 2 ** 31
-    // fast version, use unsigned bit shift
-    // array length fits within 32-bit signed integer
-    do {
-      const mid = (a + b) >>> 1;
-      if (offsets[mid] <= index) a = mid + 1;
-      else b = mid;
-    } while (a < b);
-  } else {
-    // slow version, use division and truncate
-    // array length exceeds 32-bit signed integer
-    do {
-      const mid = Math.trunc((a + b) / 2);
-      if (offsets[mid] <= index) a = mid + 1;
-      else b = mid;
-    } while (a < b);
-  }
-  return a;
-}
-
-// -- flatbuffer utilities -----
-
-/**
- * Lookup helper for flatbuffer table entries.
+ * Lookup helper for flatbuffer object (table) entries.
  * @param {Uint8Array} buf The byte buffer.
- * @param {number} index The base index of the table.
+ * @param {number} index The base index of the object.
  */
-export function table(buf, index) {
+export function readObject(buf, index) {
   const pos = index + readInt32(buf, index);
   const vtable = pos - readInt32(buf, pos);
   const size = readInt16(buf, vtable);
@@ -199,27 +127,18 @@ export function readUint32(buf, offset) {
 }
 
 /**
- * Return a signed 64-bit BigInt value.
- * @param {Uint8Array} buf
- * @param {number} offset
- * @returns {bigint}
- */
-export function readInt64(buf, offset) {
-  return BigInt.asIntN(
-    64,
-    BigInt(readUint32(buf, offset)) + (BigInt(readUint32(buf, offset + SIZEOF_INT)) << BigInt(32))
-  );
-}
-
-/**
  * Return a signed 64-bit integer value coerced to a JS number.
  * Throws an error if the value exceeds what a JS number can represent.
  * @param {Uint8Array} buf
  * @param {number} offset
  * @returns {number}
  */
-export function readInt64AsNum(buf, offset) {
-  return toNumber(readInt64(buf, offset));
+export function readInt64(buf, offset) {
+  return toNumber(BigInt.asIntN(
+    64,
+    BigInt(readUint32(buf, offset)) +
+      (BigInt(readUint32(buf, offset + SIZEOF_INT)) << 32n)
+  ));
 }
 
 /**

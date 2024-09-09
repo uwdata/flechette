@@ -1,15 +1,15 @@
+import { bisect } from './util/arrays.js';
 import { isDirectBatch } from './batch.js';
-import { bisect } from './util.js';
 
 /**
  * Build up a column from batches.
  */
-export function columnBuilder(type) {
+export function columnBuilder() {
   let data = [];
   return {
     add(batch) { data.push(batch); return this; },
     clear: () => data = [],
-    done: () => new Column(type, data)
+    done: () => new Column(data)
   };
 }
 
@@ -24,16 +24,15 @@ export function columnBuilder(type) {
 export class Column {
   /**
    * Create a new column instance.
-   * @param {import('./types.js').DataType} type The data type.
    * @param {import('./batch.js').Batch<T>[]} data The value batches.
    */
-  constructor(type, data) {
+  constructor(data) {
     /**
      * The column data type.
      * @type {import('./types.js').DataType}
      * @readonly
      */
-    this.type = type;
+    this.type = data[0].type;
     /**
      * The column length.
      * @type {number}

@@ -1,9 +1,9 @@
-import { MessageHeader, Version } from './constants.js';
-import { readInt16, readInt32, table } from './util.js';
-import { decodeSchema } from './decode/schema.js';
-import { decodeMessage } from './decode/message.js';
-import { decodeMetadata } from './decode/metadata.js';
-import { decodeBlocks } from './decode/block.js';
+import { MAGIC, MessageHeader, Version } from '../constants.js';
+import { readInt16, readInt32, readObject } from '../util/read.js';
+import { decodeBlocks } from './block.js';
+import { decodeMessage } from './message.js';
+import { decodeMetadata } from './metadata.js';
+import { decodeSchema } from './schema.js';
 
 /**
  * Decode [Apache Arrow IPC data][1] and return parsed schema, record batch,
@@ -19,19 +19,16 @@ import { decodeBlocks } from './decode/block.js';
  *  The source byte buffer, or an array of buffers. If an array, each byte
  *  array may contain one or more self-contained messages. Messages may NOT
  *  span multiple byte arrays.
- * @returns {import('./types.js').ArrowData}
+ * @returns {import('../types.js').ArrowData}
  */
-export function parseIPC(data) {
+export function decodeIPC(data) {
   const source = data instanceof ArrayBuffer
     ? new Uint8Array(data)
     : data;
   return !Array.isArray(source) && isArrowFileFormat(source)
-    ? parseIPCFile(source)
-    : parseIPCStream(source);
+    ? decodeIPCFile(source)
+    : decodeIPCStream(source);
 }
-
-/** Magic bytes 'ARROW1' indicating the Arrow 'file' format. */
-const MAGIC = Uint8Array.of(65, 82, 82, 79, 87, 49);
 
 /**
  * @param {Uint8Array} buf
@@ -52,9 +49,9 @@ function isArrowFileFormat(buf) {
  * @param {Uint8Array | Uint8Array[]} data The source byte buffer, or an
  *  array of buffers. If an array, each byte array may contain one or more
  *  self-contained messages. Messages may NOT span multiple byte arrays.
- * @returns {import('./types.js').ArrowData}
+ * @returns {import('../types.js').ArrowData}
  */
-export function parseIPCStream(data) {
+export function decodeIPCStream(data) {
   const stream = [data].flat();
 
   let schema;
@@ -86,7 +83,7 @@ export function parseIPCStream(data) {
     }
   }
 
-  return /** @type {import('./types.js').ArrowData} */ (
+  return /** @type {import('../types.js').ArrowData} */ (
     { schema, dictionaries, records, metadata: null }
   );
 }
@@ -96,9 +93,9 @@ export function parseIPCStream(data) {
  *
  * [1]: https://arrow.apache.org/docs/format/Columnar.html#ipc-file-format
  * @param {Uint8Array} data The source byte buffer.
- * @returns {import('./types.js').ArrowData}
+ * @returns {import('../types.js').ArrowData}
  */
-export function parseIPCFile(data) {
+export function decodeIPCFile(data) {
   // find footer location
   const offset = data.byteLength - (MAGIC.length + 4);
   const length = readInt32(data, offset);
@@ -109,13 +106,13 @@ export function parseIPCFile(data) {
   //  8: dictionaries (vector)
   // 10: batches (vector)
   // 12: metadata
-  const get = table(data, offset - length);
-  const version = /** @type {import('./types.js').Version_} */
+  const get = readObject(data, offset - length);
+  const version = /** @type {import('../types.js').Version_} */
     (get(4, readInt16, Version.V1));
   const dicts = get(8, decodeBlocks, []);
   const recs = get(10, decodeBlocks, []);
 
-  return /** @type {import('./types.js').ArrowData} */ ({
+  return /** @type {import('../types.js').ArrowData} */ ({
     schema: get(6, (buf, index) => decodeSchema(buf, index, version)),
     dictionaries: dicts.map(({ offset }) => decodeMessage(data, offset).content),
     records: recs.map(({ offset }) => decodeMessage(data, offset).content),

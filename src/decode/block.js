@@ -1,4 +1,4 @@
-import { readInt32, readInt64AsNum, readVector } from '../util.js';
+import { readInt32, readInt64, readVector } from '../util/read.js';
 
 /**
  * Decode a block that points to messages within an Arrow 'file' format.
@@ -11,9 +11,9 @@ export function decodeBlock(buf, index) {
   //  8: metadataLength
   // 16: bodyLength
   return {
-    offset: readInt64AsNum(buf, index),
+    offset: readInt64(buf, index),
     metadataLength: readInt32(buf, index + 8),
-    bodyLength: readInt64AsNum(buf, index + 16)
+    bodyLength: readInt64(buf, index + 16)
   }
 }
 

@@ -66,14 +66,14 @@ function trial(task, name, bytes, method, iter) {
   })));
 }
 
-async function run(file) {
-  console.log(`** Performance tests using ${file} **\n`);
+async function run(file, iter = 5) {
+  console.log(`\n** Decoding performance using ${file} **\n`);
   const bytes = new Uint8Array(await readFile(`test/data/${file}`));
-  trial('Parse Table from IPC', file, bytes, parseIPC, 10);
-  trial('Extract Arrays', file, bytes, extractArrays, 10);
-  trial('Iterate Values', file, bytes, iterateValues, 10);
-  trial('Random Access', file, bytes, randomAccess, 10);
-  trial('Visit Row Objects', file, bytes, visitObjects, 5);
+  trial('Parse Table from IPC', file, bytes, parseIPC, iter);
+  trial('Extract Arrays', file, bytes, extractArrays, iter);
+  trial('Iterate Values', file, bytes, iterateValues, iter);
+  trial('Random Access', file, bytes, randomAccess, iter);
+  trial('Visit Row Objects', file, bytes, visitObjects, iter);
   console.log();
 }
 

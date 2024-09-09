@@ -1,3 +1,6 @@
+/** Magic bytes 'ARROW1' indicating the Arrow 'file' format. */
+export const MAGIC = Uint8Array.of(65, 82, 82, 79, 87, 49);
+
 /**
  * Apache Arrow version.
  */
@@ -242,7 +245,7 @@ export const Type = /** @type {const} */ ({
   /**
    * Contains two child arrays, run_ends and values. The run_ends child array
    * must be a 16/32/64-bit integer array which encodes the indices at which
-   * the run with the value in  each corresponding index in the values child
+   * the run with the value in each corresponding index in the values child
    * array ends. Like list/struct types, the value array can be of any type.
    */
   RunEndEncoded: 22,

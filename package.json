@@ -20,7 +20,9 @@
     "url": "https://github.com/uwdata/flechette.git"
   },
   "scripts": {
-    "perf": "node perf/perf-test.js",
+    "perf": "node perf/run-all.js",
+    "perf:build": "node perf/build-perf.js",
+    "perf:decode": "node perf/decode-perf.js",
     "prebuild": "rimraf dist && mkdir dist",
     "build": "node esbuild.js flechette",
     "types": "tsc --project tsconfig.json && npm run types:merge",
