@@ -7,8 +7,8 @@ import { benchmark } from './util.js';
 const fl = bytes => flTable(bytes, { useBigInt: true });
 const aa = bytes => aaTable(bytes);
 
-// parse ipc data to columns
-function parseIPC(table) {
+// decode ipc data to columns
+function decodeIPC(table) {
   return table.schema.fields.map((f, i) => table.getChildAt(i));
 }
 
@@ -69,12 +69,11 @@ function trial(task, name, bytes, method, iter) {
 async function run(file, iter = 5) {
   console.log(`\n** Decoding performance using ${file} **\n`);
   const bytes = new Uint8Array(await readFile(`test/data/${file}`));
-  trial('Parse Table from IPC', file, bytes, parseIPC, iter);
+  trial('Decode Table from IPC', file, bytes, decodeIPC, iter);
   trial('Extract Arrays', file, bytes, extractArrays, iter);
   trial('Iterate Values', file, bytes, iterateValues, iter);
   trial('Random Access', file, bytes, randomAccess, iter);
   trial('Visit Row Objects', file, bytes, visitObjects, iter);
-  console.log();
 }
 
 await run('flights.arrows');

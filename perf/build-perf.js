@@ -39,12 +39,12 @@ function run(N, nulls, msg, iter = 5) {
   const dict = sample(N, uniqueStrings(100), nulls);
 
   console.log(`\n** Build performance for ${msg} **\n`);
-  trial('Build int column', int, 'int', iter);
-  trial('Build float column', float, 'float', iter);
-  trial('Build bool column', bool, 'bool', iter);
-  trial('Build date column', date, 'date', iter);
-  trial('Build utf8 column', utf8, 'utf8', iter);
-  trial('Build dict utf8 column', dict, 'dict', iter);
+  trial('Int Column', int, 'int', iter);
+  trial('Float Column', float, 'float', iter);
+  trial('Bool Column', bool, 'bool', iter);
+  trial('Date Column', date, 'date', iter);
+  trial('Utf8 Column', utf8, 'utf8', iter);
+  trial('Dict Utf8 Column', dict, 'dict', iter);
 }
 
 function trial(task, data, typeKey, iter) {
@@ -52,7 +52,7 @@ function trial(task, data, typeKey, iter) {
   const al = tableToIPC(table({ v: fl(data, typeKey) })).length;
   const sz = `json ${(jl/1e6).toFixed(1)} MB, arrow ${(al/1e6).toFixed(1)} MB`;
 
-  console.log(`${task} (${typeKey}, ${iter} iteration${iter === 1 ? '' : 's'}, ${sz})`);
+  console.log(`${task} (${iter} iteration${iter === 1 ? '' : 's'}, ${sz})`);
   const j = benchmark(() => js(data, typeKey), iter);
   const a = benchmark(() => aa(data, typeKey), iter);
   const f = benchmark(() => fl(data, typeKey), iter);

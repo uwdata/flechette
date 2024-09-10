@@ -15,4 +15,5 @@ async function node(cmdstr) {
 }
 
 await node('./perf/decode-perf.js');
+await node('./perf/encode-perf.js');
 await node('./perf/build-perf.js');
