@@ -1,6 +1,9 @@
 import { builder } from '../builder.js';
 import { ValidityBuilder } from './validity.js';
 
+/**
+ * Abstract class for building list-typed data batches.
+ */
 export class AbstractStructBuilder extends ValidityBuilder {
   constructor(type, ctx) {
     super(type, ctx);
@@ -22,6 +25,9 @@ export class AbstractStructBuilder extends ValidityBuilder {
   }
 }
 
+/**
+ * Builder for struct-typed data batches.
+ */
 export class StructBuilder extends AbstractStructBuilder {
   constructor(type, ctx) {
     super(type, ctx);

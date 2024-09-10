@@ -2,6 +2,9 @@ import { toDecimal } from '../../util/numbers.js';
 import { buffer } from '../buffer.js';
 import { ValidityBuilder } from './validity.js';
 
+/**
+ * Builder for batches of decimal-typed data.
+ */
 export class DecimalBuilder extends ValidityBuilder {
   constructor(type, ctx) {
     super(type, ctx);

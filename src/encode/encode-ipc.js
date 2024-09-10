@@ -63,10 +63,14 @@ export function encodeIPC(data, { sink, format } = {}) {
   return builder.sink;
 }
 
+/**
+ * Write byte buffers to the builder sink.
+ * Buffers are aligned to 64 bits (8 bytes) as needed.
+ * @param {import('./builder.js').Builder} builder
+ * @param {Uint8Array[]} buffers
+ */
 function writeBuffers(builder, buffers) {
-  // addBuffer handles 64-bit (8-byte) alignment
   for (let i = 0; i < buffers.length; ++i) {
-    builder.addBuffer(buffers[i]);
+    builder.addBuffer(buffers[i]); // handles alignment for us
   }
 }
-

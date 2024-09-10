@@ -124,7 +124,7 @@ export interface Field {
 export type IntBitWidth = 8 | 16 | 32 | 64;
 
 /** Dictionary-encoded data type. */
-export type DictionaryType = { typeId: -1, type: DataType, id: number, keys: IntType, ordered: boolean };
+export type DictionaryType = { typeId: -1, dictionary: DataType, id: number, indices: IntType, ordered: boolean };
 
 /** None data type. */
 export type NoneType = { typeId: 0 };
@@ -244,11 +244,13 @@ export type DataType =
  * Arrow IPC record batch message.
  */
 export interface RecordBatch {
-  length: number;
+  length?: number;
   nodes: {length: number, nullCount: number}[];
-  buffers: {offset: number, length: number}[];
+  regions: {offset: number, length: number}[];
   variadic: number[];
   body?: Uint8Array;
+  buffers?: Uint8Array[];
+  byteLength?: number;
 }
 
 /**
@@ -283,6 +285,18 @@ export interface Message {
   index: number;
   /** The message content. */
   content?: Schema | RecordBatch | DictionaryBatch;
+}
+
+/**
+ * A pointer block in the Arrow IPC 'file' format.
+ */
+export interface Block {
+  /** The file byte offset to the message start. */
+  offset: number,
+  /** The size of the message header metadata. */
+  metadataLength: number,
+  /** The size of the message body. */
+  bodyLength: number
 }
 
 /**

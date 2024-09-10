@@ -1,5 +1,10 @@
 import { encodeRecordBatch } from './record-batch.js';
 
+/**
+ * @param {import('./builder.js').Builder} builder
+ * @param {import('../types.js').DictionaryBatch} dictionaryBatch
+ * @returns {number}
+ */
 export function encodeDictionaryBatch(builder, dictionaryBatch) {
   const dataOffset = encodeRecordBatch(builder, dictionaryBatch.data);
   return builder.addObject(3, b => {

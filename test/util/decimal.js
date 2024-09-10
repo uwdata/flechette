@@ -36,8 +36,7 @@ export function decimalDataDecoded() {
   const data = decimalDataToEncode();
   const record = data.records[0];
   record.body = record.buffers[0];
-  record.buffers = record.regions;
   delete record.byteLength;
-  delete record.regions;
+  delete record.buffers;
   return data;
 }

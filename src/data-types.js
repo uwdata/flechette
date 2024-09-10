@@ -70,13 +70,17 @@ const basicType = (typeId) => ({ typeId });
 
 /**
  * Return a Dictionary type instance.
+ * @param {import('./types.js').DataType} type The dictionary values data type.
+ * @param {import('./types.js').IntType} [indexType] The index data type.
+ * @param {number} [id=-1] The dictionary id, should be unique in a table.
+ * @param {boolean} [ordered=false] Indicates if dictionary values are ordered.
  * @returns {import('./types.js').DictionaryType}
  */
-export const dictionary = (type, keyType, ordered = false, id = -1) => ({
+export const dictionary = (type, indexType, id = -1, ordered = false) => ({
   typeId: Type.Dictionary,
-  type,
+  dictionary: type,
+  indices: indexType || int32(),
   id,
-  keys: keyType || int32(),
   ordered
 });
 

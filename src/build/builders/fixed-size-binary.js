@@ -1,6 +1,9 @@
 import { buffer } from '../buffer.js';
 import { ValidityBuilder } from './validity.js';
 
+/**
+ * Builder for fixed-size-binary-typed data batches.
+ */
 export class FixedSizeBinaryBuilder extends ValidityBuilder {
   constructor(type, ctx) {
     super(type, ctx);

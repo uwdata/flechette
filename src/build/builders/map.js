@@ -1,6 +1,9 @@
 import { AbstractListBuilder } from './list.js';
 import { AbstractStructBuilder } from './struct.js';
 
+/**
+ * Builder for map-typed data batches.
+ */
 export class MapBuilder extends AbstractListBuilder {
   constructor(type, ctx) {
     super(type, ctx, new MapStructBuilder(type.children[0].type, ctx));
@@ -17,6 +20,9 @@ export class MapBuilder extends AbstractListBuilder {
   }
 }
 
+/**
+ * Builder for key-value struct batches within a map.
+ */
 class MapStructBuilder extends AbstractStructBuilder {
   set(value, index) {
     super.set(value, index);

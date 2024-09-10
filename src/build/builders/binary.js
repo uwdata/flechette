@@ -2,6 +2,9 @@ import { toOffset } from '../../util/numbers.js';
 import { buffer } from '../buffer.js';
 import { ValidityBuilder } from './validity.js';
 
+/**
+ * Builder for batches of binary-typed data.
+ */
 export class BinaryBuilder extends ValidityBuilder {
   constructor(type, ctx) {
     super(type, ctx);

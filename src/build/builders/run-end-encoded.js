@@ -4,6 +4,9 @@ import { builder } from '../builder.js';
 
 const NO_VALUE = {}; // empty object that fails strict equality
 
+/**
+ * Builder for run-end-encoded-typed data batches.
+ */
 export class RunEndEncodedBuilder extends BatchBuilder {
   constructor(type, ctx) {
     super(type, ctx);

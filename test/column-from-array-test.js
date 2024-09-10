@@ -214,7 +214,7 @@ describe('column', () => {
     function check(values, type) {
       const col = test(values, type);
       // check array type of indices
-      assert.ok(col.data[0].values instanceof type.keys.values);
+      assert.ok(col.data[0].values instanceof type.indices.values);
     }
 
     const strs = ['foo', 'foo', 'baz', 'bar', null, 'baz', 'bar'];

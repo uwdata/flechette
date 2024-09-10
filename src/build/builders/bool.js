@@ -1,6 +1,9 @@
 import { bitmap } from '../buffer.js';
 import { ValidityBuilder } from './validity.js';
 
+/**
+ * Builder for batches of bool-typed data.
+ */
 export class BoolBuilder extends ValidityBuilder {
   constructor(type, ctx) {
     super(type, ctx);

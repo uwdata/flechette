@@ -63,7 +63,7 @@ function decodeField(buf, index, dictionaryTypes) {
       dictType = decodeDataType(buf, typeOffset, typeId, children);
       dictionaryTypes.set(id, dictType);
     }
-    dict.type = dictType;
+    dict.dictionary = dictType;
     type = dict;
   } else {
     type = decodeDataType(buf, typeOffset, typeId, children);
@@ -101,9 +101,9 @@ function decodeDictionary(buf, index) {
   const get = readObject(buf, index);
   return dictionary(
     null, // data type will be populated by caller
-    get(6, decodeInt, int32()), // key type
-    get(8, readBoolean, false), // ordered
-    get(4, readInt64, 0) // id
+    get(6, decodeInt, int32()), // index type
+    get(4, readInt64, 0), // id
+    get(8, readBoolean, false) // ordered
   );
 }
 

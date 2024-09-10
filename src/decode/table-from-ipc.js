@@ -80,9 +80,12 @@ function contextGenerator(options, version, dictionaryMap) {
     dictionary: id => dictionaryMap.get(id),
   };
 
-  // return a context generator
+  /**
+   * Return a context generator.
+   * @param {import('../types.js').RecordBatch} batch
+   */
   return batch => {
-    const { length, nodes, buffers, variadic, body } = batch;
+    const { length, nodes, regions, variadic, body } = batch;
     let nodeIndex = -1;
     let bufferIndex = -1;
     let variadicIndex = -1;
@@ -91,7 +94,7 @@ function contextGenerator(options, version, dictionaryMap) {
       length,
       node: () => nodes[++nodeIndex],
       buffer: (ArrayType) => {
-        const { length, offset } = buffers[++bufferIndex];
+        const { length, offset } = regions[++bufferIndex];
         return ArrayType
           ? new ArrayType(body.buffer, body.byteOffset + offset, length / ArrayType.BYTES_PER_ELEMENT)
           : body.subarray(offset, offset + length)
@@ -197,11 +200,11 @@ function visit(type, ctx) {
 
     // dictionary
     case Type.Dictionary: {
-      const { id, keys } = type;
+      const { id, indices } = type;
       return new BatchType({
         ...node,
         validity: ctx.buffer(),
-        values: ctx.buffer(keys.values),
+        values: ctx.buffer(indices.values),
       }).setDictionary(ctx.dictionary(id));
     }
 

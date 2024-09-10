@@ -38,7 +38,9 @@ export function columnFromArray(data, type, options = {}, ctx) {
  * @returns {Column<T>} The generated column.
  */
 function columnFromTypedArray(values, { maxBatchRows, useBigInt }) {
-  const arrayType = values.constructor;
+  const arrayType = /** @type {import('../types.js').TypedArrayConstructor} */ (
+    values.constructor
+  );
   const type = typeForTypedArray(arrayType);
   const length = values.length;
   const limit = Math.min(maxBatchRows || Infinity, length);
@@ -106,6 +108,12 @@ function columnFromValues(values, type, options, ctx) {
   return new Column(data);
 }
 
+/**
+ * Return an Arrow data type for a given typed array type.
+ * @param {import('../types.js').TypedArrayConstructor} arrayType
+ *  The typed array type.
+ * @returns {import('../types.js').DataType} The data type.
+ */
 function typeForTypedArray(arrayType) {
   switch (arrayType) {
     case float32Array: return float32();
@@ -121,6 +129,13 @@ function typeForTypedArray(arrayType) {
   }
 }
 
+/**
+ * Create null batches with the given batch size limit.
+ * @param {import('../types.js').NullType} type The null data type.
+ * @param {number} length The total column length.
+ * @param {number} limit The maximum batch size.
+ * @returns {import('../batch.js').NullBatch[]} The null batches.
+ */
 function nullBatches(type, length, limit) {
   const data = [];
   const batch = length => new NullBatch({ length, nullCount: length, type });

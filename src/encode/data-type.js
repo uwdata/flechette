@@ -55,12 +55,6 @@ export function encodeDataType(builder, type) {
   return builder.addObject(0);
 }
 
-/**
- *
- * @param {*} builder
- * @param {*} type
- * @returns
- */
 function encodeDate(builder, type) {
   return builder.addObject(1, b => {
     b.addInt16(0, type.unit, DateUnit.MILLISECOND);
@@ -139,13 +133,13 @@ function encodeUnion(builder, type) {
 }
 
 function encodeDictionary(builder, type) {
-  const keyTypeOffset = isInt32(type.keys)
+  const keyTypeOffset = isInt32(type.indices)
     ? 0
-    : encodeDataType(builder, type.keys);
+    : encodeDataType(builder, type.indices);
   return builder.addObject(4, b => {
     b.addInt64(0, type.id, 0);
     b.addOffset(1, keyTypeOffset, 0);
-    b.addInt8(2, +type.isOrdered, 0);
+    b.addInt8(2, +type.ordered, 0);
     // NOT SUPPORTED: 3, dictionaryKind (defaults to dense array)
   });
 }

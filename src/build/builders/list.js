@@ -3,6 +3,9 @@ import { buffer } from '../buffer.js';
 import { builder } from '../builder.js';
 import { ValidityBuilder } from './validity.js';
 
+/**
+ * Abstract class for building list data batches.
+ */
 export class AbstractListBuilder extends ValidityBuilder {
   constructor(type, ctx, child) {
     super(type, ctx);
@@ -27,6 +30,9 @@ export class AbstractListBuilder extends ValidityBuilder {
   }
 }
 
+/**
+ * Builder for list-typed data batches.
+ */
 export class ListBuilder extends AbstractListBuilder {
   constructor(type, ctx) {
     super(type, ctx, builder(type.children[0].type, ctx));

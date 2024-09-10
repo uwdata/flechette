@@ -1,3 +1,8 @@
+/**
+ * @param {import('./builder.js').Builder} builder
+ * @param {import('../types.js').RecordBatch} batch
+ * @returns {number}
+ */
 export function encodeRecordBatch(builder, batch) {
   const { nodes, regions, variadic } = batch;
   const nodeVector = builder.addVector(nodes, 16, 8,

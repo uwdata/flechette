@@ -1,6 +1,9 @@
 import { builder } from '../builder.js';
 import { ValidityBuilder } from './validity.js';
 
+/**
+ * Builder for fixed-size-list-typed data batches.
+ */
 export class FixedSizeListBuilder extends ValidityBuilder {
   constructor(type, ctx) {
     super(type, ctx);

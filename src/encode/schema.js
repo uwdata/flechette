@@ -4,6 +4,11 @@ import { encodeMetadata } from './metadata.js';
 
 const isLittleEndian = new Uint16Array(new Uint8Array([1, 0]).buffer)[0] === 1;
 
+/**
+ * @param {import('./builder.js').Builder} builder
+ * @param {import('../types.js').Schema} schema
+ * @returns {number}
+ */
 export function encodeSchema(builder, schema) {
   const { fields, metadata } = schema;
   const fieldOffsets = fields.map(f => encodeField(builder, f));
@@ -17,6 +22,11 @@ export function encodeSchema(builder, schema) {
   });
 }
 
+/**
+ * @param {import('./builder.js').Builder} builder
+ * @param {import('../types.js').Field} field
+ * @returns {number}
+ */
 function encodeField(builder, field) {
   const { name, nullable, type, metadata } = field;
   let { typeId } = type;
@@ -27,12 +37,14 @@ function encodeField(builder, field) {
   if (typeId !== Type.Dictionary) {
     typeOffset = encodeDataType(builder, type);
   } else {
-    typeId = type.type.typeId;
+    const dict = /** @type {import('../types.js').DictionaryType} */ (type).dictionary;
+    typeId = dict.typeId;
     dictionaryOffset = encodeDataType(builder, type);
-    typeOffset = encodeDataType(builder, type.type);
+    typeOffset = encodeDataType(builder, dict);
   }
 
   // encode children, metadata, name, and field object
+  // @ts-ignore
   const childOffsets = (type.children || []).map(f => encodeField(builder, f));
   const childrenVectorOffset = builder.addOffsetVector(childOffsets);
   const metadataOffset = encodeMetadata(builder, metadata);

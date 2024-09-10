@@ -29,7 +29,7 @@ export function decodeRecordBatch(buf, index, version) {
       length: readInt64(buf, pos),
       nullCount: readInt64(buf, pos + 8)
     })),
-    buffers: readVector(buf, get(8, readOffset), 16 + offset, (buf, pos) => ({
+    regions: readVector(buf, get(8, readOffset), 16 + offset, (buf, pos) => ({
       offset: readInt64(buf, pos + offset),
       length: readInt64(buf, pos + offset + 8)
     })),

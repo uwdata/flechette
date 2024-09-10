@@ -1,3 +1,4 @@
+import { grow } from '../util/arrays.js';
 import { SIZEOF_INT, SIZEOF_SHORT, readInt16 } from '../util/read.js';
 import { encodeUtf8 } from '../util/strings.js';
 
@@ -260,9 +261,9 @@ export class Builder {
 
 /**
  * Prepare to write an element of `size` after `additionalBytes` have been
- * written, e.g. if you write a string, you need to align such the int length
+ * written, e.g. if we write a string, we need to align such the int length
  * field is aligned to 4 bytes, and the string data follows it directly. If all
- * you need to do is alignment, `additionalBytes` will be 0.
+ * we need to do is alignment, `additionalBytes` will be 0.
  * @param {Builder} builder The builder to prep.
  * @param {number} size The size of the new element to write.
  * @param {number} additionalBytes Additional padding size.
@@ -270,26 +271,22 @@ export class Builder {
 export function prep(builder, size, additionalBytes) {
   let { buf, space, minalign } = builder;
 
-  // Track the biggest thing we've ever aligned to.
+  // track the biggest thing we've ever aligned to
   if (size > minalign) {
     builder.minalign = size;
   }
 
-  // Find the amount of alignment needed such that `size` is properly
-  // aligned after `additional_bytes`
-  const align_size = ((~(buf.length - space + additionalBytes)) + 1) & (size - 1);
+  // find alignment needed so that `size` aligns after `additionalBytes`
+  const bufSize = buf.length;
+  const used = bufSize - space + additionalBytes;
+  const alignSize = (~used + 1) & (size - 1);
 
-  // Reallocate the buffer if needed.
-  while (space < align_size + size + additionalBytes) {
-    const old_size = buf.length;
-    const new_buf = new Uint8Array(old_size << 1);
-    new_buf.set(buf, old_size);
-    buf = new_buf;
-    space += new_buf.length - old_size;
-  }
+  // reallocate the buffer if needed
+  buf = grow(buf, used + alignSize + size);
+  space += buf.length - bufSize;
 
   // add padding
-  for (let i = 0; i < align_size; ++i) {
+  for (let i = 0; i < alignSize; ++i) {
     buf[--space] = 0;
   }
 

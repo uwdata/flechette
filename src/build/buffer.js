@@ -1,74 +1,90 @@
-import { uint8Array } from '../util/arrays.js';
+import { align, grow, uint8Array } from '../util/arrays.js';
 
-export function array(length, arrayType = uint8Array) {
-  return new arrayType(
-    length < 0 ? 1024 : align64(length, arrayType.BYTES_PER_ELEMENT)
-  );
-}
-
-function align64(length, bpe = 1) {
-  return (((length * bpe) + 7) & ~7) / bpe;
-}
-
-export function align(array, length = array.length) {
-  const alignedLength = align64(length, array.BYTES_PER_ELEMENT);
-  return array.length > alignedLength ? array.subarray(0, alignedLength)
-    : array.length < alignedLength ? resize(array, alignedLength)
-    : array;
-}
-
-export function resize(array, newLength) {
-  const newArray = new array.constructor(newLength);
-  newArray.set(array, array.length);
-  return newArray;
-}
-
-export function grow(array, minLength) {
-  // TODO: more efficient approach than looping
-  // TODO: reuse logic in flatbuffer builder
-  while (array.length < minLength) {
-    array = resize(array, array.length << 1);
-  }
-  return array;
-}
-
+/**
+ * Create a new resizable buffer instance.
+ * @param {import('../types.js').TypedArrayConstructor} [arrayType]
+ *  The array type.
+ * @returns {Buffer} The buffer.
+ */
 export function buffer(arrayType) {
   return new Buffer(arrayType);
 }
 
+/**
+ * Resizable byte buffer.
+ */
 export class Buffer {
+  /**
+   * Create a new resizable buffer instance.
+   * @param {import('../types.js').TypedArrayConstructor} arrayType
+   */
   constructor(arrayType = uint8Array) {
     this.buf = new arrayType(512);
   }
+  /**
+   * Return the underlying data as a 64-bit aligned array of minimum size.
+   * @param {number} size The desired minimum array size.
+   * @returns {import('../types.js').TypedArray} The 64-bit aligned array.
+   */
   array(size) {
     return align(this.buf, size);
   }
+  /**
+   * Prepare for writes to the given index, resizing as necessary.
+   * @param {number} index The array index to prepare to write to.
+   */
   prep(index) {
     if (index >= this.buf.length) {
       this.buf = grow(this.buf, index);
     }
   }
+  /**
+   * Return the value at the given index.
+   * @param {number} index The array index.
+   */
   get(index) {
     return this.buf[index];
   }
+  /**
+   * Set a value at the given index.
+   * @param {number | bigint} value The value to set.
+   * @param {number} index The index to write to.
+   */
   set(value, index) {
     this.prep(index);
     this.buf[index] = value;
   }
+  /**
+   * Write a byte array at the given index. The method should be called
+   * only when the underlying buffer is of type Uint8Array.
+   * @param {Uint8Array} bytes The byte array.
+   * @param {number} index The starting index to write to.
+   */
   write(bytes, index) {
     this.prep(index + bytes.length);
-    this.buf.set(bytes, index);
+    /** @type {Uint8Array} */ (this.buf).set(bytes, index);
   }
 }
 
-export function bitmap(size) {
-  return new Bitmap(size);
+/**
+ * Create a new resizable bitmap instance.
+ * @returns {Bitmap} The bitmap buffer.
+ */
+export function bitmap() {
+  return new Bitmap();
 }
 
+/**
+ * Resizable bitmap buffer.
+ */
 export class Bitmap extends Buffer {
+  /**
+   * Set a bit to true at the given bitmap index.
+   * @param {number} index The index to write to.
+   */
   set(index) {
     const i = index >> 3;
     this.prep(i);
-    this.buf[i] |= (1 << (index % 8));
+    /** @type {Uint8Array} */ (this.buf)[i] |= (1 << (index % 8));
   }
 }

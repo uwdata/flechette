@@ -2,6 +2,9 @@ import { toMonthDayNanoBytes } from '../../util/numbers.js';
 import { buffer } from '../buffer.js';
 import { ValidityBuilder } from './validity.js';
 
+/**
+ * Builder for day/time interval-typed data batches.
+ */
 export class IntervalDayTimeBuilder extends ValidityBuilder {
   init() {
     this.values = buffer(this.type.values);
@@ -24,6 +27,9 @@ export class IntervalDayTimeBuilder extends ValidityBuilder {
   }
 }
 
+/**
+ * Builder for month/day/nano interval-typed data batches.
+ */
 export class IntervalMonthDayNanoBuilder extends ValidityBuilder {
   init() {
     this.values = buffer();

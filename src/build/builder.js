@@ -18,8 +18,15 @@ import { DenseUnionBuilder, SparseUnionBuilder } from './builders/union.js';
 import { Utf8Builder } from './builders/utf8.js';
 import { DirectBuilder, Int64Builder, TransformBuilder } from './builders/values.js';
 
+/**
+ * Create a new context object for shared builder state.
+ * @param {import('../types.js').ExtractionOptions} [options]
+ *  Batch extraction options.
+ * @param {Map<number, ReturnType<dictionaryValues>>} [dictMap]
+ *  A map of dictionary ids to value builder helpers.
+ */
 export function builderContext(options, dictMap = new Map) {
-  let dictId = -1;
+  let dictId = 0;
   return {
     batchType(type) {
       return batchType(type, options);
@@ -36,13 +43,6 @@ export function builderContext(options, dictMap = new Map) {
         dictMap.set(id, dict = dictionaryValues(id, type, this));
       }
       return dict;
-    },
-    dictionaryTypes() {
-      const map = new Map;
-      for (const dict of dictMap.values()) {
-        map.set(dict.id, dict.type);
-      }
-      return map;
     },
     finish() {
       for (const dict of dictMap.values()) {

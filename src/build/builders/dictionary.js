@@ -5,9 +5,17 @@ import { buffer } from '../buffer.js';
 import { builder } from '../builder.js';
 import { ValidityBuilder } from './validity.js';
 
+/**
+ * Builder helped for creating dictionary values.
+ * @param {number} id The dictionary id.
+ * @param {import('../../types.js').DictionaryType} type
+ *  The dictionary data type.
+ * @param {*} ctx
+ * @returns
+ */
 export function dictionaryValues(id, type, ctx) {
   const keys = Object.create(null);
-  const values = builder(type.type, ctx);
+  const values = builder(type.dictionary, ctx);
   const batches = [];
 
   values.init();
@@ -34,7 +42,7 @@ export function dictionaryValues(id, type, ctx) {
     },
 
     finish(options) {
-      const valueType = type.type;
+      const valueType = type.dictionary;
       const batch = new (batchType(valueType, options))(values.done());
       const dictionary = new Column([batch]);
       batches.forEach(batch => batch.setDictionary(dictionary));
@@ -42,6 +50,9 @@ export function dictionaryValues(id, type, ctx) {
   };
 }
 
+/**
+ * Builder for dictionary-typed data batches.
+ */
 export class DictionaryBuilder extends ValidityBuilder {
   constructor(type, ctx) {
     super(type, ctx);
@@ -49,7 +60,7 @@ export class DictionaryBuilder extends ValidityBuilder {
   }
 
   init() {
-    this.values = buffer(this.type.keys.values);
+    this.values = buffer(this.type.indices.values);
     return super.init();
   }
 

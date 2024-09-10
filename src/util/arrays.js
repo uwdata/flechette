@@ -88,3 +88,56 @@ export function bisect(offsets, index) {
   }
   return a;
 }
+
+/**
+ * Compute a 64-bit aligned buffer size.
+ * @param {number} length The starting size.
+ * @param {number} bpe Bytes per element.
+ * @returns {number} The aligned size.
+ */
+function align64(length, bpe = 1) {
+  return (((length * bpe) + 7) & ~7) / bpe;
+}
+
+/**
+ * Return a 64-bit aligned version of the array.
+ * @template {import('../types.js').TypedArray} T
+ * @param {T} array The array.
+ * @param {number} length The current array length.
+ * @returns {T} The aligned array.
+ */
+export function align(array, length = array.length) {
+  const alignedLength = align64(length, array.BYTES_PER_ELEMENT);
+  return array.length > alignedLength ? /** @type {T} */ (array.subarray(0, alignedLength))
+    : array.length < alignedLength ? resize(array, alignedLength)
+    : array;
+}
+
+/**
+ * Resize a typed array to exactly the specified length.
+ * @template {import('../types.js').TypedArray} T
+ * @param {T} array The array.
+ * @param {number} newLength The new length.
+ * @returns {T} The resized array.
+ */
+export function resize(array, newLength) {
+  // @ts-ignore
+  const newArray = new array.constructor(newLength);
+  newArray.set(array, array.length);
+  return newArray;
+}
+
+/**
+ * Grow a typed array to accommdate a minimum length. The array size is
+ * doubled until it meets or exceeds the minimum length.
+ * @template {import('../types.js').TypedArray} T
+ * @param {T} array The array.
+ * @param {number} minLength The minimum length.
+ * @returns {T} The resized array.
+ */
+export function grow(array, minLength) {
+  while (array.length < minLength) {
+    array = resize(array, array.length << 1);
+  }
+  return array;
+}

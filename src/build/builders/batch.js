@@ -1,3 +1,6 @@
+/**
+ * Abstract class for building a column data batch.
+ */
 export class BatchBuilder {
   constructor(type, ctx) {
     this.type = type;

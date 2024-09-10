@@ -2,6 +2,9 @@ import { uint8Array } from '../../util/arrays.js';
 import { bitmap } from '../buffer.js';
 import { BatchBuilder } from './batch.js';
 
+/**
+ * Builder for validity bitmaps within batches.
+ */
 export class ValidityBuilder extends BatchBuilder {
   constructor(type, ctx) {
     super(type, ctx);

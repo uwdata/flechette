@@ -105,12 +105,24 @@ function profiler() {
   };
 }
 
+/**
+ * Return a list or fixed list type.
+ * @param {import('../types.js').DataType} type The child data type.
+ * @param {number} minLength The minumum list length.
+ * @param {number} maxLength The maximum list length.
+ * @returns {import('../types.js').DataType} The data type.
+ */
 function arrayType(type, minLength, maxLength) {
   return (maxLength - minLength) === 0
     ? fixedSizeList(type, minLength)
     : list(type);
 }
 
+/**
+ * @param {number} min
+ * @param {number} max
+ * @returns {import('../types.js').DataType}
+ */
 function intType(min, max) {
   const v = Math.max(Math.abs(min) - 1, max);
   return v < (1 << 7) ? int8()

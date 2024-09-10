@@ -1,3 +1,8 @@
+/**
+ * @param {import('./builder.js').Builder} builder
+ * @param {Map<string, string>} metadata
+ * @returns {number}
+ */
 export function encodeMetadata(builder, metadata) {
   return metadata?.size > 0
      ? builder.addOffsetVector(Array.from(metadata, ([k, v]) => {

@@ -22,10 +22,10 @@ export function table(data) {
     const type = col.type;
     if (type.typeId === Type.Dictionary) {
       const dict = dictionaryTypes.get(type.id);
-      if (dict && dict !== type.type) {
+      if (dict && dict !== type.dictionary) {
         throw new Error('Same id used across different dictionaries.');
       }
-      dictionaryTypes.set(type.id, type.type);
+      dictionaryTypes.set(type.id, type.dictionary);
     }
     fields.push(field(name, col.type));
     return col;

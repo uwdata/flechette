@@ -3,6 +3,9 @@ import { BatchBuilder } from './batch.js';
 import { buffer } from '../buffer.js';
 import { builder } from '../builder.js';
 
+/**
+ * Abstract class for building union-typed data batches.
+ */
 export class AbstractUnionBuilder extends BatchBuilder {
   constructor(type, ctx) {
     super(type, ctx);
@@ -42,6 +45,9 @@ export class AbstractUnionBuilder extends BatchBuilder {
   }
 }
 
+/**
+ * Builder for sparse union-typed data batches.
+ */
 export class SparseUnionBuilder extends AbstractUnionBuilder {
   update(value, index, child) {
     // update selected child with value
@@ -51,6 +57,9 @@ export class SparseUnionBuilder extends AbstractUnionBuilder {
   }
 }
 
+/**
+ * Builder for dense union-typed data batches.
+ */
 export class DenseUnionBuilder extends AbstractUnionBuilder {
   init() {
     this.offsets = buffer(this.type.offsets);
