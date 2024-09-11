@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { IntervalUnit, UnionMode, binary, bool, columnFromArray, decimal, dictionary, field, fixedSizeBinary, fixedSizeList, float16, float32, float64, int16, int32, int64, int8, interval, list, map, runEndEncoded, struct, uint16, uint32, uint64, uint8, union, utf8 } from '../src/index.js';
+import { IntervalUnit, TimeUnit, UnionMode, binary, bool, columnFromArray, dateDay, dateMillisecond, decimal, dictionary, duration, field, fixedSizeBinary, fixedSizeList, float16, float32, float64, int16, int32, int64, int8, interval, largeBinary, largeList, largeUtf8, list, map, nullType, runEndEncoded, struct, timeMicrosecond, timeMillisecond, timeNanosecond, timeSecond, timestamp, uint16, uint32, uint64, uint8, union, utf8 } from '../src/index.js';
 import { isTypedArray } from '../src/util/arrays.js';
 
 function test(values, type, options) {
@@ -14,8 +14,12 @@ function test(values, type, options) {
   return col;
 }
 
-describe('column', () => {
-  it('creates integer columns', () => {
+describe('columnFromArray', () => {
+  it('builds null columns', () => {
+    test([null, null, null], nullType());
+  });
+
+  it('builds integer columns', () => {
     // without nulls
     test([1, 2, 3], uint8());
     test([1, 2, 3], uint16());
@@ -44,7 +48,7 @@ describe('column', () => {
     test([1n, 2n, null, 3n], int64(), opt);
   });
 
-  it('creates float columns', () => {
+  it('builds float columns', () => {
     // without nulls
     test([1, 2, 3], float16());
     test([1, 2, 3], float32());
@@ -56,17 +60,7 @@ describe('column', () => {
     test([1, 2, null, 3], float64());
   });
 
-  it('creates bool columns', () => {
-    test([true, false, true, false], bool());
-    test([true, false, null, true, false], bool());
-  });
-
-  it('creates utf8 columns', () => {
-    test(['foo', 'bar', 'baz'], utf8());
-    test(['foo', 'bar', null, 'baz'], utf8());
-  });
-
-  it('creates binary columns', () => {
+  it('builds binary columns', () => {
     test([
       Uint8Array.of(255, 2, 3, 1),
       null,
@@ -74,7 +68,30 @@ describe('column', () => {
     ], binary());
   });
 
-  it('creates decimal columns', () => {
+  it('builds large binary columns', () => {
+    test([
+      Uint8Array.of(255, 2, 3, 1),
+      null,
+      Uint8Array.of(5, 9, 128)
+    ], largeBinary());
+  });
+
+  it('builds utf8 columns', () => {
+    test(['foo', 'bar', 'baz'], utf8());
+    test(['foo', 'bar', null, 'baz'], utf8());
+  });
+
+  it('builds large utf8 columns', () => {
+    test(['foo', 'bar', 'baz'], largeUtf8());
+    test(['foo', 'bar', null, 'baz'], largeUtf8());
+  });
+
+  it('builds bool columns', () => {
+    test([true, false, true, false], bool());
+    test([true, false, null, true, false], bool());
+  });
+
+  it('builds decimal columns', () => {
     test([1.1, 2.3, 3.4], decimal(18, 1, 128));
     test([-1.1, -2.3, -3.4], decimal(18, 1, 128));
     test([0.12345678987, -0.12345678987], decimal(18, 11, 128));
@@ -107,25 +124,85 @@ describe('column', () => {
     test([2n ** 156n, (-2n) ** 157n], decimal(18, 24, 256), opt);
   });
 
-  it('creates month-day-nano interval columns', () => {
+  it('builds date columns', () => {
+    const dates = [
+      new Date(Date.UTC(2000, 0, 1)),
+      new Date(Date.UTC(1973, 3, 20)),
+      new Date(Date.UTC(1989, 4, 5))
+    ];
+    test(dates.map(v => +v), dateDay());
+    test(dates.map(v => +v), dateMillisecond());
+    test(dates, dateDay(), { useDate: true });
+    test(dates, dateMillisecond(), { useDate: true });
+  });
+
+  it('builds time columns', () => {
+    const values = [10, 1000, 1e6, 1e8];
+    test(values, timeSecond());
+    test(values, timeMillisecond());
+    test(values, timeMicrosecond());
+    test(values, timeNanosecond());
+    test(values.concat(86400000000), timeMicrosecond());
+    test(values.concat(86400000000000), timeNanosecond());
+
+    const bigints = [10n, 1000n, 1000000n, 1000000000n];
+    const opt = { useBigInt: true };
+    test(bigints, timeMicrosecond(), opt);
+    test(bigints, timeNanosecond(), opt);
+    test(bigints.concat(86400000000n), timeMicrosecond(), opt);
+    test(bigints.concat(86400000000000n), timeNanosecond(), opt);
+  });
+
+  it('builds timestamp columns', () => {
+    const dates = [
+      new Date(Date.UTC(2000, 0, 1)),
+      new Date(Date.UTC(1973, 3, 20)),
+      new Date(Date.UTC(1989, 4, 5))
+    ];
+
+    // from date objects
+    test(dates, timestamp(TimeUnit.SECOND), { useDate: true });
+    test(dates, timestamp(TimeUnit.MILLISECOND), { useDate: true });
+    test(dates, timestamp(TimeUnit.MICROSECOND), { useDate: true });
+    test(dates, timestamp(TimeUnit.NANOSECOND), { useDate: true });
+
+    // from millisecond-level numerical timestamps
+    const ms = dates.map(d => +d);
+    test(ms, timestamp(TimeUnit.SECOND));
+    test(ms, timestamp(TimeUnit.MILLISECOND));
+    test(ms.map(ts => ts + 0.001), timestamp(TimeUnit.MICROSECOND));
+    test(ms.map(ts => ts + 0.000001), timestamp(TimeUnit.NANOSECOND));
+  });
+
+  it('builds interval year-month columns', () => {
+    test(
+      Int32Array.of(1220, 34341, 987654, -1232),
+      interval(IntervalUnit.YEAR_MONTH)
+    );
+  });
+
+  it('builds interval day-time columns', () => {
+    test(
+      [
+        Int32Array.of(12, 1340),
+        Int32Array.of(-1, 32451),
+      ],
+      interval(IntervalUnit.DAY_TIME)
+    );
+  });
+
+  it('builds interval month-day-nano columns', () => {
     test(
       [
         Float64Array.of(1992, 3, 1e10),
-        Float64Array.of(2000, 6, 15)
+        Float64Array.of(2000, 6, 15),
+        Float64Array.of(-2000, -6, -15)
       ],
       interval(IntervalUnit.MONTH_DAY_NANO)
     );
   });
 
-  it('creates fixed size binary columns', () => {
-    test([
-      Uint8Array.of(255, 2, 3),
-      null,
-      Uint8Array.of(5, 9, 128)
-    ], fixedSizeBinary(3));
-  });
-
-  it('creates list columns', () => {
+  it('builds list columns', () => {
     test([
       Int32Array.of(1, 2, 3),
       Int32Array.of(4, 5),
@@ -139,16 +216,21 @@ describe('column', () => {
     ], list(int32()));
   });
 
-  it('creates fixed size list columns', () => {
+  it('builds large list columns', () => {
     test([
       Int32Array.of(1, 2, 3),
-      Int32Array.of(4, 5, 6),
+      Int32Array.of(4, 5),
+      Int32Array.of(6, 7, 8)
+    ], largeList(int32()));
+    test([
+      Int32Array.of(1, 2, 3),
+      Int32Array.of(4, 5),
       null,
-      Int32Array.of(7, 8, 9)
-    ], fixedSizeList(int32(), 3));
+      Int32Array.of(6, 7, 8)
+    ], largeList(int32()));
   });
 
-  it('creates struct columns', () => {
+  it('builds struct columns', () => {
     const data = [
       { foo: 1, bar: 'a', baz: true },
       { foo: 2, bar: 'b', baz: false },
@@ -170,7 +252,7 @@ describe('column', () => {
     ]));
   });
 
-  it('creates union columns', () => {
+  it('builds union columns', () => {
     const unionTypeId = value => {
       const vtype = typeof value;
       return vtype === 'number' ? 0 : vtype === 'boolean' ? 1 : 2;
@@ -196,7 +278,24 @@ describe('column', () => {
     assert.deepStrictEqual(denseBatch.typeIds, ids);
   });
 
-  it('creates map columns', () => {
+  it('builds fixed size binary columns', () => {
+    test([
+      Uint8Array.of(255, 2, 3),
+      null,
+      Uint8Array.of(5, 9, 128)
+    ], fixedSizeBinary(3));
+  });
+
+  it('builds fixed size list columns', () => {
+    test([
+      Int32Array.of(1, 2, 3),
+      Int32Array.of(4, 5, 6),
+      null,
+      Int32Array.of(7, 8, 9)
+    ], fixedSizeList(int32(), 3));
+  });
+
+  it('builds map columns', () => {
     const asMap = d => d.map(a => a && new Map(a));
     const keyvals = [
       [['foo', 1], ['bar', 2], ['baz', 3]],
@@ -210,25 +309,24 @@ describe('column', () => {
     test(asMap(reverse), map(int16(), utf8()), { useMap: true });
   });
 
-  it('creates dictionary columns', () => {
-    function check(values, type) {
-      const col = test(values, type);
-      // check array type of indices
-      assert.ok(col.data[0].values instanceof type.indices.values);
-    }
+  it('builds duration columns', () => {
+    const values = [10, 1000, 1e6, 1e8];
+    test(values, duration(TimeUnit.SECOND));
+    test(values, duration(TimeUnit.MILLISECOND));
+    test(values, duration(TimeUnit.MICROSECOND));
+    test(values, duration(TimeUnit.MICROSECOND));
+    test(values.concat(86400000000), duration(TimeUnit.MICROSECOND));
+    test(values.concat(86400000000000), duration(TimeUnit.MICROSECOND));
 
-    const strs = ['foo', 'foo', 'baz', 'bar', null, 'baz', 'bar'];
-    const ints = [12, 34, 12, 12, 12, 27, null, 34];
-    const arrs = [[1,2,3], [1,2,3], null, [3,5], [3,5]].map(x => x && Int32Array.from(x));
-
-    check(strs, dictionary(utf8()));
-    check(ints, dictionary(int32()));
-    check(arrs, dictionary(list(int32())));
-    check(strs, dictionary(utf8(), int16()));
-    check(ints, dictionary(int32(), int16()));
+    const bigints = [10n, 1000n, 1000000n, 1000000000n, 86400000000000n];
+    const opt = { useBigInt: true };
+    test(bigints, duration(TimeUnit.SECOND), opt);
+    test(bigints, duration(TimeUnit.MILLISECOND), opt);
+    test(bigints, duration(TimeUnit.MICROSECOND), opt);
+    test(bigints, duration(TimeUnit.MICROSECOND), opt);
   });
 
-  it('creates run-end encoded columns', () => {
+  it('builds run-end encoded columns', () => {
     function check(values, runs, type) {
       const col = test(values, type);
       // check run-ends
@@ -255,7 +353,25 @@ describe('column', () => {
     check(arrs, arun, runEndEncoded(int64(), list(int32())));
   });
 
-  it('creates columns with multiple record batches', () => {
+  it('builds dictionary columns', () => {
+    function check(values, type) {
+      const col = test(values, type);
+      // check array type of indices
+      assert.ok(col.data[0].values instanceof type.indices.values);
+    }
+
+    const strs = ['foo', 'foo', 'baz', 'bar', null, 'baz', 'bar'];
+    const ints = [12, 34, 12, 12, 12, 27, null, 34];
+    const arrs = [[1,2,3], [1,2,3], null, [3,5], [3,5]].map(x => x && Int32Array.from(x));
+
+    check(strs, dictionary(utf8()));
+    check(ints, dictionary(int32()));
+    check(arrs, dictionary(list(int32())));
+    check(strs, dictionary(utf8(), int16()));
+    check(ints, dictionary(int32(), int16()));
+  });
+
+  it('builds columns with multiple record batches', () => {
     const data = [
       ...Array(10).fill(0),
       ...Array(10).fill(null),
@@ -268,7 +384,7 @@ describe('column', () => {
     assert.deepStrictEqual(col.data.map(d => d.length), [10, 10, 10, 3]);
   });
 
-  it('creates columns from typed arrays', () => {
+  it('builds columns from typed arrays', () => {
     test(Int8Array.of(1, 2, 3));
     test(Int16Array.of(1, 2, 3));
     test(Int32Array.of(1, 2, 3));
@@ -281,7 +397,8 @@ describe('column', () => {
     test(BigUint64Array.of(1n, 2n, 3n), null, { useBigInt: true });
   });
 
-  it('creates columns from inferred types', () => {
+  it('builds columns from inferred types', () => {
+    test([null, null, null]);
     test([1, 2, 3]);
     test([1e3, 2e3, 3e3]);
     test([1e6, 2e6, 3e6]);
