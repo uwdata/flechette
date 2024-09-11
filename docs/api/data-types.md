@@ -305,7 +305,9 @@ Create a List type instance, representing variably-sized lists (arrays) with 32-
 <hr/><a id="struct" href="#struct">#</a>
 <b>struct</b>(<i>children</i>)
 
-Create a Struct type instance. A struct consists of multiple named child data types. Struct values are stored as parallel child batches, one per child type, and extracted to standard JavaScript objects.
+Create a Struct type instance. A struct consists of multiple named child data types. Struct values are stored as parallel child batches, one per child type.
+
+By default, structs are fully extracted to standard JavaScript objects. Pass the `useProxy` extraction option (e.g., to [`tableFromIPC`](/flechette/api/#tableFromIPC) or [`tableFromArrays`](/flechette/api/#tableFromArrays)) to instead use zero-copy proxy row objects that extract data on-demand from underlying Arrow batches. Proxy objects can improve performance and reduce memory usage, but do not support convenient property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`). A proxy object can be converted to a standard object by calling its `toJSON()` method.
 
 * *children* (`Field[] | object`): An array of property fields, or an object mapping property names to data types. If an object, the instantiated fields are assumed to be nullable and have no metadata.
 

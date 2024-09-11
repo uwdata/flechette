@@ -23,12 +23,13 @@ A table consists of named data [columns](#column) (or 'children'). To extract ta
 * [Symbol.iterator](#iterator)
 
 <hr/><a id="constructor" href="#constructor">#</a>
-Table.<b>constructor</b>(<i>schema</i>, <i>children</i>)
+Table.<b>constructor</b>(<i>schema</i>, <i>children</i>[, <i>useProxy</i>])
 
 Create a new table with the given *schema* and *children* columns. The column types and order *must* be consistent with the given *schema*.
 
 * *schema* (`Schema`): The table schema.
 * *children* (`Column[]`): The table columns.
+* *useProxy* (`boolean`): Flag indicating if zero-copy row proxy objects should be used to represent table rows instead of standard JavaScript objects (default `false`). Proxy objects can improve performance and reduce memory usage, but do not support convenient property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`). A proxy object can be converted to a standard object by calling its `toJSON()` method.
 
 <hr/><a id="numCols" href="#numCols">#</a>
 Table.<b>numCols</b>
@@ -73,7 +74,7 @@ Construct a new table containing only columns with the specified *names*. If col
 <hr/><a id="at" href="#at">#</a>
 Table.<b>at</b>(<i>index</i>)
 
-Return a row object for the given *index*.
+Return a row object for the given *index*. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument.
 
 * *index* (`number`): The row index.
 
@@ -90,9 +91,9 @@ Return an object that maps column names to extracted value arrays.
 <hr/><a id="toArray" href="#toArray">#</a>
 Table.<b>toArray</b>()
 
-Return an array of objects representing the rows of this table.
+Return an array of objects representing the rows of this table. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument.
 
 <hr/><a id="iterator" href="#iterator">#</a>
-Table.<b>[Symbol.iterator]</b>()
+Table<b>[Symbol.iterator]</b>()
 
-Return an iterator over row objects representing the rows of this table.
+Return an iterator over row objects representing the rows of this table. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument.
