@@ -2,7 +2,7 @@ import { batchType } from '../batch-type.js';
 import { IntervalUnit, Type } from '../constants.js';
 import { invalidDataType } from '../data-types.js';
 import { isInt64ArrayType } from '../util/arrays.js';
-import { toBigInt, toDateDay, toFloat16, toTimestamp, toYearMonth } from '../util/numbers.js';
+import { toBigInt, toDateDay, toFloat16, toTimestamp } from '../util/numbers.js';
 import { BinaryBuilder } from './builders/binary.js';
 import { BoolBuilder } from './builders/bool.js';
 import { DecimalBuilder } from './builders/decimal.js';
@@ -87,14 +87,13 @@ export function builder(type, ctx = builderContext()) {
       return new TransformBuilder(type, ctx, toTimestamp(type.unit));
     case Type.Interval:
       switch (type.unit) {
-        case IntervalUnit.YEAR_MONTH:
-          return new TransformBuilder(type, ctx, toYearMonth);
         case IntervalUnit.DAY_TIME:
           return new IntervalDayTimeBuilder(type, ctx);
         case IntervalUnit.MONTH_DAY_NANO:
           return new IntervalMonthDayNanoBuilder(type, ctx);
       }
-      break;
+      // IntervalUnit.YEAR_MONTH:
+      return new DirectBuilder(type, ctx);
     case Type.List:
     case Type.LargeList:
       return new ListBuilder(type, ctx);

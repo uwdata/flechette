@@ -410,23 +410,6 @@ export class IntervalDayTimeBatch extends ArrayBatch {
 }
 
 /**
- * A batch of year/month intervals, returned as two-element 32-bit int arrays.
- * @extends {ArrayBatch<Int32Array>}
- */
-export class IntervalYearMonthBatch extends ArrayBatch {
-  /**
-   * @param {number} index The value index
-   */
-  value(index) {
-    const v = /** @type {number} */ (this.values[index]);
-    return Int32Array.of(
-      Math.trunc(v / 12), // years
-      Math.trunc(v % 12)  // months
-    );
-  }
-}
-
-/**
  * A batch of month/day/nanosecond intervals, returned as three-element arrays.
  * @extends {ArrayBatch<Float64Array>}
  */

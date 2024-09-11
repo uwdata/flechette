@@ -1,6 +1,7 @@
 import { float64Array, int32Array, int64Array, isInt64ArrayType, uint32Array, uint8Array } from './arrays.js';
 import { TimeUnit } from '../constants.js';
 
+// typed arrays over a shared buffer to aid binary conversion
 const f64 = new float64Array(2);
 const buf = f64.buffer;
 const i64 = new int64Array(buf);
@@ -8,22 +9,47 @@ const u32 = new uint32Array(buf);
 const i32 = new int32Array(buf);
 const u8 = new uint8Array(buf);
 
+/**
+ * Return a value unchanged.
+ * @template T
+ * @param {T} value The value.
+ * @returns {T} The value.
+ */
 export function identity(value) {
   return value;
 }
 
+/**
+ * Return a value coerced to a BigInt.
+ * @param {*} value The value.
+ * @returns {bigint} The BigInt value.
+ */
 export function toBigInt(value) {
   return BigInt(value);
 }
 
+/**
+ * Return an offset conversion method for the given data type.
+ * @param {{ offsets: import('../types.js').TypedArray}} type The array type.
+ */
 export function toOffset(type) {
-  return isInt64ArrayType(type.offsets) ? toBigInt : identity;
+  return isInt64ArrayType(type) ? toBigInt : identity;
 }
 
+/**
+ * Return the number of days from a millisecond timestamp.
+ * @param {number} value The millisecond timestamp.
+ * @returns {number} The number of days.
+ */
 export function toDateDay(value) {
   return (value / 864e5) | 0;
 }
 
+/**
+ * Return a timestamp conversion method for the given time unit.
+ * @param {import('../types.js').TimeUnit_} unit The time unit.
+ * @returns {(value: number) => bigint} The conversion method.
+ */
 export function toTimestamp(unit) {
   return unit === TimeUnit.SECOND ? value => toBigInt(value / 1e3)
     : unit === TimeUnit.MILLISECOND ? toBigInt
@@ -31,10 +57,13 @@ export function toTimestamp(unit) {
     : value => toBigInt(value * 1e6);
 }
 
-export function toYearMonth(value) {
-  return (value[0] * 12) + (value[1] % 12);
-}
-
+/**
+ * Write month/day/nanosecond interval to a byte buffer.
+ * @param {Array | Float64Array} interval The interval data.
+ * @returns {Uint8Array} A byte buffer with the interval data.
+ *  The returned buffer is reused across calls, and so should be
+ *  copied to a target buffer immediately.
+ */
 export function toMonthDayNanoBytes([m, d, n]) {
   i32[0] = m;
   i32[1] = d;
@@ -89,6 +118,7 @@ export function toDecimal(value, buf, offset, stride, scale) {
   }
 }
 
+// helper method to extract uint64 values from bigints
 const asUint64 = v => BigInt.asUintN(64, v);
 
 /**
