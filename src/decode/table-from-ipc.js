@@ -19,7 +19,7 @@ import { decodeIPC } from './decode-ipc.js';
  *  span multiple byte arrays.
  * @param {import('../types.js').ExtractionOptions} [options]
  *  Options for controlling how values are transformed when extracted
- *  from am Arrow binary representation.
+ *  from an Arrow binary representation.
  * @returns {Table} A Table instance.
  */
 export function tableFromIPC(data, options) {

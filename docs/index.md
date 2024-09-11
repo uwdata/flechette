@@ -4,6 +4,8 @@
 
 Flechette performs fast extraction and encoding of data columns in the Arrow binary IPC format, supporting ingestion of Arrow data from sources such as [DuckDB](https://duckdb.org/) and Arrow use in JavaScript data analysis tools like [Arquero](https://github.com/uwdata/arquero), [Mosaic](https://github.com/uwdata/mosaic), [Observable Plot](https://observablehq.com/plot/), and [Vega-Lite](https://vega.github.io/vega-lite/).
 
+[**API Reference**](api)
+
 ## Why Flechette?
 
 In the process of developing multiple data analysis packages that consume Arrow data (including Arquero, Mosaic, and Vega), we've had to develop workarounds for the performance and correctness of the Arrow JavaScript reference implementation. Instead of workarounds, Flechette addresses these issues head-on.
@@ -119,7 +121,7 @@ const table = tableFromIPC(ipc, {
 });
 ```
 
-The same extraction options can be passed to `tableFromArrays`.
+The same extraction options can be passed to `tableFromArrays`. For more, see the [**API Reference**](api).
 
 ## Build Instructions
 

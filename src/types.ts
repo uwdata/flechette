@@ -11,8 +11,6 @@ import {
 
 // additional jsdoc types to export
 export { Batch } from './batch.js';
-export { Column } from './column.js';
-export { Table } from './table.js';
 
 /** A valid Arrow version number. */
 export type Version_ = typeof Version[keyof typeof Version];

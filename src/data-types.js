@@ -10,11 +10,15 @@ export const invalidDataType = (typeId) =>
   `Unsupported data type: "${keyFor(Type, typeId)}" (id ${typeId})`;
 
 /**
- * Return a new Arrow field definition.
+ * Return a new field instance for use in a schema or type definition. A field
+ * represents a field name, data type, and additional metadata. Fields are used
+ * to represent child types within nested types like List, Struct, and Union.
  * @param {string} name The field name.
  * @param {import('./types.js').DataType} type The field data type.
- * @param {boolean} [nullable=true] The nullable flag.
- * @param {Map<string,string>|null} [metadata=null] The field metadata.
+ * @param {boolean} [nullable=true] Flag indicating if the field is nullable
+ *  (default `true`).
+ * @param {Map<string,string>|null} [metadata=null] Custom field metadata
+ *  annotations (default `null`).
  * @returns {import('./types.js').Field} The field instance.
  */
 export const field = (name, type, nullable = true, metadata = null) => ({
@@ -64,16 +68,26 @@ function asField(value, defaultName = '', defaultNullable = true) {
 
 /**
  * Return a basic type with only a type id.
- * @param {typeof Type[keyof typeof Type]} typeId The type id.
+ * @template {typeof Type[keyof typeof Type]} T
+ * @param {T} typeId The type id.
  */
 const basicType = (typeId) => ({ typeId });
 
 /**
- * Return a Dictionary type instance.
- * @param {import('./types.js').DataType} type The dictionary values data type.
- * @param {import('./types.js').IntType} [indexType] The index data type.
+ * Return a Dictionary data type instance.  A dictionary type consists of a
+ * dictionary of values (which may be of any type) and corresponding integer
+ * indices that reference those values. If values are repeated, a dictionary
+ * encoding can provide substantial space savings. In the IPC format,
+ * dictionary indices reside alongside other columns in a record batch, while
+ * dictionary values are written to special dictionary batches, linked by a
+ * unique dictionary *id*.
+ * @param {import('./types.js').DataType} type The data type of dictionary
+ *  values.
+ * @param {import('./types.js').IntType} [indexType] The data type of
+ *  dictionary indices. Must be an integer type (default `int32`).
  * @param {number} [id=-1] The dictionary id, should be unique in a table.
- * @param {boolean} [ordered=false] Indicates if dictionary values are ordered.
+ * @param {boolean} [ordered=false] Indicates if dictionary values are
+ *  ordered (default `false`).
  * @returns {import('./types.js').DictionaryType}
  */
 export const dictionary = (type, indexType, id = -1, ordered = false) => ({
@@ -85,16 +99,18 @@ export const dictionary = (type, indexType, id = -1, ordered = false) => ({
 });
 
 /**
- * Return a Null type instance.
+ * Return a Null data type instance. Null data requires no storage and all
+ * extracted values are `null`.
  * @returns {import('./types.js').NullType} The null data type.
  */
-export const nullType = () => /** @type{import('./types.js').NullType} */
-  (basicType(Type.Null));
+export const nullType = () => basicType(Type.Null);
 
 /**
  * Return an Int data type instance.
  * @param {import('./types.js').IntBitWidth} [bitWidth=32] The integer bit width.
- * @param {boolean} [signed=true] Flag for signed or unsigned integers.
+ *  One of `8`, `16`, `32` (default), or `64`.
+ * @param {boolean} [signed=true] Flag for signed or unsigned integers
+ *  (default `true`).
  * @returns {import('./types.js').IntType} The integer data type.
  */
 export const int = (bitWidth = 32, signed = true) => ({
@@ -103,18 +119,52 @@ export const int = (bitWidth = 32, signed = true) => ({
   signed,
   values: intArrayType(bitWidth, signed)
 });
+/**
+ * Return an Int data type instance for 8 bit signed integers.
+ * @returns {import('./types.js').IntType} The integer data type.
+ */
 export const int8 = () => int(8);
+/**
+ * Return an Int data type instance for 16 bit signed integers.
+ * @returns {import('./types.js').IntType} The integer data type.
+ */
 export const int16 = () => int(16);
+/**
+ * Return an Int data type instance for 32 bit signed integers.
+ * @returns {import('./types.js').IntType} The integer data type.
+ */
 export const int32 = () => int(32);
+/**
+ * Return an Int data type instance for 64 bit signed integers.
+ * @returns {import('./types.js').IntType} The integer data type.
+ */
 export const int64 = () => int(64);
+/**
+ * Return an Int data type instance for 8 bit unsigned integers.
+ * @returns {import('./types.js').IntType} The integer data type.
+ */
 export const uint8 = () => int(8, false);
+/**
+ * Return an Int data type instance for 16 bit unsigned integers.
+ * @returns {import('./types.js').IntType} The integer data type.
+ */
 export const uint16 = () => int(16, false);
+/**
+ * Return an Int data type instance for 32 bit unsigned integers.
+ * @returns {import('./types.js').IntType} The integer data type.
+ */
 export const uint32 = () => int(32, false);
+/**
+ * Return an Int data type instance for 64 bit unsigned integers.
+ * @returns {import('./types.js').IntType} The integer data type.
+ */
 export const uint64 = () => int(64, false);
 
 /**
- * Return a Float data type instance.
- * @param {import('./types.js').Precision_} [precision=2] The floating point precision.
+ * Return a Float data type instance for floating point numbers.
+ * @param {import('./types.js').Precision_} [precision=2] The floating point
+ *  precision. One of `Precision.HALF` (16-bit), `Precision.SINGLE` (32-bit)
+ *  or `Precision.DOUBLE` (64-bit, default).
  * @returns {import('./types.js').FloatType} The floating point data type.
  */
 export const float = (precision = 2) => ({
@@ -122,12 +172,25 @@ export const float = (precision = 2) => ({
   precision: checkOneOf(precision, Precision),
   values: [uint16Array, float32Array, float64Array][precision]
 });
+/**
+ * Return a Float data type instance for half-precision (16 bit) numbers.
+ * @returns {import('./types.js').FloatType} The floating point data type.
+ */
 export const float16 = () => float(Precision.HALF);
+/**
+ * Return a Float data type instance for single-precision (32 bit) numbers.
+ * @returns {import('./types.js').FloatType} The floating point data type.
+ */
 export const float32 = () => float(Precision.SINGLE);
+/**
+ * Return a Float data type instance for double-precision (64 bit) numbers.
+ * @returns {import('./types.js').FloatType} The floating point data type.
+ */
 export const float64 = () => float(Precision.DOUBLE);
 
 /**
- * Return a Binary type instance.
+ * Return a Binary data type instance for variably-sized opaque binary data
+ * with 32-bit offsets.
  * @returns {import('./types.js').BinaryType} The binary data type.
  */
 export const binary = () => ({
@@ -136,7 +199,9 @@ export const binary = () => ({
 });
 
 /**
- * Return a Utf8 type instance.
+ * Return a Utf8 data type instance for Unicode string data.
+ * [UTF-8](https://en.wikipedia.org/wiki/UTF-8) code points are stored as
+ * binary data.
  * @returns {import('./types.js').Utf8Type} The utf8 data type.
  */
 export const utf8 = () => ({
@@ -145,19 +210,27 @@ export const utf8 = () => ({
 });
 
 /**
- * Return a Bool type instance.
+ * Return a Bool data type instance. Bool values are stored compactly in
+ * bitmaps with eight values per byte.
  * @returns {import('./types.js').BoolType} The bool data type.
  */
-export const bool = () => /** @type{import('./types.js').BoolType} */ (basicType(Type.Bool));
+export const bool = () => basicType(Type.Bool);
 
 /**
- * Return a Decimal type instance.
- * @param {number} precision The decimal precision.
- * @param {number} scale The number of digits beyond the decimal point.
- * @param {128 | 256} bitWidth The decimal bit width.
+ * Return a Decimal data type instance. Decimal values are represented as 128
+ * or 256 bit integers in two's complement. Decimals are fixed point numbers
+ * with a set *precision* (total number of decimal digits) and *scale*
+ * (number of fractional digits). For example, the number `35.42` can be
+ * represented as `3542` with *precision* ≥ 4 and *scale* = 2.
+ * @param {number} precision The decimal precision: the total number of
+ *  decimal digits that can be represented.
+ * @param {number} scale The number of fractional digits, beyond the
+ *  decimal point.
+ * @param {128 | 256} [bitWidth] The decimal bit width.
+ *  One of 128 (default) or 256.
  * @returns {import('./types.js').DecimalType} The decimal data type.
  */
-export const decimal = (precision, scale, bitWidth) => ({
+export const decimal = (precision, scale, bitWidth = 128) => ({
   typeId: Type.Decimal,
   precision,
   scale,
@@ -166,8 +239,12 @@ export const decimal = (precision, scale, bitWidth) => ({
 });
 
 /**
- * Return a Date type instance.
- * @param {import('./types.js').DateUnit_} unit
+ * Return a Date data type instance. Date values are 32-bit or 64-bit signed
+ * integers representing elapsed time since the UNIX epoch (Jan 1, 1970 UTC),
+ * either in units of days (32 bits) or milliseconds (64 bits, with values
+ * evenly divisible by 86400000).
+ * @param {import('./types.js').DateUnit_} unit The date unit.
+ *  One of `DateUnit.DAY` or `DateUnit.MILLISECOND`.
  * @returns {import('./types.js').DateType} The date data type.
  */
 export const date = (unit) => ({
@@ -175,30 +252,78 @@ export const date = (unit) => ({
   unit: checkOneOf(unit, DateUnit),
   values: unit === DateUnit.DAY ? int32Array : int64Array
 });
+/**
+ * Return a Date data type instance with units of days.
+ * @returns {import('./types.js').DateType} The date data type.
+ */
 export const dateDay = () => date(DateUnit.DAY);
+/**
+ * Return a Date data type instance with units of milliseconds.
+ * @returns {import('./types.js').DateType} The date data type.
+ */
 export const dateMillisecond = () => date(DateUnit.MILLISECOND);
 
 /**
- * Return a Time type instance.
- * @param {import('./types.js').TimeUnit_} unit
- * @param {32 | 64} bitWidth
+ * Return a Time data type instance, stored in one of four *unit*s: seconds,
+ * milliseconds, microseconds or nanoseconds. The integer *bitWidth* depends
+ * on the *unit* and must be 32 bits for seconds and milliseconds or 64 bits
+ * for microseconds and nanoseconds. The allowed values are between 0
+ * (inclusive) and 86400 (=24*60*60) seconds (exclusive), adjusted for the
+ * time unit (for example, up to 86400000 exclusive for the
+ * `DateUnit.MILLISECOND` unit.
+ *
+ * This definition doesn't allow for leap seconds. Time values from
+ * measurements with leap seconds will need to be corrected when ingesting
+ * into Arrow (for example by replacing the value 86400 with 86399).
+ * @param {import('./types.js').TimeUnit_} unit The time unit.
+ *  One of `TimeUnit.SECOND`, `TimeUnit.MILLISECOND` (default),
+ *  `TimeUnit.MICROSECOND`, or `TimeUnit.NANOSECOND`.
+ * @param {32 | 64} bitWidth The time bit width. One of `32` (for seconds
+ *  and milliseconds) or `64` (for microseconds and nanoseconds).
  * @returns {import('./types.js').TimeType} The time data type.
  */
-export const time = (unit = TimeUnit.MILLISECOND, bitWidth = 64) => ({
+export const time = (unit = TimeUnit.MILLISECOND, bitWidth = 32) => ({
   typeId: Type.Time,
   unit: checkOneOf(unit, TimeUnit),
   bitWidth: checkOneOf(bitWidth, [32, 64]),
   values: bitWidth === 32 ? int32Array : int64Array
 });
-export const timeSecond = (bitWidth) => time(TimeUnit.SECOND, bitWidth);
-export const timeMillisecond = (bitWidth) => time(TimeUnit.MILLISECOND, bitWidth);
-export const timeMicrosecond = (bitWidth) => time(TimeUnit.MICROSECOND, bitWidth);
-export const timeNanosecond = (bitWidth) => time(TimeUnit.NANOSECOND, bitWidth);
+/**
+ * Return a Time data type instance, represented as seconds.
+ * @returns {import('./types.js').TimeType} The time data type.
+ */
+export const timeSecond = () => time(TimeUnit.SECOND, 32);
+/**
+ * Return a Time data type instance, represented as milliseconds.
+ * @returns {import('./types.js').TimeType} The time data type.
+ */
+export const timeMillisecond = () => time(TimeUnit.MILLISECOND, 32);
+/**
+ * Return a Time data type instance, represented as microseconds.
+ * @returns {import('./types.js').TimeType} The time data type.
+ */
+export const timeMicrosecond = () => time(TimeUnit.MICROSECOND, 64);
+/**
+ * Return a Time data type instance, represented as nanoseconds.
+ * @returns {import('./types.js').TimeType} The time data type.
+ */
+export const timeNanosecond = () => time(TimeUnit.NANOSECOND, 64);
 
 /**
- * Return a Timestamp type instance.
- * @param {import('./types.js').TimeUnit_} unit
- * @param {string|null} [timezone=null]
+ * Return a Timestamp data type instance. Timestamp values are 64-bit signed
+ * integers representing an elapsed time since a fixed epoch, stored in either
+ * of four units: seconds, milliseconds, microseconds or nanoseconds, and are
+ * optionally annotated with a timezone. Timestamp values do not include any
+ * leap seconds (in other words, all days are considered 86400 seconds long).
+ * @param {import('./types.js').TimeUnit_} [unit] The time unit.
+ *  One of `TimeUnit.SECOND`, `TimeUnit.MILLISECOND` (default),
+ *  `TimeUnit.MICROSECOND`, or `TimeUnit.NANOSECOND`.
+ * @param {string|null} [timezone=null] An optional string for the name of a
+ *  timezone. If provided, the value should either be a string as used in the
+ *  Olson timezone database (the "tz database" or "tzdata"), such as
+ *  "America/New_York", or an absolute timezone offset of the form "+XX:XX" or
+ *  "-XX:XX", such as "+07:30".Whether a timezone string is present indicates
+ *  different semantics about the data.
  * @returns {import('./types.js').TimestampType} The time data type.
  */
 export const timestamp = (unit = TimeUnit.MILLISECOND, timezone = null) => ({
@@ -209,8 +334,24 @@ export const timestamp = (unit = TimeUnit.MILLISECOND, timezone = null) => ({
 });
 
 /**
- * Return an Interval type instance.
- * @param {import('./types.js').IntervalUnit_} unit
+ * Return an Interval type instance. Values represent calendar intervals stored
+ * as integers for each date part. The supported intervals *unit*s are:
+ *
+ * - `IntervalUnit.YEAR_MONTH`: Indicates the number of elapsed whole months,
+ *   stored as 4-byte signed integers.
+ * - `IntervalUnit.DAY_TIME`: Indicates the number of elapsed days and
+ *   milliseconds (no leap seconds), stored as 2 contiguous 32-bit signed
+ *   integers (8-bytes in total).
+ * - `IntervalUnit.MONTH_DAY_NANO`: A triple of the number of elapsed months,
+ *   days, and nanoseconds. The values are stored contiguously in 16-byte
+ *   blocks. Months and days are encoded as 32-bit signed integers and
+ *   nanoseconds is encoded as a 64-bit signed integer. Nanoseconds does not
+ *   allow for leap seconds. Each field is independent (e.g. there is no
+ *   constraint that nanoseconds have the same sign as days or that the
+ *   quantity of nanoseconds represents less than a day's worth of time).
+ * @param {import('./types.js').IntervalUnit_} unit  The interval unit.
+ *  One of `IntervalUnit.YEAR_MONTH`, `IntervalUnit.DAY_TIME`, or
+ *  `IntervalUnit.MONTH_DAY_NANO` (default).
  * @returns {import('./types.js').IntervalType} The interval data type.
  */
 export const interval = (unit = IntervalUnit.MONTH_DAY_NANO) => ({
@@ -220,21 +361,27 @@ export const interval = (unit = IntervalUnit.MONTH_DAY_NANO) => ({
 });
 
 /**
- * Return a List type instance.
- * @param {FieldInput} type The child (list item) field or data type.
- * @returns {import('./types.js').ListType} The fixed size binary data type.
+ * Return a List data type instance, representing variably-sized lists
+ * (arrays) with 32-bit offsets. A list has a single child data type for
+ * list entries. Lists are represented using integer offsets that indicate
+ * list extents within a single child array containing all list values.
+ * @param {FieldInput} child The child (list item) field or data type.
+ * @returns {import('./types.js').ListType} The list data type.
  */
-export const list = (type) => ({
+export const list = (child) => ({
   typeId: Type.List,
-  children: [ asField(type) ],
+  children: [ asField(child) ],
   offsets: int32Array
 });
 
 /**
- * Return a Struct type instance.
+ * Return a Struct data type instance. A struct consists of multiple named
+ * child data types. Struct values are stored as parallel child batches, one
+ * per child type, and extracted to standard JavaScript objects.
  * @param {import('./types.js').Field[] | Record<string, import('./types.js').DataType>} children
- *  The property fields, or an object mapping property names to data types.
- *  If an object, fields are assumed to be nullable and have no metadata.
+ *  An array of property fields, or an object mapping property names to data
+ *  types. If an object, the instantiated fields are assumed to be nullable
+ *  and have no metadata.
  * @returns {import('./types.js').StructType} The struct data type.
  */
 export const struct = (children) => ({
@@ -245,15 +392,30 @@ export const struct = (children) => ({
 });
 
 /**
- * Return a Union type instance.
+ * Return a Union type instance. A union is a complex type with parallel
+ * *children* data types. Union values are stored in either a sparse
+ * (`UnionMode.Sparse`) or dense (`UnionMode.Dense`) layout *mode*. In a
+ * sparse layout, child types are stored in parallel arrays with the same
+ * lengths, resulting in many unused, empty values. In a dense layout, child
+ * types have variable lengths and an offsets array is used to index the
+ * appropriate value.
+ *
+ * By default, ids in the type vector refer to the index in the children
+ * array. Optionally, *typeIds* provide an indirection between the child
+ * index and the type id. For each child, `typeIds[index]` is the id used
+ * in the type vector. The *typeIdForValue* argument provides a lookup
+ * function for mapping input data to the proper child type id, and is
+ * required if using builder methods.
  * @param {import('./types.js').UnionMode_} mode The union mode.
+ *  One of `UnionMode.Sparse` or `UnionMode.Dense`.
  * @param {FieldInput[]} children The children fields or data types.
  *  Types are mapped to nullable fields with no metadata.
- * @param {number[]} [typeIds] Children type ids. If not provided,
- *  the children indices are used directly.
+ * @param {number[]} [typeIds]  Children type ids, in the same order as the
+ *  children types. Type ids provide a level of indirection over children
+ *  types. If not provided, the children indices are used as the type ids.
  * @param {(value: any, index: number) => number} [typeIdForValue]
- *  A function that takes an arbitrary value and a row index and
- *  returns a correponding union type id.
+ *  A function that takes an arbitrary value and a row index and returns a
+ *  correponding union type id. Required by builder methods.
  * @returns {import('./types.js').UnionType} The union data type.
  */
 export const union = (mode, children, typeIds, typeIdForValue) => {
@@ -270,7 +432,8 @@ export const union = (mode, children, typeIds, typeIdForValue) => {
 };
 
 /**
- * Return a FixedSizeBinary type instance.
+ * Create a FixedSizeBinary data type instance for opaque binary data where
+ * each entry has the same fixed size.
  * @param {number} stride The fixed size in bytes.
  * @returns {import('./types.js').FixedSizeBinaryType} The fixed size binary data type.
  */
@@ -280,10 +443,13 @@ export const fixedSizeBinary = (stride) => ({
 });
 
 /**
- * Return a FixedSizeList type instance.
+ * Return a FixedSizeList type instance for list (array) data where every list
+ * has the same fixed size. A list has a single child data type for list
+ * entries. Fixed size lists are represented as a single child array containing
+ * all list values, indexed using the known stride.
  * @param {FieldInput} child The list item data type.
  * @param {number} stride The fixed list size.
- * @returns {import('./types.js').FixedSizeListType} The fixed size binary data type.
+ * @returns {import('./types.js').FixedSizeListType} The fixed size list data type.
  */
 export const fixedSizeList = (child, stride) => ({
   typeId: Type.FixedSizeList,
@@ -305,10 +471,15 @@ export const mapType = (keysSorted, child) => ({
 });
 
 /**
- * Return a Map type instance.
+ * Return a Map data type instance representing collections of key-value pairs.
+ * A Map is a logical nested type that is represented as a list of key-value
+ * structs. The key and value types are not constrained, so the application is
+ * responsible for ensuring that the keys are hashable and unique, and that
+ * keys are properly sorted if *keysSorted* is `true`.
  * @param {FieldInput} keyField The map key field or data type.
  * @param {FieldInput} valueField The map value field or data type.
- * @param {boolean} [keysSorted=false] Flag indicating if the map keys are sorted.
+ * @param {boolean} [keysSorted=false] Flag indicating if the map keys are
+ *  sorted (default `false`).
  * @returns {import('./types.js').MapType} The map data type.
  */
 export const map = (keyField, valueField, keysSorted = false) => mapType(
@@ -321,7 +492,10 @@ export const map = (keyField, valueField, keysSorted = false) => mapType(
 );
 
 /**
- * Return a Duration type instance.
+ * Return a Duration data type instance. Durations represent an absolute length
+ * of time unrelated to any calendar artifacts. The resolution defaults to
+ * millisecond, but can be any of the other `TimeUnit` values. This type is
+ * always represented as a 64-bit integer.
  * @param {import('./types.js').TimeUnit_} unit
  * @returns {import('./types.js').DurationType} The duration data type.
  */
@@ -332,7 +506,9 @@ export const duration = (unit = TimeUnit.MILLISECOND) => ({
 });
 
 /**
- * Return a LargeBinary type instance.
+ * Return a LargeBinary data type instance for variably-sized opaque binary
+ * data with 64-bit offsets, allowing representation of extremely large data
+ * values.
  * @returns {import('./types.js').LargeBinaryType} The large binary data type.
  */
 export const largeBinary = () => ({
@@ -341,7 +517,10 @@ export const largeBinary = () => ({
 });
 
 /**
- * Return a LargeUtf8 type instance.
+ * Return a LargeUtf8 data type instance for Unicode string data of variable
+ * length with 64-bit offsets, allowing representation of extremely large data
+ * values. [UTF-8](https://en.wikipedia.org/wiki/UTF-8) code points are stored
+ * as binary data.
  * @returns {import('./types.js').LargeUtf8Type} The large utf8 data type.
  */
 export const largeUtf8 = () => ({
@@ -350,7 +529,11 @@ export const largeUtf8 = () => ({
 });
 
 /**
- * Return a LargeList type instance.
+ * Return a LargeList data type instance, representing variably-sized lists
+ * (arrays) with 64-bit offsets, allowing representation of extremely large
+ * data values. A list has a single child data type for list entries. Lists
+ * are represented using integer offsets that indicate list extents within a
+ * single child array containing all list values.
  * @param {FieldInput} child The child (list item) field or data type.
  * @returns {import('./types.js').LargeListType} The large list data type.
  */
@@ -361,9 +544,14 @@ export const largeList = (child) => ({
 });
 
 /**
- * Return a RunEndEncoded type instance.
+ * Return a RunEndEncoded data type instance, which compresses data by
+ * representing consecutive repeated values as a run. This data type uses two
+ * child arrays, `run_ends` and `values`. The `run_ends` child array must be
+ * a 16, 32, or 64 bit integer array which encodes the indices at which the
+ * run with the value in each corresponding index in the values child array
+ * ends. Like list and struct types, the `values` array can be of any type.
  * @param {FieldInput} runsField The run-ends field or data type.
- * @param {FieldInput} valuesField The value field or data type.
+ * @param {FieldInput} valuesField The values field or data type.
  * @returns {import('./types.js').RunEndEncodedType} The large list data type.
  */
 export const runEndEncoded = (runsField, valuesField) => ({
@@ -379,21 +567,41 @@ export const runEndEncoded = (runsField, valuesField) => ({
 });
 
 /**
- * Return a BinaryView type instance.
+ * Return a BinaryView data type instance. BinaryView data is logically the
+ * same as the Binary type, but the internal representation uses a view struct
+ * that contains the string length and either the string's entire data inline
+ * (for small strings) or an inlined prefix, an index of another buffer, and an
+ * offset pointing to a slice in that buffer (for non-small strings).
+ *
+ * Flechette can encode and decode BinaryView data; however, Flechette does
+ * not currently support building BinaryView columns from JavaScript values.
  * @returns {import('./types.js').BinaryViewType} The binary view data type.
  */
 export const binaryView = () => /** @type{import('./types.js').BinaryViewType} */
   (basicType(Type.BinaryView));
 
 /**
- * Return a Utf8View type instance.
- * @returns {import('./types.js').Utf8ViewType} The binary view data type.
+ * Return a Utf8View data type instance. Utf8View data is logically the same as
+ * the Utf8 type, but the internal representation uses a view struct that
+ * contains the string length and either the string's entire data inline (for
+ * small strings) or an inlined prefix, an index of another buffer, and an
+ * offset pointing to a slice in that buffer (for non-small strings).
+ *
+ * Flechette can encode and decode Utf8View data; however, Flechette does
+ * not currently support building Utf8View columns from JavaScript values.
+ * @returns {import('./types.js').Utf8ViewType} The utf8 view data type.
  */
 export const utf8View = () => /** @type{import('./types.js').Utf8ViewType} */
   (basicType(Type.Utf8View));
 
 /**
- * Return a ListView type instance.
+ * Return a ListView data type instance, representing variably-sized lists
+ * (arrays) with 32-bit offsets. ListView data represents the same logical
+ * types that List can, but contains both offsets and sizes allowing for
+ * writes in any order and sharing of child values among list values.
+ *
+ * Flechette can encode and decode ListView data; however, Flechette does not
+ * currently support building ListView columns from JavaScript values.
  * @param {FieldInput} child The child (list item) field or data type.
  * @returns {import('./types.js').ListViewType} The list view data type.
  */
@@ -404,7 +612,14 @@ export const listView = (child) => ({
 });
 
 /**
- * Return a LargeListView type instance.
+ * Return a LargeListView data type instance, representing variably-sized lists
+ * (arrays) with 64-bit offsets, allowing representation of extremely large
+ * data values. LargeListView data represents the same logical types that
+ * LargeList can, but contains both offsets and sizes allowing for writes
+ * in any order and sharing of child values among list values.
+ *
+ * Flechette can encode and decode LargeListView data; however, Flechette does
+ * not currently support building LargeListView columns from JavaScript values.
  * @param {FieldInput} child The child (list item) field or data type.
  * @returns {import('./types.js').LargeListViewType} The large list view data type.
  */

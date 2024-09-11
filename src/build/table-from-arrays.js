@@ -1,6 +1,6 @@
-import { table } from '../table.js';
 import { builderContext } from './builder.js';
 import { columnFromArray } from './column-from-array.js';
+import { tableFromColumns } from './table-from-columns.js';
 
 /**
  * Create a new table from the provided arrays.
@@ -19,5 +19,5 @@ export function tableFromArrays(data, options = {}) {
     /** @type {[string, import('../column.js').Column]} */ (
     [ name, columnFromArray(array, types[name], opt, ctx)]
   ));
-  return table(columns);
+  return tableFromColumns(columns);
 }
