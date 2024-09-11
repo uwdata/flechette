@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { tableFromIPC } from '../src/index.js';
 import { arrowFromDuckDB } from './util/arrow-from-duckdb.js';
 import { binaryView, bool, dateDay, decimal, empty, fixedListInt32, fixedListUtf8, float32, float64, int16, int32, int64, int8, intervalMonthDayNano, largeListView, listInt32, listUtf8, listView, map, runEndEncoded32, runEndEncoded64, struct, timestampMicrosecond, timestampMillisecond, timestampNanosecond, timestampSecond, uint16, uint32, uint64, uint8, union, utf8, utf8View } from './util/data.js';
+import { RowIndex } from '../src/util/struct.js';
 
 const toBigInt = v => BigInt(v);
 const toDate = v => new Date(v);
@@ -101,6 +102,16 @@ describe('tableFromIPC', () => {
   it('decodes map data to maps', () => test(map, Array, { useMap: true }));
 
   it('decodes struct data', () => test(struct));
+
+  it('decodes struct data with useProxy', async () => {
+    const data = await struct();
+    for (const { bytes, values } of data) {
+      const column = tableFromIPC(bytes, { useProxy: true }).getChildAt(0);
+      const proxies = column.toArray();
+      assert.strictEqual(proxies.every(p => p === null || p[RowIndex] >= 0), true);
+      assert.deepStrictEqual(proxies.map(p => p ? p.toJSON() : null), values);
+    }
+  });
 
   it('decodes run-end-encoded data with 32-bit run ends', async () => {
     const data = await runEndEncoded32();

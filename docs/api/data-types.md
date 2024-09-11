@@ -7,7 +7,7 @@ title: Flechette API Reference
 
 ## Data Type Overview
 
-The table below provides an overview of all data types supported by the Apache Arrow format and how Flechette maps them to JavaScript types. The table indicates if Flechette can read the type (via [`tableFromIPC`](/flechette/api/#tableFromIPC)), write the type (via [`tableToIPC`](/flechette/api/#tableToIPC)), and build the type from JavaScript values (via [`tableFromArrays`](/flechette/api/#tableFromArrays) or [`columnFromArray`](/flechette/api/#tableFromArray)).
+The table below provides an overview of all data types supported by the Apache Arrow format and how Flechette maps them to JavaScript types. The table indicates if Flechette can read the type (via [`tableFromIPC`](/flechette/api/#tableFromIPC)), write the type (via [`tableToIPC`](/flechette/api/#tableToIPC)), and build the type from JavaScript values (via [`tableFromArrays`](/flechette/api/#tableFromArrays) or [`columnFromArray`](/flechette/api/#columnFromArray)).
 
 | Id  | Data Type                           | Read? | Write? | Build? | JavaScript Type |
 | --: | ----------------------------------- | :---: | :----: | :----: | --------------- |
@@ -341,7 +341,7 @@ Extracted JavaScript values depend on the child types.
 * *mode* (`number`): The union mode. One of `UnionMode.Sparse` or `UnionMode.Dense`.
 * *children* (`(DataType[] | Field)[]`): The children fields or data types. Types are mapped to nullable fields with no metadata.
 * *typeIds* (`number[]`): Children type ids, in the same order as the children types. Type ids provide a level of indirection over children types. If not provided, the children indices are used as the type ids.
-* *typeIdForValue* (`(value: any, index: number) => number`): A function that takes an arbitrary value and a row index and returns a correponding union type id. This function is required to build union-typed data with [`tableFromArrays`](/flechette/api/#tableFromArrays) or [`columnFromArray`](/flechette/api/#tableFromArray).
+* *typeIdForValue* (`(value: any, index: number) => number`): A function that takes an arbitrary value and a row index and returns a correponding union type id. This function is required to build union-typed data with [`tableFromArrays`](/flechette/api/#tableFromArrays) or [`columnFromArray`](/flechette/api/#columnFromArray).
 
 ### FixedSizeBinary
 

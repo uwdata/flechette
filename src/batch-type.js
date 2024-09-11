@@ -1,10 +1,10 @@
-import { BinaryBatch, BinaryViewBatch, BoolBatch, DateBatch, DateDayBatch, DateDayMillisecondBatch, DecimalBigIntBatch, DecimalNumberBatch, DenseUnionBatch, DictionaryBatch, DirectBatch, FixedBinaryBatch, FixedListBatch, Float16Batch, Int64Batch, IntervalDayTimeBatch, IntervalMonthDayNanoBatch, IntervalYearMonthBatch, LargeBinaryBatch, LargeListBatch, LargeListViewBatch, LargeUtf8Batch, ListBatch, ListViewBatch, MapBatch, MapEntryBatch, NullBatch, RunEndEncodedBatch, SparseUnionBatch, StructBatch, TimestampMicrosecondBatch, TimestampMillisecondBatch, TimestampNanosecondBatch, TimestampSecondBatch, Utf8Batch, Utf8ViewBatch } from './batch.js';
+import { BinaryBatch, BinaryViewBatch, BoolBatch, DateBatch, DateDayBatch, DateDayMillisecondBatch, DecimalBigIntBatch, DecimalNumberBatch, DenseUnionBatch, DictionaryBatch, DirectBatch, FixedBinaryBatch, FixedListBatch, Float16Batch, Int64Batch, IntervalDayTimeBatch, IntervalMonthDayNanoBatch, IntervalYearMonthBatch, LargeBinaryBatch, LargeListBatch, LargeListViewBatch, LargeUtf8Batch, ListBatch, ListViewBatch, MapBatch, MapEntryBatch, NullBatch, RunEndEncodedBatch, SparseUnionBatch, StructBatch, StructProxyBatch, TimestampMicrosecondBatch, TimestampMillisecondBatch, TimestampNanosecondBatch, TimestampSecondBatch, Utf8Batch, Utf8ViewBatch } from './batch.js';
 import { DateUnit, IntervalUnit, TimeUnit, Type } from './constants.js';
 import { invalidDataType } from './data-types.js';
 
 export function batchType(type, options = {}) {
   const { typeId, bitWidth, precision, unit } = type;
-  const { useBigInt, useDate, useDecimalBigInt, useMap } = options;
+  const { useBigInt, useDate, useDecimalBigInt, useMap, useProxy } = options;
 
   switch (typeId) {
     case Type.Null: return NullBatch;
@@ -47,7 +47,7 @@ export function batchType(type, options = {}) {
     case Type.ListView: return ListViewBatch;
     case Type.LargeListView: return LargeListViewBatch;
     case Type.FixedSizeList: return FixedListBatch;
-    case Type.Struct: return StructBatch;
+    case Type.Struct: return useProxy ? StructProxyBatch : StructBatch;
     case Type.RunEndEncoded: return RunEndEncodedBatch;
     case Type.Dictionary: return DictionaryBatch;
     case Type.Union: return type.mode ? DenseUnionBatch : SparseUnionBatch;

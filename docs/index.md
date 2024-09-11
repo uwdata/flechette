@@ -4,15 +4,15 @@
 
 Flechette performs fast extraction and encoding of data columns in the Arrow binary IPC format, supporting ingestion of Arrow data from sources such as [DuckDB](https://duckdb.org/) and Arrow use in JavaScript data analysis tools like [Arquero](https://github.com/uwdata/arquero), [Mosaic](https://github.com/uwdata/mosaic), [Observable Plot](https://observablehq.com/plot/), and [Vega-Lite](https://vega.github.io/vega-lite/).
 
-[**API Reference**](api)
+For documentation, see the [**API Reference**](api).
 
 ## Why Flechette?
 
 In the process of developing multiple data analysis packages that consume Arrow data (including Arquero, Mosaic, and Vega), we've had to develop workarounds for the performance and correctness of the Arrow JavaScript reference implementation. Instead of workarounds, Flechette addresses these issues head-on.
 
-* _Speed_. Flechette provides better performance. Performance tests show 1.3-1.6x faster value iteration, 2-7x faster array extraction, 5-9x faster row object extraction, and 1.5-3.5x faster building of Arrow columns.
+* _Speed_. Flechette provides better performance. Performance tests show 1.3-1.6x faster value iteration, 2-7x faster array extraction, 7-11x faster row object extraction, and 1.5-3.5x faster building of Arrow columns.
 
-* _Size_. Flechette is smaller: ~42k minified (~13k gzip'd) versus 163k minified (~43k gzip'd) for Arrow JS. Flechette's encoders and decoders also tree-shake cleanly, so you only pay for what you need in your own bundles.
+* _Size_. Flechette is smaller: ~42k minified (~14k gzip'd) versus 163k minified (~43k gzip'd) for Arrow JS. Flechette's encoders and decoders also tree-shake cleanly, so only pay for what you need in your own bundles.
 
 * _Coverage_. Flechette supports data types unsupported by the reference implementation, including decimal-to-number conversion, month/day/nanosecond time intervals (as used by DuckDB, for example), run-end encoded data, binary views, and list views.
 
@@ -110,7 +110,7 @@ const ipcTyped = tableToIPC(tableTyped, { format: 'file' });
 
 ### Customize Data Extraction
 
-Data extraction can be customized using options provided to the table generation method. By default, temporal data is returned as numeric timestamps, 64-bit integers are coerced to numbers, and map-typed data is returned as an array of [key, value] pairs. These defaults can be changed via conversion options that push (or remove) transformations to the underlying data batches.
+Data extraction can be customized using options provided to table generation methods. By default, temporal data is returned as numeric timestamps, 64-bit integers are coerced to numbers, map-typed data is returned as an array of [key, value] pairs, and struct/row objects are returned as vanilla JS objects with extracted property values. These defaults can be changed via conversion options that push (or remove) transformations to the underlying data batches.
 
 ```js
 const table = tableFromIPC(ipc, {
@@ -118,6 +118,7 @@ const table = tableFromIPC(ipc, {
   useDecimalBigInt: true, // use BigInt for decimals, do not coerce to number
   useBigInt: true,        // use BigInt for 64-bit ints, do not coerce to number
   useMap: true            // create Map objects for [key, value] pair lists
+  useProxy: true          // use zero-copy proxies for struct and table row objects
 });
 ```
 

@@ -2,6 +2,7 @@ import { bisect, float64Array } from './util/arrays.js';
 import { divide, fromDecimal128, fromDecimal256, toNumber } from './util/numbers.js';
 import { decodeBit, readInt32, readInt64 } from './util/read.js';
 import { decodeUtf8 } from './util/strings.js';
+import { objectFactory, proxyFactory } from './util/struct.js';
 
 /**
  * Check if the input is a batch that supports direct access to
@@ -730,11 +731,12 @@ export class DenseUnionBatch extends SparseUnionBatch {
  * @extends {ArrayBatch<Record<string, any>>}
  */
 export class StructBatch extends ArrayBatch {
-  constructor(options) {
+  constructor(options, factory = objectFactory) {
     super(options);
     /** @type {string[]} */
     // @ts-ignore
     this.names = this.type.children.map(child => child.name);
+    this.factory = factory(this.names, this.children);
   }
 
   /**
@@ -742,13 +744,19 @@ export class StructBatch extends ArrayBatch {
    * @returns {Record<string, any>}
    */
   value(index) {
-    const { children, names } = this;
-    const n = names.length;
-    const struct = {};
-    for (let i = 0; i < n; ++i) {
-      struct[names[i]] = children[i].at(index);
-    }
-    return struct;
+    return this.factory(index);
+  }
+}
+
+/**
+ * A batch of struct values, containing a set of named properties.
+ * Structs are returned as proxy objects that extract data directly
+ * from underlying Arrow batches.
+ * @extends {StructBatch}
+ */
+export class StructProxyBatch extends StructBatch {
+  constructor(options) {
+    super(options, proxyFactory);
   }
 }
 

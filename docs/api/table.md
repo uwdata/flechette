@@ -7,7 +7,7 @@ title: Flechette API Reference
 
 ## Table Class
 
-A table consisting of named columns (or 'children'). To extract table data directly to JavaScript values, use [`toColumns()`](#toColumns) to produce an object that maps column names to extracted value arrays, or [`toArray()`](#toArray) to extract an array of row objects. Tables are [iterable](#iterator), iterating over row objects. While `toArray()` and [table iterators](#iterator) enable convenient use by tools that expect row objects, column-oriented processing is more efficient and thus recommended. Use [`getChild`](#getChild) or [`getChildAt`](#getChildAt) to access a specific [`Column`](column).
+A table consists of named data [columns](#column) (or 'children'). To extract table data directly to JavaScript values, use [`toColumns()`](#toColumns) to produce an object that maps column names to extracted value arrays, or [`toArray()`](#toArray) to extract an array of row objects. Tables are [iterable](#iterator), iterating over row objects. While `toArray()` and [table iterators](#iterator) enable convenient use by tools that expect row objects, column-oriented processing is more efficient and thus recommended. Use [`getChild`](#getChild) or [`getChildAt`](#getChildAt) to access a specific [`Column`](column).
 
 * [constructor](#constructor)
 * [numCols](#numCols)

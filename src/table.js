@@ -1,4 +1,5 @@
 import { bisect } from './util/arrays.js';
+import { objectFactory, proxyFactory } from './util/struct.js';
 
 /**
  * A table consists of a collection of named columns (or 'children').
@@ -12,17 +13,39 @@ export class Table {
    * Create a new table with the given schema and columns (children).
    * @param {import('./types.js').Schema} schema The table schema.
    * @param {import('./column.js').Column[]} children The table columns.
+   * @param {boolean} [useProxy=false] Flag indicating if row proxy
+   *  objects should be used to represent table rows (default `false`).
    */
-  constructor(schema, children) {
+  constructor(schema, children, useProxy = false) {
+    const names = schema.fields.map(f => f.name);
+
     /** @readonly */
     this.schema = schema;
     /** @readonly */
-    this.names = schema.fields.map(f => f.name);
+    this.names = names;
     /**
      * @type {import('./column.js').Column[]}
      * @readonly
      */
     this.children = children;
+    /**
+     * @type {import('./types.js').StructFactory}
+     * @readonly
+     */
+    this.factory = useProxy ? proxyFactory : objectFactory;
+
+    // lazily created row object generators
+    const gen = [];
+
+    /**
+     * Returns a row object generator for the given batch index.
+     * @private
+     * @readonly
+     * @param {number} b The batch index.
+     * @returns {(index: number) => Record<string,any>}
+     */
+    this.getFactory = b => gen[b]
+      ?? (gen[b] = this.factory(names, children.map(c => c.data[b])));
   }
 
   /**
@@ -75,14 +98,15 @@ export class Table {
    * @returns {Table} A new table with columns at the specified indices.
    */
   selectAt(indices, as = []) {
-    const { children, schema } = this;
+    const { children, factory, schema } = this;
     const { fields } = schema;
     return new Table(
       {
         ...schema,
         fields: indices.map((i, j) => renameField(fields[i], as[j]))
       },
-      indices.map(i => children[i])
+      indices.map(i => children[i]),
+      factory === proxyFactory
     );
   }
 
@@ -117,12 +141,13 @@ export class Table {
    * @returns {Record<string, any>[]}
    */
   toArray() {
-    const { children, numRows, names } = this;
+    const { children, getFactory, numRows } = this;
     const data = children[0]?.data ?? [];
     const output = Array(numRows);
     for (let b = 0, row = -1; b < data.length; ++b) {
+      const f = getFactory(b);
       for (let i = 0; i < data[b].length; ++i) {
-        output[++row] = rowObject(names, children, b, i);
+        output[++row] = f(i);
       }
     }
     return output;
@@ -133,11 +158,12 @@ export class Table {
    * @returns {Generator<Record<string, any>, any, null>}
    */
   *[Symbol.iterator]() {
-    const { children, names } = this;
+    const { children, getFactory } = this;
     const data = children[0]?.data ?? [];
     for (let b = 0; b < data.length; ++b) {
+      const f = getFactory(b);
       for (let i = 0; i < data[b].length; ++i) {
-        yield rowObject(names, children, b, i);
+        yield f(i);
       }
     }
   }
@@ -148,11 +174,11 @@ export class Table {
    * @returns {Record<string, any>} The row object.
    */
   at(index) {
-    const { names, children, numRows } = this;
+    const { children, getFactory, numRows } = this;
     if (index < 0 || index >= numRows) return null;
     const [{ offsets }] = children;
-    const i = bisect(offsets, index) - 1;
-    return rowObject(names, children, i, index - offsets[i]);
+    const b = bisect(offsets, index) - 1;
+    return getFactory(b)(index - offsets[b]);
   }
 
   /**
@@ -170,12 +196,4 @@ function renameField(field, name) {
   return (name != null && name !== field.name)
     ? { ...field, name }
     : field;
-}
-
-function rowObject(names, children, batch, index) {
-  const o = {};
-  for (let j = 0; j < names.length; ++j) {
-    o[names[j]] = children[j].data[batch].at(index);
-  }
-  return o;
 }

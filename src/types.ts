@@ -1,3 +1,4 @@
+import { Batch } from './batch.js';
 import {
   Version,
   Endianness,
@@ -90,6 +91,9 @@ export type TypedArrayConstructor =
 export interface ValueArray<T> extends ArrayLike<T>, Iterable<T> {
   slice(start?: number, end?: number): ValueArray<T>;
 }
+
+/** Struct/row object factory method. */
+export type StructFactory = (names: string[], batches: Batch<any>[]) => (index: number) => Record<string, any>;
 
 /** Custom metadata. */
 export type Metadata = Map<string, string>;
@@ -321,6 +325,14 @@ export interface ExtractionOptions {
    * both `Map` and `Object.fromEntries` (default).
    */
   useMap?: boolean;
+  /**
+   * If true, extract Arrow 'Struct' values and table row objects using
+   * zero-copy proxy objects that extract data from underlying Arrow batches.
+   * The proxy objects can improve performance and reduce memory usage, but
+   * do not support property enumeration (`Object.keys`, `Object.values`,
+   * `Object.entries`) or spreading (`{ ...object }`).
+   */
+  useProxy?: boolean;
 }
 
 /**

@@ -19,5 +19,5 @@ export function tableFromArrays(data, options = {}) {
     /** @type {[string, import('../column.js').Column]} */ (
     [ name, columnFromArray(array, types[name], opt, ctx)]
   ));
-  return tableFromColumns(columns);
+  return tableFromColumns(columns, options.useProxy);
 }
