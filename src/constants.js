@@ -1,3 +1,6 @@
+/** Magic bytes 'ARROW1' indicating the Arrow 'file' format. */
+export const MAGIC = Uint8Array.of(65, 82, 82, 79, 87, 49);
+
 /**
  * Apache Arrow version.
  */
@@ -153,8 +156,22 @@ export const Type = /** @type {const} */ ({
    * A "calendar" interval which models types that don't necessarily
    * have a precise duration without the context of a base timestamp (e.g.
    * days can differ in length during day light savings time transitions).
-   * All integers in the types below are stored in the endianness indicated
+   * All integers in the units below are stored in the endianness indicated
    * by the schema.
+   *
+   *  - YEAR_MONTH - Indicates the number of elapsed whole months, stored as
+   *    4-byte signed integers.
+   *  - DAY_TIME - Indicates the number of elapsed days and milliseconds (no
+   *    leap seconds), stored as 2 contiguous 32-bit signed integers (8-bytes
+   *    in total). Support of this IntervalUnit is not required for full arrow
+   *    compatibility.
+   *  - MONTH_DAY_NANO - A triple of the number of elapsed months, days, and
+   *    nanoseconds. The values are stored contiguously in 16-byte blocks.
+   *    Months and days are encoded as 32-bit signed integers and nanoseconds
+   *    is encoded as a 64-bit signed integer. Nanoseconds does not allow for
+   *    leap seconds. Each field is independent (e.g. there is no constraint
+   *    that nanoseconds have the same sign as days or that the quantity of
+   *    nanoseconds represents less than a day's worth of time).
    */
   Interval: 11,
   /**
@@ -242,7 +259,7 @@ export const Type = /** @type {const} */ ({
   /**
    * Contains two child arrays, run_ends and values. The run_ends child array
    * must be a 16/32/64-bit integer array which encodes the indices at which
-   * the run with the value in  each corresponding index in the values child
+   * the run with the value in each corresponding index in the values child
    * array ends. Like list/struct types, the value array can be of any type.
    */
   RunEndEncoded: 22,

@@ -1,8 +1,8 @@
-import { bisect } from './util.js';
+import { bisect } from './util/arrays.js';
 
 /**
  * A table consists of a collection of named columns (or 'children').
- * To work with table data directly in JavaScript, usse `toColumns()`
+ * To work with table data directly in JavaScript, use `toColumns()`
  * to extract an object that maps column names to extracted value arrays,
  * or `toArray()` to extract an array of row objects. For random access
  * by row index, use `getChild()` to access data for a specific column.

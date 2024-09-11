@@ -1,18 +1,26 @@
 import assert from 'node:assert';
-import { readFile } from 'node:fs/promises';
-import { arrowFromDuckDB, arrowQuery } from './util/arrow-from-duckdb.js';
 import { tableFromIPC } from '../src/index.js';
+import { arrowFromDuckDB } from './util/arrow-from-duckdb.js';
+import { binaryView, bool, dateDay, decimal, empty, fixedListInt32, fixedListUtf8, float32, float64, int16, int32, int64, int8, intervalMonthDayNano, largeListView, listInt32, listUtf8, listView, map, runEndEncoded32, runEndEncoded64, struct, timestampMicrosecond, timestampMillisecond, timestampNanosecond, timestampSecond, uint16, uint32, uint64, uint8, union, utf8, utf8View } from './util/data.js';
 
-const toDate = v => new Date(v);
 const toBigInt = v => BigInt(v);
+const toDate = v => new Date(v);
+const toFloat32 = v => Math.fround(v);
 
-async function valueTest(values, dbType = null, arrayType, opt = undefined, transform = undefined) {
+async function test(dataMethod, arrayType, opt, transform) {
+  const data = await dataMethod();
+  for (const { bytes, values, nullCount } of data) {
+    valueTest(bytes, values, nullCount ? Array : arrayType, opt, transform);
+  }
+}
+
+function valueTest(bytes, values, arrayType, opt = undefined, transform = undefined, name = 'value') {
   const array = transform
     ? values.map((v, i) => v == null ? v : transform(v, i))
     : Array.from(values);
-  const bytes = await arrowFromDuckDB(values, dbType);
-  const column = tableFromIPC(bytes, opt).getChild('value');
+  const column = tableFromIPC(bytes, opt).getChild(name);
   compare(column, array, arrayType);
+  return column;
 }
 
 function compare(column, array, arrayType = Array) {
@@ -41,273 +49,103 @@ describe('tableFromIPC', () => {
     assert.throws(() => tableFromIPC(bytes).getChild('value').toArray());
 
     // as bigints
-    await valueTest(values, 'BIGINT', BigInt64Array, { useBigInt: true });
+    valueTest(bytes, values, BigInt64Array, { useBigInt: true });
   });
 
-  it('decodes boolean data', async () => {
-    await valueTest([true, false, true], 'BOOLEAN', Array);
-    await valueTest([true, false, null], 'BOOLEAN', Array);
-  });
+  it('decodes boolean data', () => test(bool));
 
-  it('decodes uint8 data', async () => {
-    await valueTest([1, 2, 3], 'UTINYINT', Uint8Array);
-    await valueTest([1, null, 3], 'UTINYINT', Array);
-  });
+  it('decodes uint8 data', () => test(uint8, Uint8Array));
+  it('decodes uint16 data', () => test(uint16, Uint16Array));
+  it('decodes uint32 data', () => test(uint32, Uint32Array));
+  it('decodes uint64 data', () => test(uint64, Float64Array));
+  it('decodes uint64 data to bigint', () => test(uint64, BigUint64Array, { useBigInt: true }, toBigInt));
 
-  it('decodes uint16 data', async () => {
-    await valueTest([1, 2, 3], 'USMALLINT', Uint16Array);
-    await valueTest([1, null, 3], 'USMALLINT', Array);
-  });
+  it('decodes int8 data', () => test(int8, Int8Array));
+  it('decodes int16 data', () => test(int16, Int16Array));
+  it('decodes int32 data', () => test(int32, Int32Array));
+  it('decodes int64 data', () => test(int64, Float64Array));
+  it('decodes int64 data to bigint', () => test(int64, BigInt64Array, { useBigInt: true }, toBigInt));
 
-  it('decodes uint32 data', async () => {
-    await valueTest([1, 2, 3], 'UINTEGER', Uint32Array);
-    await valueTest([1, null, 3], 'UINTEGER', Array);
-  });
+  it('decodes float32 data', () => test(float32, Float32Array, {}, toFloat32));
+  it('decodes float64 data', () => test(float64, Float64Array));
+  it('decodes decimal data', () => test(decimal, Float64Array));
 
-  it('decodes uint64 data', async () => {
-    // coerced to numbers
-    await valueTest([1, 2, 3], 'UBIGINT', Float64Array);
-    await valueTest([1, null, 3], 'UBIGINT', Array);
-    // as bigints
-    await valueTest([1, 2, 3], 'UBIGINT', BigUint64Array, { useBigInt: true }, toBigInt);
-    await valueTest([1, null, 3], 'UBIGINT', Array, { useBigInt: true }, toBigInt);
-  });
+  it('decodes date day data', () => test(dateDay, Float64Array));
+  it('decodes date day data to dates', () => test(dateDay, Array, { useDate: true }, toDate));
 
-  it('decodes int8 data', async () => {
-    await valueTest([1, 2, 3], 'TINYINT', Int8Array);
-    await valueTest([1, null, 3], 'TINYINT', Array);
-  });
+  it('decodes timestamp nanosecond data', () => test(timestampNanosecond, Float64Array));
+  it('decodes timestamp microsecond data', () => test(timestampMicrosecond, Float64Array));
+  it('decodes timestamp millisecond data', () => test(timestampMillisecond, Float64Array));
+  it('decodes timestamp second data', () => test(timestampSecond, Float64Array));
+  it('decodes timestamp nanosecond data to dates', () => test(timestampNanosecond, Array, { useDate: true }, toDate));
+  it('decodes timestamp microsecond data to dates', () => test(timestampMicrosecond, Array, { useDate: true }, toDate));
+  it('decodes timestamp millisecond data to dates', () => test(timestampMillisecond, Array, { useDate: true }, toDate));
+  it('decodes timestamp second data to dates', () => test(timestampSecond, Array, { useDate: true }, toDate));
 
-  it('decodes int16 data', async () => {
-    await valueTest([1, 2, 3], 'SMALLINT', Int16Array);
-    await valueTest([1, null, 3], 'SMALLINT', Array);
-  });
+  it('decodes interval year/month/nano data', () => test(intervalMonthDayNano));
 
-  it('decodes int32 data', async () => {
-    await valueTest([1, 2, 3], 'INTEGER', Int32Array);
-    await valueTest([1, null, 3], 'INTEGER', Array);
-  });
+  it('decodes utf8 data', () => test(utf8));
 
-  it('decodes int64 data', async () => {
-    // coerced to numbers
-    await valueTest([1, 2, 3], 'BIGINT', Float64Array);
-    await valueTest([1, null, 3], 'BIGINT', Array);
-    // as bigints
-    await valueTest([1, 2, 3], 'BIGINT', BigInt64Array, { useBigInt: true }, toBigInt);
-    await valueTest([1, null, 3], 'BIGINT', Array, { useBigInt: true }, toBigInt);
-  });
+  it('decodes list int32 data', () => test(listInt32));
+  it('decodes list utf8 data', () => test(listUtf8));
 
-  it('decodes float32 data', async () => {
-    await valueTest([1.1, 2.2, 3.3], 'FLOAT', Float32Array, {}, v => Math.fround(v));
-    await valueTest([1.1, null, 3.3], 'FLOAT', Array, {}, v => Math.fround(v));
-  });
+  it('decodes fixed list int32 data', () => test(fixedListInt32));
+  it('decodes fixed utf8 data', () => test(fixedListUtf8));
 
-  it('decodes float64 data', async () => {
-    await valueTest([1.1, 2.2, 3.3], 'DOUBLE', Float64Array);
-    await valueTest([1.1, null, 3.3], 'DOUBLE', Array);
-  });
+  it('decodes list view data', () => test(listView));
+  it('decodes large list view data', () => test(largeListView));
 
-  it('decodes decimal data', async () => {
-    await valueTest([1.212, 3.443, 5.600], 'DECIMAL(18,3)', Float64Array);
-    await valueTest([1.212, null, 5.600], 'DECIMAL(18,3)', Array);
-  });
+  it('decodes union data', () => test(union));
 
-  it('decodes date day data', async () => {
-    const values = ['2001-01-01', '2004-02-03', '2006-12-31'];
-    const nulls = ['2001-01-01', null, '2006-12-31'];
-    // as timestamps
-    await valueTest(values, 'DATE', Float64Array, {}, v => +toDate(v));
-    await valueTest(nulls, 'DATE', Array, {}, v => +toDate(v));
-    // as Date objects
-    await valueTest(values, 'DATE', Array, { useDate: true }, toDate);
-    await valueTest(nulls, 'DATE', Array, { useDate: true }, toDate);
-  });
+  it('decodes map data', () => test(map, Array, {}, v => Array.from(v.entries())));
+  it('decodes map data to maps', () => test(map, Array, { useMap: true }));
 
-  it('decodes timestamp data', async () => {
-    const ns = ['1992-09-20T11:30:00.123456789Z', '2002-12-13T07:28:56.564738209Z'];
-    const us = ['1992-09-20T11:30:00.123457Z', '2002-12-13T07:28:56.564738Z'];
-    const ms = ['1992-09-20T11:30:00.123Z', '2002-12-13T07:28:56.565Z'];
-    const sec = ['1992-09-20T11:30:00Z', '2002-12-13T07:28:57Z'];
+  it('decodes struct data', () => test(struct));
 
-    // From DuckDB docs: When defining timestamps as a TIMESTAMP_NS literal, the
-    // decimal places beyond microseconds are ignored. The TIMESTAMP_NS type is
-    // able to hold nanoseconds when created e.g., loading Parquet files.
-    const _ns = [0.456, 0.738]; // DuckDB truncates here
-    const _us = [0.457, 0.738]; // DuckDB rounds here
-
-    // as timestamps
-    await valueTest(ns, 'TIMESTAMP_NS', Float64Array, {}, (v, i) => +toDate(v) + _ns[i]);
-    await valueTest(us, 'TIMESTAMP', Float64Array, {}, (v, i) => +toDate(v) + _us[i]);
-    await valueTest(ms, 'TIMESTAMP_MS', Float64Array, {}, v => +toDate(v));
-    await valueTest(sec, 'TIMESTAMP_S', Float64Array, {}, v => +toDate(v));
-
-    // as timestamps with nulls
-    await valueTest(ns.concat(null), 'TIMESTAMP_NS', Array, {}, (v, i) => +toDate(v) + _ns[i]);
-    await valueTest(us.concat(null), 'TIMESTAMP', Array, {}, (v, i) => +toDate(v) + _us[i]);
-    await valueTest(ms.concat(null), 'TIMESTAMP_MS', Array, {}, v => +toDate(v));
-    await valueTest(sec.concat(null), 'TIMESTAMP_S', Array, {}, v => +toDate(v));
-
-    // as dates
-    await valueTest(ns, 'TIMESTAMP_NS', Array, { useDate: true }, toDate);
-    await valueTest(us, 'TIMESTAMP', Array, { useDate: true }, toDate);
-    await valueTest(ms, 'TIMESTAMP_MS', Array, { useDate: true }, toDate);
-    await valueTest(sec, 'TIMESTAMP_S', Array, { useDate: true }, toDate);
-
-    // as dates with nulls
-    await valueTest(ns.concat(null), 'TIMESTAMP_NS', Array, { useDate: true }, toDate);
-    await valueTest(us.concat(null), 'TIMESTAMP', Array, { useDate: true }, toDate);
-    await valueTest(ms.concat(null), 'TIMESTAMP_MS', Array, { useDate: true }, toDate);
-    await valueTest(sec.concat(null), 'TIMESTAMP_S', Array, { useDate: true }, toDate);
-  });
-
-  it('decodes interval data', async () => {
-    const values = ['2 years', null, '12 years 2 month 1 day 5 seconds', '1 microsecond'];
-    const js = [
-      Float64Array.of(24, 0, 0),
-      null,
-      Float64Array.of(146, 1, 5000000000),
-      Float64Array.of(0, 0, 1000)
-    ];
-    await valueTest(values, 'INTERVAL', Array, {}, (v, i) => js[i]);
-  });
-
-  it('decodes utf8 data', async () => {
-    await valueTest(['foo', 'bar', 'baz'], 'VARCHAR', Array);
-    await valueTest(['foo', null, 'baz'], 'VARCHAR', Array);
-  });
-
-  it('decodes list data', async () => {
-    const values = [[1, 2, 3, 4], [5, 6], [7, 8, 9]];
-    const pnulls = [[1, 2, 3, 4], null, [7, 8, 9]];
-    const cnulls = [[1, 2, null, 4], [5, null, 6], [7, null, 9]];
-    await valueTest(values, 'INTEGER[]', Array, {}, v => Int32Array.from(v));
-    await valueTest(pnulls, 'INTEGER[]', Array, {}, v => Int32Array.from(v));
-    await valueTest(cnulls, 'INTEGER[]', Array);
-
-    const svalues = [['a', 'b', 'c', 'd'], ['e', 'f'], ['g', 'h', 'i']];
-    const spnulls = [['a', 'b', 'c', 'd'], null, ['g', 'h', 'i']];
-    const scnulls = [['a', 'b', null, 'd'], ['e', null, 'f'], ['g', null, 'i']];
-    await valueTest(svalues, 'VARCHAR[]');
-    await valueTest(spnulls, 'VARCHAR[]');
-    await valueTest(scnulls, 'VARCHAR[]');
-  });
-
-  it('decodes fixed list data', async () => {
-    const values = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-    const pnulls = [[1, 2, 3], null, [7, 8, 9]];
-    const cnulls = [[1, null, 3], [null, 5, 6], [7, 8, null]];
-    await valueTest(values, 'INTEGER[3]', Array, {}, v => Int32Array.from(v));
-    await valueTest(pnulls, 'INTEGER[3]', Array, {}, v => Int32Array.from(v));
-    await valueTest(cnulls, 'INTEGER[3]', Array);
-
-    const svalues = [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']];
-    const spnulls = [['a', 'b', 'c'], null, ['g', 'h', 'i']];
-    const scnulls = [['a', null, 'c'], [null, 'e', 'f'], ['g', 'h', null]];
-    await valueTest(svalues, 'VARCHAR[]');
-    await valueTest(spnulls, 'VARCHAR[]');
-    await valueTest(scnulls, 'VARCHAR[]');
-  });
-
-  it('decodes list view data', async () => {
-    const buf = await readFile(`test/data/listview.arrows`);
-    const column = tableFromIPC(new Uint8Array(buf)).getChild('value');
-    compare(column, [
-      ['foo', 'bar', 'baz'],
-      null,
-      ['baz', null, 'foo'],
-      ['foo']
-    ]);
-  });
-
-  it('decodes large list view data', async () => {
-    const buf = await readFile(`test/data/largelistview.arrows`);
-    const column = tableFromIPC(new Uint8Array(buf)).getChild('value');
-    compare(column, [
-      ['foo', 'bar', 'baz'],
-      null,
-      ['baz', null, 'foo'],
-      ['foo']
-    ]);
-  });
-
-  it('decodes union data', async () => {
-    const values = ['a', 2, 'c'];
-    const nulls = ['a', null, 'c'];
-    const type = 'UNION(i INTEGER, v VARCHAR)';
-    await valueTest(values, type);
-    await valueTest(nulls, type);
-  });
-
-  it('decodes map data', async () => {
-    const data = [
-      [ ['foo', 1], ['bar', 2] ],
-      [ ['foo', null], ['baz', 3] ]
-    ];
-    const values = data.map(e => new Map(e));
-    await valueTest(values, null, Array, {}, v => Array.from(v.entries()));
-    await valueTest(values, null, Array, { useMap: true });
-  });
-
-  it('decodes struct data', async () => {
-    await valueTest([ {a: 1, b: 'foo'}, {a: 2, b: 'baz'} ]);
-    await valueTest([ {a: 1, b: 'foo'}, null, {a: 2, b: 'baz'} ]);
-    await valueTest([ {a: null, b: 'foo'}, {a: 2, b: null} ]);
-    await valueTest([ {a: ['a', 'b'], b: Math.E}, {a: ['c', 'd'], b: Math.PI} ]);
-  });
-
-  it('decodes run-end-encoded data', async () => {
-    const buf = await readFile(`test/data/runendencoded.arrows`);
-    const table = tableFromIPC(new Uint8Array(buf));
-    const column = table.getChild('value');
-    const [{ children: [runs, vals] }] = column.data;
-    assert.deepStrictEqual([...runs], [2, 3, 4, 6, 8, 9]);
-    assert.deepStrictEqual([...vals], ['foo', null, 'bar', 'baz', null, 'foo']);
-    compare(column, ['foo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo']);
+  it('decodes run-end-encoded data with 32-bit run ends', async () => {
+    const data = await runEndEncoded32();
+    for (const { bytes, runs, values } of data) {
+      const column = valueTest(bytes, values);
+      const ree = column.data[0].children;
+      assert.deepStrictEqual([...ree[0]], runs.counts);
+      assert.deepStrictEqual([...ree[1]], runs.values);
+    }
   });
 
   it('decodes run-end-encoded data with 64-bit run ends', async () => {
-    const buf = await readFile(`test/data/runendencoded64.arrows`);
-    const table = tableFromIPC(new Uint8Array(buf), { useBigInt: true });
-    const column = table.getChild('value');
-    const [{ children: [runs, vals] }] = column.data;
-    assert.deepStrictEqual([...runs], [2n, 3n, 4n, 6n, 8n, 9n]);
-    assert.deepStrictEqual([...vals], ['foo', null, 'bar', 'baz', null, 'foo']);
-    compare(column, ['foo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo']);
+    const data = await runEndEncoded64();
+    for (const { bytes, runs, values } of data) {
+      const column = valueTest(bytes, values);
+      const ree = column.data[0].children;
+      assert.deepStrictEqual([...ree[0]], runs.counts);
+      assert.deepStrictEqual([...ree[1]], runs.values);
+    }
   });
 
   it('decodes binary view data', async () => {
-    const f = ['foo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo'];
-    const s = ['foobazbarbipbopboodeedoozoo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo'];
-    const enc = new TextEncoder();
-    const binary = v => v != null ? enc.encode(v) : null;
-    const buf = await readFile(`test/data/binaryview.arrows`);
-    const table = tableFromIPC(new Uint8Array(buf));
-    const flat = table.getChild('flat'); // all strings under 12 bytes
-    const spill = table.getChild('spill'); // some strings spill to data buffer
-    compare(flat, f.map(binary));
-    compare(spill, s.map(binary));
+    const data = await binaryView();
+    for (const { bytes, values: { flat, spill } } of data) {
+      valueTest(bytes, flat, Array, {}, null, 'flat');
+      valueTest(bytes, spill, Array, {}, null, 'spill');
+    }
   });
 
   it('decodes utf8 view data', async () => {
-    const f = ['foo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo'];
-    const s = ['foobazbarbipbopboodeedoozoo', 'foo', null, 'bar', 'baz', 'baz', null, null, 'foo'];
-    const buf = await readFile(`test/data/utf8view.arrows`);
-    const table = tableFromIPC(new Uint8Array(buf));
-    const flat = table.getChild('flat'); // all strings under 12 bytes
-    const spill = table.getChild('spill'); // some strings spill to data buffer
-    compare(flat, f);
-    compare(spill, s);
+    const data = await utf8View();
+    for (const { bytes, values: { flat, spill } } of data) {
+      valueTest(bytes, flat, Array, {}, null, 'flat');
+      valueTest(bytes, spill, Array, {}, null, 'spill');
+    }
   });
 
   it('decodes empty data', async () => {
-    // For empty result sets, DuckDB node only returns a zero byte
-    // Other variants may include a schema message
-    const sql = 'SELECT schema_name FROM information_schema.schemata WHERE false';
-    const table = tableFromIPC(await arrowQuery(sql));
-    assert.strictEqual(table.numRows, 0);
-    assert.strictEqual(table.numCols, 0);
-    assert.deepStrictEqual(table.toColumns(), {});
-    assert.deepStrictEqual(table.toArray(), []);
-    assert.deepStrictEqual([...table], []);
+    for (const { bytes } of empty()) {
+      const table = tableFromIPC(bytes);
+      assert.strictEqual(table.numRows, 0);
+      assert.strictEqual(table.numCols, 0);
+      assert.deepStrictEqual(table.toColumns(), {});
+      assert.deepStrictEqual(table.toArray(), []);
+      assert.deepStrictEqual([...table], []);
+    }
   });
 });

@@ -1,6 +1,7 @@
 import { Type } from '../constants.js';
-import { readBoolean, readInt16, readInt64AsNum, readOffset, readString, readUint8, readVector, table } from '../util.js';
-import { decodeDataType, decodeInt, typeInt } from './data-type.js';
+import { dictionary, int32 } from '../data-types.js';
+import { readBoolean, readInt16, readInt64, readObject, readOffset, readString, readUint8, readVector } from '../util/read.js';
+import { decodeDataType } from './data-type.js';
 import { decodeMetadata } from './metadata.js';
 
 /**
@@ -16,7 +17,7 @@ export function decodeSchema(buf, index, version) {
   //  6: fields (vector)
   //  8: metadata (vector)
   // 10: features (int64[])
-  const get = table(buf, index);
+  const get = readObject(buf, index);
   return {
     version,
     endianness: /** @type {import('../types.js').Endianness_} */ (get(4, readInt16, 0)),
@@ -46,7 +47,7 @@ function decodeField(buf, index, dictionaryTypes) {
   // 12: dictionary (table)
   // 14: children (vector)
   // 16: metadata (vector)
-  const get = table(buf, index);
+  const get = readObject(buf, index);
   const typeId = get(8, readUint8, Type.NONE);
   const typeOffset = get(10, readOffset, 0);
   const dict = get(12, decodeDictionary);
@@ -62,7 +63,7 @@ function decodeField(buf, index, dictionaryTypes) {
       dictType = decodeDataType(buf, typeOffset, typeId, children);
       dictionaryTypes.set(id, dictType);
     }
-    dict.type = dictType;
+    dict.dictionary = dictType;
     type = dict;
   } else {
     type = decodeDataType(buf, typeOffset, typeId, children);
@@ -97,12 +98,23 @@ function decodeDictionary(buf, index) {
   //  6: indexType (Int type)
   //  8: isOrdered (boolean)
   // 10: kind (int16) currently only dense array is supported
-  const get = table(buf, index);
-  return {
-    type: null, // to be populated by caller
-    typeId: Type.Dictionary,
-    id: get(4, readInt64AsNum, 0),
-    keys: get(6, decodeInt, typeInt(32, true)), // index defaults to int32
-    ordered: get(8, readBoolean, false)
-  };
+  const get = readObject(buf, index);
+  return dictionary(
+    null, // data type will be populated by caller
+    get(6, decodeInt, int32()), // index type
+    get(4, readInt64, 0), // id
+    get(8, readBoolean, false) // ordered
+  );
+}
+
+/**
+ * Decode an integer data type.
+ * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data.
+ * @param {number} index The starting index in the byte buffer.
+ * @returns {import('../types.js').IntType}
+ */
+function decodeInt(buf, index) {
+  return /** @type {import('../types.js').IntType} */ (
+    decodeDataType(buf, index, Type.Int)
+  );
 }

@@ -1,5 +1,7 @@
-import { float64 } from './array-types.js';
-import { bisect, decodeBit, decodeUtf8, divide, readInt32, readInt64AsNum, toNumber } from './util.js';
+import { bisect, float64Array } from './util/arrays.js';
+import { divide, fromDecimal128, fromDecimal256, toNumber } from './util/numbers.js';
+import { decodeBit, readInt32, readInt64 } from './util/read.js';
+import { decodeUtf8 } from './util/strings.js';
 
 /**
  * Check if the input is a batch that supports direct access to
@@ -30,6 +32,7 @@ export class Batch {
    * @param {object} options
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
+   * @param {import('./types.js').DataType} options.type The data type.
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
    * @param {import('./types.js').TypedArray} [options.values] Values buffer
    * @param {import('./types.js').OffsetArray} [options.offsets] Offsets buffer
@@ -39,6 +42,7 @@ export class Batch {
   constructor({
     length,
     nullCount,
+    type,
     validity,
     values,
     offsets,
@@ -47,6 +51,7 @@ export class Batch {
   }) {
     this.length = length;
     this.nullCount = nullCount;
+    this.type = type;
     this.validity = validity;
     this.values = values;
     this.offsets = offsets;
@@ -54,7 +59,9 @@ export class Batch {
     this.children = children;
 
     // optimize access if this batch has no null values
-    if (!nullCount) {
+    // some types (like union) may have null values in
+    // child batches, but no top-level validity buffer
+    if (!nullCount || !this.validity) {
       /** @type {(index: number) => T | null} */
       this.at = index => this.value(index);
     }
@@ -134,6 +141,7 @@ export class DirectBatch extends Batch {
    * @param {object} options
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
+   * @param {import('./types.js').DataType} options.type The data type.
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
    * @param {import('./types.js').TypedArray} options.values Values buffer
    */
@@ -176,7 +184,7 @@ export class DirectBatch extends Batch {
  * @extends {Batch<number>}
  */
 export class NumberBatch extends Batch {
-  static ArrayType = float64;
+  static ArrayType = float64Array;
 }
 
 /**
@@ -249,56 +257,53 @@ export class BoolBatch extends ArrayBatch {
   }
 }
 
-// generate base values for big integers represented in a Uint32Array
-const BASE32 = Array.from(
-  { length: 8 },
-  (_, i) => Math.pow(2, i * 32)
-);
+/**
+ * An abstract class for a batch of 128- or 256-bit decimal numbers,
+ * accessed in strided BigUint64Arrays.
+ * @template T
+ * @extends {Batch<T>}
+ */
+export class DecimalBatch extends Batch {
+  constructor(options) {
+    super(options);
+    const { bitWidth, scale } = /** @type {import('./types.js').DecimalType} */ (this.type);
+    this.decimal = bitWidth === 128 ? fromDecimal128 : fromDecimal256;
+    this.scale = 10n ** BigInt(scale);
+  }
+}
 
 /**
- * A batch of 128- or 256-bit decimal numbers, accessed as unsigned
- * 32-bit ints and coerced to 64-bit numbers. The number coercion
- * may be lossy if the decimal precision can not be represented in
- * a 64-bit floating point format.
+ * A batch of 128- or 256-bit decimal numbers, returned as converted
+ * 64-bit numbers. The number coercion may be lossy if the decimal
+ * precision can not be represented in a 64-bit floating point format.
+ * @extends {DecimalBatch<number>}
  */
-export class DecimalBatch extends NumberBatch {
-  /**
-   * Create a new decimal batch.
-   * @param {object} options
-   * @param {number} options.length The length of the batch
-   * @param {number} options.nullCount The null value count
-   * @param {Uint8Array} [options.validity] Validity bitmap buffer
-   * @param {import('./types.js').TypedArray} options.values Values buffer
-   * @param {number} options.bitWidth The decimal bit width
-   * @param {number} options.scale The number of decimal digits
-   */
-  constructor({ bitWidth, scale, ...rest }) {
-    super(rest);
-    this.stride = bitWidth >> 5, // 8 bits/byte and 4 bytes/uint32;
-    this.scale = Math.pow(10, scale);
-  }
-
+export class DecimalNumberBatch extends DecimalBatch {
+  static ArrayType = float64Array;
   /**
    * @param {number} index The value index
    */
   value(index) {
-    // TODO: check magnitude, use slower but more accurate BigInt ops if needed?
-    // Using numbers we can prep with integers up to MAX_SAFE_INTEGER (2^53 - 1)
-    const v = /** @type {Uint32Array} */ (this.values);
-    const n = this.stride;
-    const off = index << 2;
-    let x = 0;
-    if ((v[n - 1] | 0) < 0) {
-      for (let i = 0; i < n; ++i) {
-        x += ~v[i + off] * BASE32[i];
-      }
-      x = -(x + 1);
-    } else {
-      for (let i = 0; i < n; ++i) {
-        x += v[i + off] * BASE32[i];
-      }
-    }
-    return x / this.scale;
+    return divide(
+      this.decimal(/** @type {BigUint64Array} */ (this.values), index),
+      this.scale
+    );
+  }
+}
+
+/**
+ * A batch of 128- or 256-bit decimal numbers, returned as scaled
+ * bigint values, such that all fractional digits have been shifted
+ * to integer places by the decimal type scale factor.
+ * @extends {DecimalBatch<bigint>}
+ */
+export class DecimalBigIntBatch extends DecimalBatch {
+  static ArrayType = Array;
+  /**
+   * @param {number} index The value index
+   */
+  value(index) {
+    return this.decimal(/** @type {BigUint64Array} */ (this.values), index);
   }
 }
 
@@ -430,11 +435,11 @@ export class IntervalMonthDayNanoBatch extends ArrayBatch {
    */
   value(index) {
     const values = /** @type {Uint8Array} */ (this.values);
-    const base = index << 2;
+    const base = index << 4;
     return Float64Array.of(
       readInt32(values, base),
       readInt32(values, base + 4),
-      readInt64AsNum(values, base + 8)
+      readInt64(values, base + 8)
     );
   }
 }
@@ -578,20 +583,11 @@ export class LargeListViewBatch extends ArrayBatch {
  * @extends {ArrayBatch<T>}
  */
 class FixedBatch extends ArrayBatch {
-  /**
-   * Create a new column batch with fixed stride.
-   * @param {object} options
-   * @param {number} options.length The length of the batch
-   * @param {number} options.nullCount The null value count
-   * @param {Uint8Array} [options.validity] Validity bitmap buffer
-   * @param {Uint8Array} [options.values] Values buffer
-   * @param {Batch[]} [options.children] Children batches
-   * @param {number} options.stride The fixed stride (size) of values.
-   */
-  constructor({ stride, ...rest }) {
-    super(rest);
+  constructor(options) {
+    super(options);
     /** @type {number} */
-    this.stride = stride;
+    // @ts-ignore
+    this.stride = this.type.stride;
   }
 }
 
@@ -688,26 +684,28 @@ export class SparseUnionBatch extends ArrayBatch {
    * @param {object} options
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
+   * @param {import('./types.js').DataType} options.type The data type.
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
    * @param {Int32Array} [options.offsets] Offsets buffer
    * @param {Batch[]} options.children Children batches
    * @param {Int8Array} options.typeIds Union type ids buffer
    * @param {Record<string, number>} options.map A typeId to children index map
    */
-  constructor({ typeIds, map, ...rest }) {
-    super(rest);
+  constructor({ typeIds, ...options }) {
+    super(options);
     /** @type {Int8Array} */
     this.typeIds = typeIds;
     /** @type {Record<string, number>} */
-    this.map = map;
+    // @ts-ignore
+    this.typeMap = this.type.typeMap;
   }
 
   /**
    * @param {number} index The value index.
    */
-  value(index) {
-    const { typeIds, children, map } = this;
-    return children[map[typeIds[index]]].at(index);
+  value(index, offset = index) {
+    const { typeIds, children, typeMap } = this;
+    return children[typeMap[typeIds[index]]].at(offset);
   }
 }
 
@@ -722,7 +720,7 @@ export class DenseUnionBatch extends SparseUnionBatch {
    * @param {number} index The value index.
    */
   value(index) {
-    return super.value(/** @type {number} */ (this.offsets[index]));
+    return super.value(index, /** @type {number} */ (this.offsets[index]));
   }
 }
 
@@ -732,19 +730,11 @@ export class DenseUnionBatch extends SparseUnionBatch {
  * @extends {ArrayBatch<Record<string, any>>}
  */
 export class StructBatch extends ArrayBatch {
-  /**
-   * Create a new column batch.
-   * @param {object} options
-   * @param {number} options.length The length of the batch
-   * @param {number} options.nullCount The null value count
-   * @param {Uint8Array} [options.validity] Validity bitmap buffer
-   * @param {Batch[]} options.children Children batches
-   * @param {string[]} options.names Child batch names
-   */
-  constructor({ names, ...rest }) {
-    super(rest);
+  constructor(options) {
+    super(options);
     /** @type {string[]} */
-    this.names = names;
+    // @ts-ignore
+    this.names = this.type.children.map(child => child.name);
   }
 
   /**
@@ -786,18 +776,16 @@ export class RunEndEncodedBatch extends ArrayBatch {
  */
 export class DictionaryBatch extends ArrayBatch {
   /**
-   * Create a new dictionary batch.
-   * @param {object} options Batch options.
-   * @param {number} options.length The length of the batch
-   * @param {number} options.nullCount The null value count
-   * @param {Uint8Array} [options.validity] Validity bitmap buffer
-   * @param {import('./types.js').IntegerArray} options.values Values buffer
-   * @param {import('./column.js').Column<T>} options.dictionary
-   *  The dictionary of column values.
+   * Register the backing dictionary. Dictionaries are added
+   * after batch creation as the complete dictionary may not
+   * be finished across multiple record batches.
+   * @param {import('./column.js').Column<T>} dictionary
+   * The dictionary of column values.
    */
-  constructor({ dictionary, ...rest }) {
-    super(rest);
+  setDictionary(dictionary) {
+    this.dictionary = dictionary;
     this.cache = dictionary.cache();
+    return this;
   }
 
   /**
@@ -826,12 +814,13 @@ class ViewBatch extends ArrayBatch {
    * @param {object} options Batch options.
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
+   * @param {import('./types.js').DataType} options.type The data type.
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
    * @param {Uint8Array} options.values Values buffer
    * @param {Uint8Array[]} options.data View data buffers
    */
-  constructor({ data, ...rest }) {
-    super(rest);
+  constructor({ data, ...options }) {
+    super(options);
     this.data = data;
   }
 
