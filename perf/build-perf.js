@@ -1,6 +1,5 @@
 import { Bool, DateDay, Dictionary, Float64, Int32, Utf8, vectorFromArray } from 'apache-arrow';
-import { bool, columnFromArray, dateDay, dictionary, float64, int32, tableToIPC, utf8 } from '../src/index.js';
-import { table } from '../src/table.js';
+import { bool, columnFromArray, dateDay, dictionary, float64, int32, tableFromColumns, tableToIPC, utf8 } from '../src/index.js';
 import { bools, dates, floats, ints, sample, strings, uniqueStrings } from './data.js';
 import { benchmark } from './util.js';
 
@@ -49,7 +48,7 @@ function run(N, nulls, msg, iter = 5) {
 
 function trial(task, data, typeKey, iter) {
   const jl = new TextEncoder().encode(JSON.stringify(data)).length;
-  const al = tableToIPC(table({ v: fl(data, typeKey) })).length;
+  const al = tableToIPC(tableFromColumns({ v: fl(data, typeKey) })).length;
   const sz = `json ${(jl/1e6).toFixed(1)} MB, arrow ${(al/1e6).toFixed(1)} MB`;
 
   console.log(`${task} (${iter} iteration${iter === 1 ? '' : 's'}, ${sz})`);
