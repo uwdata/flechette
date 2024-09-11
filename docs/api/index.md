@@ -1,7 +1,7 @@
 ---
-title: Flechette API Reference
+title: API Reference
 ---
-# Flechette API Reference
+# API Reference
 
 [**Top-Level**](/flechette/api) | [Data Types](data-types) | [Table](table) | [Column](column)
 
