@@ -42,6 +42,8 @@ export {
 
 export { Column } from './column.js';
 export { Table } from './table.js';
+export { Batch } from './batch.js';
+export { batchType } from './batch-type.js';
 export { tableFromIPC } from './decode/table-from-ipc.js';
 export { tableToIPC } from './encode/table-to-ipc.js';
 export { tableFromArrays } from './build/table-from-arrays.js';

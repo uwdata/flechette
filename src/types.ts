@@ -9,9 +9,6 @@ import {
   UnionMode
 } from './constants.js';
 
-// additional jsdoc types to export
-export { Batch } from './batch.js';
-
 /** A valid Arrow version number. */
 export type Version_ = typeof Version[keyof typeof Version];
 
