@@ -22,7 +22,7 @@ The table below provides an overview of all data types supported by the Apache A
 |   8 | [Date](#date)                       | ✅ | ✅ | ✅ | `number`, or `Date` via the `useDate` flag. |
 |   9 | [Time](#time)                       | ✅ | ✅ | ✅ | `number`, or `bigint` for 64-bit values via the `useBigInt` flag |
 |  10 | [Timestamp](#timestamp)             | ✅ | ✅ | ✅ | `number`, or `Date` via the `useDate` flag. |
-|  11 | [Interval](#interval)               | ✅ | ✅ | ✅ | `Float64Array` (month/day/nano) or `Int32Array` (other units) |
+|  11 | [Interval](#interval)               | ✅ | ✅ | ✅ | depends on the interval unit |
 |  12 | [List](#list)                       | ✅ | ✅ | ✅ | `Array` or `TypedArray` of child type |
 |  13 | [Struct](#struct)                   | ✅ | ✅ | ✅ | `object`, properties depend on child types |
 |  14 | [Union](#union)                     | ✅ | ✅ | ✅ | depends on child types |
@@ -281,13 +281,13 @@ Timestamp values are stored in a `BigInt64Array` and converted to millisecond-ba
 <hr/><a id="interval" href="#interval">#</a>
 <b>interval</b>([<i>unit</i>])
 
-Create an Interval data type instance. Values represent calendar intervals stored using integers for each date part. The supported intervals *unit*s are:
+Create an Interval data type instance. Values represent calendar intervals stored using integers for each date part. The supported *unit*s are year/moth, day/time, and month/day/nanosecond intervals.
 
-* `IntervalUnit.YEAR_MONTH`: Indicates the number of elapsed whole months, stored as 4-byte signed integers.
-* `IntervalUnit.DAY_TIME`: Indicates the number of elapsed days and milliseconds (no leap seconds), stored as 2 contiguous 32-bit signed integers (8-bytes in total).
-* `IntervalUnit.MONTH_DAY_NANO`: A triple of the number of elapsed months, days, and nanoseconds. The values are stored contiguously in 16-byte blocks. Months and days are encoded as 32-bit signed integers and nanoseconds is encoded as a 64-bit signed integer. Nanoseconds does not allow for leap seconds. Each field is independent (e.g. there is no constraint that nanoseconds have the same sign as days or that the quantity of nanoseconds represents less than a day's worth of time).
+`IntervalUnit.YEAR_MONTH` indicates the number of elapsed whole months, stored as 32-bit signed integers. Flechette extracts these month count integers directly.
 
-Flechette extracts interval values to two-element `Int32Array` instances (for `IntervalUnit.YEAR_MONTH` and `IntervalUnit.DAY_TIME`) or to three-element `Float64Array` instances (for `IntervalUnit.MONTH_DAY_NANO`).
+`IntervalUnit.DAY_TIME` indicates the number of elapsed days and milliseconds (no leap seconds), stored as 2 contiguous 32-bit signed integers (8-bytes in total). Flechette extracts these values to two-element [day, time] `Int32Array` instances.
+
+`IntervalUnit.MONTH_DAY_NANO` is a triple of the number of elapsed months, days, and nanoseconds. The values are stored contiguously in 16-byte blocks. Months and days are encoded as 32-bit signed integers and nanoseconds is encoded as a 64-bit signed integer. Nanoseconds does not allow for leap seconds. Each field is independent (e.g. there is no constraint that nanoseconds have the same sign as days or that the quantity of nanoseconds represents less than a day's worth of time). Flechette extracts these values to three-element [month, day, nano] `Float64Array` instances.
 
 * *unit* (`number`): The interval unit. One of `IntervalUnit.YEAR_MONTH`, `IntervalUnit.DAY_TIME`, or `IntervalUnit.MONTH_DAY_NANO` (default).
 

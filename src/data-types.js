@@ -335,20 +335,23 @@ export const timestamp = (unit = TimeUnit.MILLISECOND, timezone = null) => ({
 
 /**
  * Return an Interval type instance. Values represent calendar intervals stored
- * as integers for each date part. The supported intervals *unit*s are:
+ * as integers for each date part. The supported *unit*s are year/moth,
+ * day/time, and month/day/nanosecond intervals.
  *
- * - `IntervalUnit.YEAR_MONTH`: Indicates the number of elapsed whole months,
- *   stored as 4-byte signed integers.
- * - `IntervalUnit.DAY_TIME`: Indicates the number of elapsed days and
- *   milliseconds (no leap seconds), stored as 2 contiguous 32-bit signed
- *   integers (8-bytes in total).
- * - `IntervalUnit.MONTH_DAY_NANO`: A triple of the number of elapsed months,
- *   days, and nanoseconds. The values are stored contiguously in 16-byte
- *   blocks. Months and days are encoded as 32-bit signed integers and
- *   nanoseconds is encoded as a 64-bit signed integer. Nanoseconds does not
- *   allow for leap seconds. Each field is independent (e.g. there is no
- *   constraint that nanoseconds have the same sign as days or that the
- *   quantity of nanoseconds represents less than a day's worth of time).
+ * `IntervalUnit.YEAR_MONTH` indicates the number of elapsed whole months,
+ * stored as 32-bit signed integers.
+ *
+ * `IntervalUnit.DAY_TIME` indicates the number of elapsed days and
+ * milliseconds (no leap seconds), stored as 2 contiguous 32-bit signed
+ * integers (8-bytes in total).
+ *
+ * `IntervalUnit.MONTH_DAY_NANO` is a triple of the number of elapsed months,
+ * days, and nanoseconds. The values are stored contiguously in 16-byte blocks.
+ * Months and days are encoded as 32-bit signed integers and nanoseconds is
+ * encoded as a 64-bit signed integer. Nanoseconds does not allow for leap
+ * seconds. Each field is independent (e.g. there is no constraint that
+ * nanoseconds have the same sign as days or that the quantity of nanoseconds
+ * represents less than a day's worth of time).
  * @param {import('./types.js').IntervalUnit_} unit  The interval unit.
  *  One of `IntervalUnit.YEAR_MONTH`, `IntervalUnit.DAY_TIME`, or
  *  `IntervalUnit.MONTH_DAY_NANO` (default).
