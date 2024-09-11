@@ -18,12 +18,13 @@ title: Flechette API Reference
 
 Decode [Apache Arrow IPC data](https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc) and return a new [`Table`](table). The input binary data may be either an `ArrayBuffer` or `Uint8Array`. For Arrow data in the [IPC 'stream' format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format), an array of `Uint8Array` values is also supported.
 
-* *data* (`ArrayBuffer` | `Uint8Array` | `Uint8Array[]`): The source byte buffer, or an array of buffers. If an array, each byte array may contain one or more self-contained messages. Messages may NOT span multiple byte arrays.
+* *data* (`ArrayBuffer` \| `Uint8Array` \| `Uint8Array[]`): The source byte buffer, or an array of buffers. If an array, each byte array may contain one or more self-contained messages. Messages may NOT span multiple byte arrays.
 * *options* (`ExtractionOptions`): Options for controlling how values are transformed when extracted from an Arrow binary representation.
   * *useDate* (`boolean`): If true, extract dates and timestamps as JavaScript `Date` objects Otherwise, return numerical timestamp values (default).
   * *useDecimalBigInt* (`boolean`): If true, extract decimal-type data as BigInt values, where fractional digits are scaled to integers. Otherwise, return converted floating-point numbers (default).
   * *useBigInt* (`boolean`): If true, extract 64-bit integers as JavaScript `BigInt` values Otherwise, coerce long integers to JavaScript number values (default).
   * *useMap* (`boolean`): If true, extract Arrow 'Map' values as JavaScript `Map` instances Otherwise, return an array of [key, value] pairs compatible with both `Map` and `Object.fromEntries` (default).
+  * *useProxy* (`boolean`): If true, extract Arrow 'Struct' values and table row objects using zero-copy proxy objects that extract data from underlying Arrow batches. The proxy objects can improve performance and reduce memory usage, but do not support property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`).
 
 *Examples*
 
@@ -134,11 +135,12 @@ const col = columnFromArray(
 ```
 
 <hr/><a id="tableFromColumns" href="#tableFromColumns">#</a>
-<b>tableFromColumns</b>(<i>columns</i>[, <i>type</i>, <i>options</i>])
+<b>tableFromColumns</b>(<i>columns</i>[, <i>useProxy</i>])
 
 Create a new table from a collection of columns. This method is useful for creating new tables using one or more pre-existing column instances. Otherwise, [`tableFromArrays`](#tableFromArrays) should be preferred. Input columns are assumed to have the same record batch sizes and non-conflicting dictionary ids.
 
 * *data* (`object | array`): The input columns as an object with name keys, or an array of [name, column] pairs.
+* *useProxy* (`boolean`): Flag indicating if row proxy objects should be used to represent table rows (default `false`). Typically this should match the value of the `useProxy` extraction option used for column generation.
 
 *Examples*
 

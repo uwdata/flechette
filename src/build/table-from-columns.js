@@ -6,11 +6,13 @@ import { Table } from '../table.js';
  * Create a new table from a collection of columns. Columns are assumed
  * to have the same record batch sizes and consistent dictionary ids.
  * @param {[string, import('../column.js').Column][]
-*  | Record<string, import('../column.js').Column>} data The columns,
-*  as an object with name keys, or an array of [name, column] pairs.
-* @returns {Table} The new table.
-*/
-export function tableFromColumns(data) {
+ *  | Record<string, import('../column.js').Column>} data The columns,
+ *  as an object with name keys, or an array of [name, column] pairs.
+ * @param {boolean} [useProxy] Flag indicating if row proxy
+ *  objects should be used to represent table rows (default `false`).
+ * @returns {Table} The new table.
+ */
+export function tableFromColumns(data, useProxy) {
   const fields = [];
   const dictionaryTypes = new Map;
   const entries = Array.isArray(data) ? data : Object.entries(data);
@@ -39,5 +41,5 @@ export function tableFromColumns(data) {
     dictionaryTypes
   };
 
-  return new Table(schema, columns);
+  return new Table(schema, columns, useProxy);
 }

@@ -67,7 +67,7 @@ export function createTable(data, options = {}) {
     fields.forEach((f, i) => cols[i].add(visit(f.type, ctx)));
   }
 
-  return new Table(schema, cols.map(c => c.done()));
+  return new Table(schema, cols.map(c => c.done()), options.useProxy);
 }
 
 /**

@@ -4,7 +4,7 @@ import { tableFromIPC as flTable } from '../src/index.js';
 import { benchmark } from './util.js';
 
 // table creation
-const fl = bytes => flTable(bytes, { useBigInt: true });
+const fl = bytes => flTable(bytes, { useBigInt: true, useProxy: true });
 const aa = bytes => aaTable(bytes);
 
 // decode ipc data to columns
