@@ -27,8 +27,8 @@ function profiler() {
   let structCount = 0;
   let min = Infinity;
   let max = -Infinity;
-  let minLength = 0;
-  let maxLength = 0;
+  let minLength = Infinity;
+  let maxLength = -Infinity;
   let minBigInt;
   let maxBigInt;
   let arrayProfile;
@@ -112,7 +112,7 @@ function profiler() {
  * @returns {import('../types.js').DataType} The data type.
  */
 function arrayType(type, minLength, maxLength) {
-  return (maxLength - minLength) === 0
+  return maxLength === minLength
     ? fixedSizeList(type, minLength)
     : list(type);
 }
