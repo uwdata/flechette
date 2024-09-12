@@ -3,14 +3,13 @@ import { isArray } from '../util/arrays.js';
 
 /**
  * Infer the data type for a given input array.
- * @param {import('../types.js').ValueArray} data The data array.
+ * @param {(visitor: (value: any) => void) => void} visit
+ *  A function that applies a callback to successive data values.
  * @returns {import('../types.js').DataType} The data type.
  */
-export function inferType(data) {
+export function inferType(visit) {
   const profile = profiler();
-  for (let i = 0; i < data.length; ++i) {
-    profile.add(data[i]);
-  }
+  visit(value => profile.add(value));
   return profile.type();
 }
 

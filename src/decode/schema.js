@@ -12,7 +12,6 @@ import { decodeMetadata } from './metadata.js';
  * @returns {import('../types.js').Schema} The schema
  */
 export function decodeSchema(buf, index, version) {
-  const dictionaryTypes = new Map;
   //  4: endianness (int16)
   //  6: fields (vector)
   //  8: metadata (vector)
@@ -21,25 +20,22 @@ export function decodeSchema(buf, index, version) {
   return {
     version,
     endianness: /** @type {import('../types.js').Endianness_} */ (get(4, readInt16, 0)),
-    fields: get(6, (buf, off) => decodeSchemaFields(buf, off, dictionaryTypes), []),
-    metadata: get(8, decodeMetadata),
-    dictionaryTypes
+    fields: get(6, decodeSchemaFields, []),
+    metadata: get(8, decodeMetadata)
   };
 }
 
 /**
  * @returns {import('../types.js').Field[] | null}
  */
-function decodeSchemaFields(buf, fieldsOffset, dictionaryTypes) {
-  return readVector(buf, fieldsOffset, 4,
-    (buf, pos) => decodeField(buf, pos, dictionaryTypes)
-  );
+function decodeSchemaFields(buf, fieldsOffset) {
+  return readVector(buf, fieldsOffset, 4, decodeField);
 }
 
 /**
  * @returns {import('../types.js').Field}
  */
-function decodeField(buf, index, dictionaryTypes) {
+function decodeField(buf, index) {
   //  4: name (string)
   //  6: nullable (bool)
   //  8: type id (uint8)
@@ -51,22 +47,12 @@ function decodeField(buf, index, dictionaryTypes) {
   const typeId = get(8, readUint8, Type.NONE);
   const typeOffset = get(10, readOffset, 0);
   const dict = get(12, decodeDictionary);
-  const children = get(14, (buf, off) => decodeFieldChildren(buf, off, dictionaryTypes));
+  const children = get(14, (buf, off) => decodeFieldChildren(buf, off));
 
-  let type;
+  let type = decodeDataType(buf, typeOffset, typeId, children);
   if (dict) {
-    const { id } = dict;
-    let dictType = dictionaryTypes.get(id);
-    if (!dictType) {
-      // if dictionary encoded and the first time we've seen this id, decode
-      // the type and children fields and add to the dictionary map.
-      dictType = decodeDataType(buf, typeOffset, typeId, children);
-      dictionaryTypes.set(id, dictType);
-    }
-    dict.dictionary = dictType;
+    dict.dictionary = type;
     type = dict;
-  } else {
-    type = decodeDataType(buf, typeOffset, typeId, children);
   }
 
   return {
@@ -80,10 +66,8 @@ function decodeField(buf, index, dictionaryTypes) {
 /**
  * @returns {import('../types.js').Field[] | null}
  */
-function decodeFieldChildren(buf, fieldOffset, dictionaryTypes) {
-  const children = readVector(buf, fieldOffset, 4,
-    (buf, pos) => decodeField(buf, pos, dictionaryTypes)
-  );
+function decodeFieldChildren(buf, fieldOffset) {
+  const children = readVector(buf, fieldOffset, 4, decodeField);
   return children.length ? children : null;
 }
 
@@ -102,8 +86,8 @@ function decodeDictionary(buf, index) {
   return dictionary(
     null, // data type will be populated by caller
     get(6, decodeInt, int32()), // index type
+    get(8, readBoolean, false), // ordered
     get(4, readInt64, 0), // id
-    get(8, readBoolean, false) // ordered
   );
 }
 

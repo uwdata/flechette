@@ -85,14 +85,14 @@ Create a new field instance for use in a schema or type definition. A field repr
 ### Dictionary
 
 <hr/><a id="dictionary" href="#dictionary">#</a>
-<b>dictionary</b>(<i>type</i>[, <i>indexType</i>, <i>id</i>, <i>ordered</i>])
+<b>dictionary</b>(<i>type</i>[, <i>indexType</i>, <i>ordered</i>, <i>id</i>])
 
-Create a Dictionary data type instance. A dictionary type consists of a dictionary of values (which may be of any type) and corresponding integer indices that reference those values. If values are repeated, a dictionary encoding can provide substantial space savings. In the IPC format, dictionary indices reside alongside other columns in a record batch, while dictionary values are written to special dictionary batches, linked by a unique dictionary *id*. Internally Flechette extracts dictionary values upfront; while this incurs some initial overhead, it enables fast subsequent lookups.
+Create a Dictionary data type instance. A dictionary type consists of a dictionary of values (which may be of any type) and corresponding integer indices that reference those values. If values are repeated, a dictionary encoding can provide substantial space savings. In the IPC format, dictionary indices reside alongside other columns in a record batch, while dictionary values are written to special dictionary batches, linked by a unique dictionary *id* assigned at encoding time. Internally Flechette extracts dictionary values immediately upon decoding; while this incurs some initial overhead, it enables fast subsequent lookups.
 
 * *type* (`DataType`): The data type of dictionary values.
 * *indexType* (`DataType`): The data type of dictionary indices. Must be an integer type (default [`int32`](#int32)).
-* *id* (`number`): The dictionary id, should be unique in a table. Defaults to `-1`, but is set to a proper id if the type is passed through [`tableFromArrays`](/flechette/api/#tableFromArrays).
 * *ordered* (`boolean`): Indicates if dictionary values are ordered (default `false`).
+* *id* (`number`): Optional dictionary id. The default value (-1) indicates that the dictionary applies to a single column only. Provide an explicit id in order to reuse a dictionary across columns when building, in which case different dictionaries *must* have different unique ids. All dictionary ids are later resolved (possibly to new values) upon IPC encoding.
 
 ### Null
 

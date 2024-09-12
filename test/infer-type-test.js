@@ -6,46 +6,50 @@ function matches(actual, expect) {
   assert.deepStrictEqual(actual, expect);
 }
 
+function infer(values) {
+  return inferType(visitor => values.forEach(visitor));
+}
+
 describe('inferType', () => {
   it('infers integer types', () => {
-    matches(inferType([1, 2, 3]), int8());
-    matches(inferType([1e3, 2e3, 3e3]), int16());
-    matches(inferType([1e6, 2e6, 3e6]), int32());
-    matches(inferType([1n, 2n, 3n]), int64());
+    matches(infer([1, 2, 3]), int8());
+    matches(infer([1e3, 2e3, 3e3]), int16());
+    matches(infer([1e6, 2e6, 3e6]), int32());
+    matches(infer([1n, 2n, 3n]), int64());
 
-    matches(inferType([-1, 2, 3]), int8());
-    matches(inferType([-1e3, 2e3, 3e3]), int16());
-    matches(inferType([-1e6, 2e6, 3e6]), int32());
-    matches(inferType([-1n, 2n, 3n]), int64());
+    matches(infer([-1, 2, 3]), int8());
+    matches(infer([-1e3, 2e3, 3e3]), int16());
+    matches(infer([-1e6, 2e6, 3e6]), int32());
+    matches(infer([-1n, 2n, 3n]), int64());
 
-    matches(inferType([1, 2, null, undefined, 3]), int8());
-    matches(inferType([1e3, 2e3, null, undefined, 3e3]), int16());
-    matches(inferType([1e6, 2e6, null, undefined, 3e6]), int32());
-    matches(inferType([1n, 2n, null, undefined, 3n]), int64());
+    matches(infer([1, 2, null, undefined, 3]), int8());
+    matches(infer([1e3, 2e3, null, undefined, 3e3]), int16());
+    matches(infer([1e6, 2e6, null, undefined, 3e6]), int32());
+    matches(infer([1n, 2n, null, undefined, 3n]), int64());
   });
 
   it('infers float types', () => {
-    matches(inferType([1.1, 2.2, 3.3]), float64());
-    matches(inferType([-1.1, 2.2, 3.3]), float64());
-    matches(inferType([1, 2, 3.3]), float64());
-    matches(inferType([1, 2, NaN]), float64());
-    matches(inferType([NaN, null, undefined, NaN]), float64());
-    matches(inferType([Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]), float64());
+    matches(infer([1.1, 2.2, 3.3]), float64());
+    matches(infer([-1.1, 2.2, 3.3]), float64());
+    matches(infer([1, 2, 3.3]), float64());
+    matches(infer([1, 2, NaN]), float64());
+    matches(infer([NaN, null, undefined, NaN]), float64());
+    matches(infer([Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]), float64());
   });
 
   it('infers utf8 dictionary types', () => {
     const type = dictionary(utf8(), int32());
-    matches(inferType(['foo', 'bar', 'baz']), type);
-    matches(inferType(['foo', 'bar', null, undefined, 'baz']), type);
+    matches(infer(['foo', 'bar', 'baz']), type);
+    matches(infer(['foo', 'bar', null, undefined, 'baz']), type);
   });
 
   it('infers bool types', () => {
-    matches(inferType([true, false, true]), bool());
-    matches(inferType([true, false, null, undefined, true]), bool());
+    matches(infer([true, false, true]), bool());
+    matches(infer([true, false, null, undefined, true]), bool());
   });
 
   it('infers date day types', () => {
-    matches(inferType([
+    matches(infer([
       new Date(Date.UTC(2000, 1, 2)),
       new Date(Date.UTC(2006, 3, 20)),
       null,
@@ -55,7 +59,7 @@ describe('inferType', () => {
 
   it('infers timestamp types', () => {
     matches(
-      inferType([
+      infer([
         new Date(Date.UTC(2000, 1, 2)),
         new Date(Date.UTC(2006, 3, 20)),
         null,
@@ -67,14 +71,14 @@ describe('inferType', () => {
   });
 
   it('infers list types', () => {
-    matches(inferType([[1, 2], [3, 4]]), list(int8()));
-    matches(inferType([[true, null, false], null, undefined, [false, undefined, true]]), list(bool()));
-    matches(inferType([['foo', 'bar', null], null, ['bar', 'baz']]), list(dictionary(utf8(), int32())));
+    matches(infer([[1, 2], [3, 4]]), list(int8()));
+    matches(infer([[true, null, false], null, undefined, [false, undefined, true]]), list(bool()));
+    matches(infer([['foo', 'bar', null], null, ['bar', 'baz']]), list(dictionary(utf8(), int32())));
   });
 
   it('infers struct types', () => {
     matches(
-      inferType([
+      infer([
         { foo: 1, bar: [1.1, 2.2] },
         { foo: null, bar: [2.2, null, 3.3] },
         null,
@@ -86,10 +90,10 @@ describe('inferType', () => {
   });
 
   it('throws on bigints that exceed 64 bits', () => {
-    assert.throws(() => inferType([(1n << 200n)]));
+    assert.throws(() => infer([(1n << 200n)]));
   });
 
   it('throws on mixed types', () => {
-    assert.throws(() => inferType([1, true, 'foo']));
+    assert.throws(() => infer([1, true, 'foo']));
   });
 });

@@ -16,14 +16,17 @@ export function tableToIPC(table, options) {
   if (typeof options === 'string') {
     options = { format: options };
   }
-  const schema = table.schema;
   const columns = table.children;
-  const dictionaries = assembleDictionaryBatches(columns);
+  const { dictionaries, idMap } = assembleDictionaryBatches(columns);
   const records = assembleRecordBatches(columns);
+  const schema = assembleSchema(table.schema, idMap);
   const data = { schema, dictionaries, records };
   return encodeIPC(data, options).finish();
 }
 
+/**
+ * Create a new assembly context.
+ */
 function assembleContext() {
   let byteLength = 0;
   const nodes = [];
@@ -74,37 +77,107 @@ function assembleContext() {
 }
 
 /**
- * @param {import('../column.js').Column[]} columns
- * @returns {import('../types.js').DictionaryBatch[]}
+ * Assemble dictionary batches and their unique ids.
+ * @param {import('../column.js').Column[]} columns The table columns.
+ * @returns {{
+ *    dictionaries: import('../types.js').DictionaryBatch[],
+ *    idMap: Map<import('../types.js').DataType, number>
+ *  }}
+ *  The assembled dictionary batches and a map from dictionary column
+ *  instances to dictionary ids.
  */
 function assembleDictionaryBatches(columns) {
   const dictionaries = [];
-  const seen = new Set;
+  const dictMap = new Map;
+  const idMap = new Map;
+  let id = -1;
 
-  for (const col of columns) {
-    const { type } = col;
-    if (type.typeId !== -1) continue;
-    if (seen.has(type.id)) continue;
-    seen.add(type.id);
-
-    // pass dictionary and deltas as-is
-    // @ts-ignore
-    const dict = col.data[0].dictionary;
-    for (let i = 0; i < dict.data.length; ++i) {
-      dictionaries.push({
-        id: type.id,
-        isDelta: i > 0,
-        data: assembleRecordBatch([dict], i)
-      });
+  // track dictionaries, key by dictionary column, assign ids
+  const visitor = dictionaryColumn => {
+    if (!dictMap.has(dictionaryColumn)) {
+      dictMap.set(dictionaryColumn, ++id);
+      for (let i = 0; i < dictionaryColumn.data.length; ++i) {
+        dictionaries.push({
+          id,
+          isDelta: i > 0,
+          data: assembleRecordBatch([dictionaryColumn], i)
+        });
+      }
+      idMap.set(dictionaryColumn.type, id);
+    } else {
+      idMap.set(dictionaryColumn.type, dictMap.get(dictionaryColumn));
     }
-  }
+  };
 
-  return dictionaries;
+  // recurse through column batches to find dictionaries
+  // it is sufficient to visit the first batch only,
+  // as all batches have the same dictionary column
+  columns.forEach(col => visitDictionaries(col.data[0], visitor));
+
+  return { dictionaries, idMap };
 }
 
 /**
- * @param {import('../column.js').Column[]} columns
- * @returns {import('../types.js').RecordBatch[]}
+ * Traverse column batches to visit dictionary columns.
+ * @param {import('../batch.js').Batch} batch
+ * @param {(column: import('../column.js').Column) => void} visitor
+ */
+function visitDictionaries(batch, visitor) {
+  if (batch?.type.typeId === Type.Dictionary) {
+    // @ts-ignore - batch has type DictionaryBatch
+    const dictionary = batch.dictionary;
+    visitor(dictionary);
+    visitDictionaries(dictionary.data[0], visitor);
+  }
+  batch?.children?.forEach(child => visitDictionaries(child, visitor));
+}
+
+/**
+ * Assemble a schema with resolved dictionary ids.
+ * @param {import('../types.js').Schema} schema The schema.
+ * @param {Map<import('../types.js').DataType, number>} idMap A map
+ *  from dictionary value types to dictionary ids.
+ * @returns {import('../types.js').Schema} A new schema with resolved
+ *  dictionary ids. If there are no dictionaries, the input schema is
+ *  returned unchanged.
+ */
+function assembleSchema(schema, idMap) {
+  // early exit if no dictionaries
+  if (!idMap.size) return schema;
+
+  const visit = type => {
+    if (type.typeId === Type.Dictionary) {
+      type.id = idMap.get(type.dictionary); // lookup and set id
+      visitDictType(type);
+    }
+    if (type.children) {
+      (type.children = type.children.slice()).forEach(visitFields);
+    }
+  };
+
+  // visit a field in a field array
+  const visitFields = (field, index, array) => {
+    const type = { ...field.type };
+    array[index] = { ...field, type };
+    visit(type);
+  };
+
+  // visit a dictionary values type
+  const visitDictType = (parentType) => {
+    const type = { ...parentType.dictionary };
+    parentType.dictionary = type;
+    visit(type);
+  };
+
+  schema = { ...schema, fields: schema.fields.slice() };
+  schema.fields.forEach(visitFields);
+  return schema;
+}
+
+/**
+ * Assemble record batches with marshalled buffers.
+ * @param {import('../column.js').Column[]} columns The table columns.
+ * @returns {import('../types.js').RecordBatch[]} The assembled record batches.
  */
 function assembleRecordBatches(columns) {
   return (columns[0]?.data || [])
@@ -112,8 +185,10 @@ function assembleRecordBatches(columns) {
 }
 
 /**
- * @param {import('../column.js').Column[]} columns
- * @returns {import('../types.js').RecordBatch}
+ * Assemble a record batch with marshalled buffers.
+ * @param {import('../column.js').Column[]} columns The table columns.
+ * @param {number} batchIndex The batch index.
+ * @returns {import('../types.js').RecordBatch} The assembled record batch.
  */
 function assembleRecordBatch(columns, batchIndex = 0) {
   const ctx = assembleContext();
@@ -124,10 +199,10 @@ function assembleRecordBatch(columns, batchIndex = 0) {
 }
 
 /**
- * Visit a column batch, assembling buffer information.
- * @param {import('../types.js').DataType} type
- * @param {import('../batch.js').Batch} batch
- * @param {ReturnType<assembleContext>} ctx
+ * Visit a column batch, assembling buffer data.
+ * @param {import('../types.js').DataType} type The data type.
+ * @param {import('../batch.js').Batch} batch The column batch.
+ * @param {ReturnType<assembleContext>} ctx The assembly context.
  */
 function visit(type, batch, ctx) {
   const { typeId } = type;

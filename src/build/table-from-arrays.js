@@ -1,4 +1,4 @@
-import { builderContext } from './builder.js';
+import { dictionaryContext } from './builders/dictionary.js';
 import { columnFromArray } from './column-from-array.js';
 import { tableFromColumns } from './table-from-columns.js';
 
@@ -13,11 +13,11 @@ import { tableFromColumns } from './table-from-columns.js';
  */
 export function tableFromArrays(data, options = {}) {
   const { types = {}, ...opt } = options;
-  const ctx = builderContext();
+  const dicts = dictionaryContext();
   const entries = Array.isArray(data) ? data : Object.entries(data);
   const columns = entries.map(([name, array]) =>
     /** @type {[string, import('../column.js').Column]} */ (
-    [ name, columnFromArray(array, types[name], opt, ctx)]
+    [ name, columnFromArray(array, types[name], opt, dicts)]
   ));
   return tableFromColumns(columns, options.useProxy);
 }

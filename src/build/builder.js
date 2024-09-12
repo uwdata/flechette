@@ -6,7 +6,7 @@ import { toBigInt, toDateDay, toFloat16, toTimestamp } from '../util/numbers.js'
 import { BinaryBuilder } from './builders/binary.js';
 import { BoolBuilder } from './builders/bool.js';
 import { DecimalBuilder } from './builders/decimal.js';
-import { DictionaryBuilder, dictionaryValues } from './builders/dictionary.js';
+import { DictionaryBuilder, dictionaryContext } from './builders/dictionary.js';
 import { FixedSizeBinaryBuilder } from './builders/fixed-size-binary.js';
 import { FixedSizeListBuilder } from './builders/fixed-size-list.js';
 import { IntervalDayTimeBuilder, IntervalMonthDayNanoBuilder } from './builders/interval.js';
@@ -19,36 +19,20 @@ import { Utf8Builder } from './builders/utf8.js';
 import { DirectBuilder, Int64Builder, TransformBuilder } from './builders/values.js';
 
 /**
- * Create a new context object for shared builder state.
+ * Create a context object for shared builder state.
  * @param {import('../types.js').ExtractionOptions} [options]
  *  Batch extraction options.
- * @param {Map<number, ReturnType<dictionaryValues>>} [dictMap]
- *  A map of dictionary ids to value builder helpers.
+* @param {ReturnType<dictionaryContext>} [dictionaries]
+ *  Context object for tracking dictionaries.
  */
-export function builderContext(options, dictMap = new Map) {
-  let dictId = 0;
+export function builderContext(
+  options = {},
+  dictionaries = dictionaryContext()
+) {
   return {
-    batchType(type) {
-      return batchType(type, options);
-    },
-    dictionary(type, id) {
-      let dict;
-      if (id != null) {
-        dict = dictMap.get(id);
-      } else {
-        while (dictMap.has(dictId + 1)) ++dictId;
-        id = dictId;
-      }
-      if (!dict) {
-        dictMap.set(id, dict = dictionaryValues(id, type, this));
-      }
-      return dict;
-    },
-    finish() {
-      for (const dict of dictMap.values()) {
-        dict.finish(options);
-      }
-    }
+    batchType: type => batchType(type, options),
+    dictionary(type) { return dictionaries.get(type, this); },
+    finish: () => dictionaries.finish(options)
   };
 }
 

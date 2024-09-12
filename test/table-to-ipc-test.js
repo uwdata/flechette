@@ -32,7 +32,6 @@ function testEncode(bytes) {
 
   // ensure complete schema, override version
   const schema = {
-    dictionaryTypes: new Map,
     endianness: 0,
     metadata: null,
     ...table.schema,
