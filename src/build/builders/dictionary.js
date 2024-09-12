@@ -6,21 +6,58 @@ import { builder } from '../builder.js';
 import { ValidityBuilder } from './validity.js';
 
 /**
- * Builder helped for creating dictionary values.
- * @param {number} id The dictionary id.
+ * Create a context object for managing dictionary builders.
+ */
+export function dictionaryContext() {
+  const idMap = new Map;
+  const dicts = new Set;
+  return {
+    /**
+     * Get a dictionary values builder for the given dictionary type.
+     * @param {import('../../types.js').DictionaryType} type
+     *  The dictionary type.
+     * @param {*} ctx The builder context.
+     * @returns {ReturnType<dictionaryValues>}
+     */
+    get(type, ctx) {
+      // if a dictionary has a non-negative id, assume it was set
+      // intentionally and track it for potential reuse across columns
+      // otherwise the dictionary is used for a single column only
+      const id = type.id;
+      if (id >= 0 && idMap.has(id)) {
+        return idMap.get(id);
+      } else {
+        const dict = dictionaryValues(type, ctx);
+        if (id >= 0) idMap.set(id, dict);
+        dicts.add(dict);
+        return dict;
+      }
+    },
+    /**
+     * Finish building dictionary values columns and assign them to
+     * their corresponding dictionary batches.
+     * @param {import('../../types.js').ExtractionOptions} options
+     */
+    finish(options) {
+      dicts.forEach(dict => dict.finish(options));
+    }
+  };
+}
+
+/**
+ * Builder helper for creating dictionary values.
  * @param {import('../../types.js').DictionaryType} type
  *  The dictionary data type.
- * @param {*} ctx
- * @returns
+ * @param {ReturnType<import('../builder.js').builderContext>} ctx
+ *  The builder context.
  */
-export function dictionaryValues(id, type, ctx) {
+export function dictionaryValues(type, ctx) {
   const keys = Object.create(null);
   const values = builder(type.dictionary, ctx);
   const batches = [];
 
   values.init();
   let index = -1;
-  type.id = id;
 
   return {
     type,

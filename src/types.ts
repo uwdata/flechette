@@ -105,8 +105,7 @@ export interface Schema {
   version?: Version_;
   endianness?: Endianness_;
   fields: Field[];
-  metadata?: Metadata | null;
-  dictionaryTypes?: Map<number, DataType>;
+  metadata?: Metadata | null
 }
 
 /**

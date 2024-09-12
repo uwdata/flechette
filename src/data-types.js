@@ -85,17 +85,21 @@ const basicType = (typeId) => ({ typeId });
  *  values.
  * @param {import('./types.js').IntType} [indexType] The data type of
  *  dictionary indices. Must be an integer type (default `int32`).
- * @param {number} [id=-1] The dictionary id, should be unique in a table.
  * @param {boolean} [ordered=false] Indicates if dictionary values are
  *  ordered (default `false`).
+ * @param {number} [id=-1] The dictionary id. The default value (-1) indicates
+ *  the dictionary applies to a single column only. Provide an explicit id in
+ *  order to reuse a dictionary across columns when building, in which case
+ *  different dictionaries *must* have different unique ids. All dictionary
+ *  ids are later resolved (possibly to new values) upon IPC encoding.
  * @returns {import('./types.js').DictionaryType}
  */
-export const dictionary = (type, indexType, id = -1, ordered = false) => ({
+export const dictionary = (type, indexType, ordered = false, id = -1) => ({
   typeId: Type.Dictionary,
   dictionary: type,
   indices: indexType || int32(),
-  id,
-  ordered
+  ordered,
+  id
 });
 
 /**

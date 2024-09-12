@@ -11,8 +11,7 @@ export function decimalDataToEncode() {
         nullable: true,
         metadata: null
       }],
-      metadata: null,
-      dictionaryTypes: new Map
+      metadata: null
     },
     records: [{
       length: 3,

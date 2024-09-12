@@ -37,11 +37,20 @@ export function tableFromIPC(data, options) {
  */
 export function createTable(data, options = {}) {
   const { schema = { fields: [] }, dictionaries, records } = data;
-  const { version, fields, dictionaryTypes } = schema;
+  const { version, fields } = schema;
   const dictionaryMap = new Map;
   const context = contextGenerator(options, version, dictionaryMap);
 
-  // decode dictionaries
+  // build dictionary type map
+  const dictionaryTypes = new Map;
+  visitSchemaFields(schema, field => {
+    const type = field.type;
+    if (type.typeId === Type.Dictionary) {
+      dictionaryTypes.set(type.id, type.dictionary);
+    }
+  });
+
+  // decode dictionaries, build dictionary column map
   const dicts = new Map;
   for (const dict of dictionaries) {
     const { id, data, isDelta, body } = dict;
@@ -68,6 +77,21 @@ export function createTable(data, options = {}) {
   }
 
   return new Table(schema, cols.map(c => c.done()), options.useProxy);
+}
+
+/**
+ * Visit all fields within a schema.
+ * @param {import('../types.js').Schema} schema
+ * @param {(field: import('../types.js').Field) => void} visitor
+ */
+function visitSchemaFields(schema, visitor) {
+  schema.fields.forEach(function visitField(field) {
+    visitor(field);
+    // @ts-ignore
+    field.type.dictionary?.children?.forEach(visitField);
+    // @ts-ignore
+    field.type.children?.forEach(visitField);
+  });
 }
 
 /**

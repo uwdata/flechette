@@ -137,7 +137,7 @@ const col = columnFromArray(
 <hr/><a id="tableFromColumns" href="#tableFromColumns">#</a>
 <b>tableFromColumns</b>(<i>columns</i>[, <i>useProxy</i>])
 
-Create a new table from a collection of columns. This method is useful for creating new tables using one or more pre-existing column instances. Otherwise, [`tableFromArrays`](#tableFromArrays) should be preferred. Input columns are assumed to have the same record batch sizes and non-conflicting dictionary ids.
+Create a new table from a collection of columns. This method is useful for creating new tables using one or more pre-existing column instances. Otherwise, [`tableFromArrays`](#tableFromArrays) should be preferred. Input columns are assumed to have the same record batch sizes.
 
 * *data* (`object | array`): The input columns as an object with name keys, or an array of [name, column] pairs.
 * *useProxy* (`boolean`): Flag indicating if row proxy objects should be used to represent table rows (default `false`). Typically this should match the value of the `useProxy` extraction option used for column generation.
