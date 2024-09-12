@@ -282,7 +282,7 @@ export function prep(builder, size, additionalBytes) {
   const alignSize = (~used + 1) & (size - 1);
 
   // reallocate the buffer if needed
-  buf = grow(buf, used + alignSize + size);
+  buf = grow(buf, used + alignSize + size - 1, true);
   space += buf.length - bufSize;
 
   // add padding
