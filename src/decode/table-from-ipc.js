@@ -134,15 +134,16 @@ function contextGenerator(options, version, dictionaryMap) {
  */
 function visit(type, ctx) {
   const { typeId } = type;
-  const BatchType = batchType(type, ctx.options);
+  const { length, options, node, buffer, variadic, version } = ctx;
+  const BatchType = batchType(type, options);
 
   if (typeId === Type.Null) {
     // no field node, no buffers
-    return new BatchType({ length: ctx.length, nullCount: length });
+    return new BatchType({ length, nullCount: length, type });
   }
 
   // extract the next { length, nullCount } field node
-  const node = { ...ctx.node(), type };
+  const base = { ...node(), type };
 
   switch (typeId) {
     // validity and data value buffers
@@ -157,9 +158,9 @@ function visit(type, ctx) {
     case Type.Interval:
     case Type.FixedSizeBinary:
       return new BatchType({
-        ...node,
-        validity: ctx.buffer(),
-        values: ctx.buffer(type.values)
+        ...base,
+        validity: buffer(),
+        values: buffer(type.values)
       });
 
     // validity, offset, and value buffers
@@ -168,20 +169,20 @@ function visit(type, ctx) {
     case Type.Binary:
     case Type.LargeBinary:
       return new BatchType({
-        ...node,
-        validity: ctx.buffer(),
-        offsets: ctx.buffer(type.offsets),
-        values: ctx.buffer()
+        ...base,
+        validity: buffer(),
+        offsets: buffer(type.offsets),
+        values: buffer()
       });
 
     // views with variadic buffers
     case Type.BinaryView:
     case Type.Utf8View:
       return new BatchType({
-        ...node,
-        validity: ctx.buffer(),
-        values: ctx.buffer(), // views buffer
-        data: Array.from({ length: ctx.variadic() }, () => ctx.buffer()) // data buffers
+        ...base,
+        validity: buffer(),
+        values: buffer(), // views buffer
+        data: Array.from({ length: variadic() }, () => buffer()) // data buffers
       });
 
     // validity, offset, and list child
@@ -189,9 +190,9 @@ function visit(type, ctx) {
     case Type.LargeList:
     case Type.Map:
       return new BatchType({
-        ...node,
-        validity: ctx.buffer(),
-        offsets: ctx.buffer(type.offsets),
+        ...base,
+        validity: buffer(),
+        offsets: buffer(type.offsets),
         children: ctx.visit(type.children)
       });
 
@@ -199,10 +200,10 @@ function visit(type, ctx) {
     case Type.ListView:
     case Type.LargeListView:
       return new BatchType({
-        ...node,
-        validity: ctx.buffer(),
-        offsets: ctx.buffer(type.offsets),
-        sizes: ctx.buffer(type.offsets),
+        ...base,
+        validity: buffer(),
+        offsets: buffer(type.offsets),
+        sizes: buffer(type.offsets),
         children: ctx.visit(type.children)
       });
 
@@ -210,15 +211,15 @@ function visit(type, ctx) {
     case Type.FixedSizeList:
     case Type.Struct:
       return new BatchType({
-        ...node,
-        validity: ctx.buffer(),
+        ...base,
+        validity: buffer(),
         children: ctx.visit(type.children)
       });
 
     // children only
     case Type.RunEndEncoded:
       return new BatchType({
-        ...node,
+        ...base,
         children: ctx.visit(type.children)
       });
 
@@ -226,21 +227,21 @@ function visit(type, ctx) {
     case Type.Dictionary: {
       const { id, indices } = type;
       return new BatchType({
-        ...node,
-        validity: ctx.buffer(),
-        values: ctx.buffer(indices.values),
+        ...base,
+        validity: buffer(),
+        values: buffer(indices.values),
       }).setDictionary(ctx.dictionary(id));
     }
 
     // union
     case Type.Union: {
-      if (ctx.version < Version.V5) {
-        ctx.buffer(); // skip unused null bitmap
+      if (version < Version.V5) {
+        buffer(); // skip unused null bitmap
       }
       return new BatchType({
-        ...node,
-        typeIds: ctx.buffer(int8Array),
-        offsets: type.mode === UnionMode.Sparse ? null : ctx.buffer(type.offsets),
+        ...base,
+        typeIds: buffer(int8Array),
+        offsets: type.mode === UnionMode.Sparse ? null : buffer(type.offsets),
         children: ctx.visit(type.children)
       });
     }
