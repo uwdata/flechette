@@ -7,6 +7,9 @@ import { encodeSchema } from './schema.js';
 import { writeMessage } from './message.js';
 import { MemorySink } from './sink.js';
 
+const STREAM = 'stream';
+const FILE = 'file';
+
 /**
  * Encode assembled data into Arrow IPC binary format.
  * @param {any} data Assembled table data.
@@ -15,10 +18,13 @@ import { MemorySink } from './sink.js';
  * @param {'stream' | 'file'} [options.format] Arrow stream or file format.
  * @returns {import('./sink.js').Sink} The sink that was passed in.
  */
-export function encodeIPC(data, { sink, format } = {}) {
+export function encodeIPC(data, { sink, format = STREAM } = {}) {
+  if (format !== STREAM && format !== FILE) {
+    throw new Error(`Unrecognized Arrow IPC format: ${format}`);
+  }
   const { schema, dictionaries = [], records = [], metadata } = data;
   const builder = new Builder(sink || new MemorySink());
-  const file = format === 'file';
+  const file = format === FILE;
   const dictBlocks = [];
   const recordBlocks = [];
 

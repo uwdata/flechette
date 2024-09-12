@@ -118,26 +118,28 @@ export function align(array, length = array.length) {
  * @template {import('../types.js').TypedArray} T
  * @param {T} array The array.
  * @param {number} newLength The new length.
+ * @param {number} [offset] The offset at which to copy the old array.
  * @returns {T} The resized array.
  */
-export function resize(array, newLength) {
+export function resize(array, newLength, offset = 0) {
   // @ts-ignore
   const newArray = new array.constructor(newLength);
-  newArray.set(array, array.length);
+  newArray.set(array, offset);
   return newArray;
 }
 
 /**
- * Grow a typed array to accommdate a minimum length. The array size is
- * doubled until it meets or exceeds the minimum length.
+ * Grow a typed array to accommdate a minimum index. The array size is
+ * doubled until it exceeds the minimum index.
  * @template {import('../types.js').TypedArray} T
  * @param {T} array The array.
- * @param {number} minLength The minimum length.
+ * @param {number} index The minimum index.
+ * @param {boolean} [shift] Flag to shift copied bytes to back of array.
  * @returns {T} The resized array.
  */
-export function grow(array, minLength) {
-  while (array.length < minLength) {
-    array = resize(array, array.length << 1);
+export function grow(array, index, shift) {
+  while (array.length <= index) {
+    array = resize(array, array.length << 1, shift ? array.length : 0);
   }
   return array;
 }
