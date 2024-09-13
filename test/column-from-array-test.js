@@ -408,4 +408,11 @@ describe('columnFromArray', () => {
     test([true, false, true]);
     test([Int8Array.of(1,2), Int8Array.of(3,4), Int8Array.of(5,6)]);
   });
+
+  it('builds columns with resized buffers', () => {
+    const floats = Array.from({ length: 20_000 }, () => Math.random());
+    const strs = floats.map(f => f.toFixed(3));
+    test(floats, float64());
+    test(strs, utf8());
+  });
 });

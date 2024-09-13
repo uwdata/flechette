@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { bool, dateDay, dictionary, fixedSizeList, float64, int16, int32, int64, int8, list, struct, timestamp, utf8 } from '../src/index.js';
+import { bool, dateDay, dictionary, fixedSizeList, float64, int16, int32, int64, int8, list, nullType, struct, timestamp, utf8 } from '../src/index.js';
 import { inferType } from '../src/build/infer-type.js';
 
 function matches(actual, expect) {
@@ -11,6 +11,13 @@ function infer(values) {
 }
 
 describe('inferType', () => {
+  it('infers null types', () => {
+    matches(infer([null, null, null]), nullType());
+    matches(infer([undefined, undefined]), nullType());
+    matches(infer([null, undefined]), nullType());
+    matches(infer([]), nullType());
+  });
+
   it('infers integer types', () => {
     matches(infer([1, 2, 3]), int8());
     matches(infer([1e3, 2e3, 3e3]), int16());
@@ -71,9 +78,18 @@ describe('inferType', () => {
   });
 
   it('infers list types', () => {
-    matches(infer([[1, 2], [3, 4], [5]]), list(int8()));
-    matches(infer([[true, null, false], null, undefined, [false, undefined]]), list(bool()));
-    matches(infer([['foo', 'bar', null], null, ['bar', 'baz']]), list(dictionary(utf8(), int32())));
+    matches(
+      infer([[1, 2], [3, 4], [5]]),
+      list(int8())
+    );
+    matches(
+      infer([[true, null, false], null, undefined, [false, undefined]]),
+      list(bool())
+    );
+    matches(
+      infer([['foo', 'bar', null], null, ['bar', 'baz']]),
+      list(dictionary(utf8(), int32()))
+    );
   });
 
   it('infers fixed size list types', () => {

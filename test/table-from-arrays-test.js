@@ -60,9 +60,10 @@ describe('tableFromArrays', () => {
     const table = tableFromArrays({});
     assert.strictEqual(table.numRows, 0);
     assert.strictEqual(table.numCols, 0);
+    assert.deepStrictEqual(table.schema.fields, []);
   });
 
-  it('throws when arrays lengths differ', () => {
+  it('throws when array lengths differ', () => {
     assert.throws(() => tableFromArrays({ foo: [1, 2, 3], bar: [1, 2] }));
   });
 });
