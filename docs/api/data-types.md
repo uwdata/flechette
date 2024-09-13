@@ -502,7 +502,7 @@ union(
   UnionMode.Dense,
   [float64(), utf8()],
   [0, 1],
-  v => typeof v === 'string' : 1 : 0
+  v => typeof v === 'string' ? 1 : 0
 )
 ```
 
