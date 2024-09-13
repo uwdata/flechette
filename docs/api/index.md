@@ -26,8 +26,6 @@ Decode [Apache Arrow IPC data](https://arrow.apache.org/docs/format/Columnar.htm
   * *useMap* (`boolean`): If true, extract Arrow 'Map' values as JavaScript `Map` instances Otherwise, return an array of [key, value] pairs compatible with both `Map` and `Object.fromEntries` (default).
   * *useProxy* (`boolean`): If true, extract Arrow 'Struct' values and table row objects using zero-copy proxy objects that extract data from underlying Arrow batches. The proxy objects can improve performance and reduce memory usage, but do not support property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`).
 
-*Examples*
-
 ```js
 import { tableFromIPC } from '@uwdata/flechette';
 const url = 'https://vega.github.io/vega-datasets/data/flights-200k.arrow';
@@ -44,8 +42,6 @@ Encode an Arrow table into Arrow IPC binary format and return the result as a `U
 * *options* (`object`): Encoding options object.
   * *format* (`string`): Arrow `'stream'` (the default) or `'file'` format.
 
-*Examples*
-
 ```js
 import { tableToIPC } from '@uwdata/flechette';
 const bytes = tableFromIPC(table, { format: 'stream' });
@@ -61,8 +57,6 @@ Create a new table from a set of named arrays. Data types for the resulting Arro
   * *types*: (`object`): An object mapping column names to [data types](data-types).
   * *maxBatchRows* (`number`): The maximum number of rows to include in a single record batch. If the array lengths exceed this number, the resulting table will consist of multiple record batches.
   * In addition, all [tableFromIPC](#tableFromIPC) extraction options are supported.
-
-*Examples*
 
 ```js
 import { tableFromArrays } from '@uwdata/flechette';
@@ -108,27 +102,17 @@ Create a new column from a provided data array. The data types for the column ca
   * *maxBatchRows* (`number`): The maximum number of rows to include in a single record batch. If the array lengths exceed this number, the resulting table will consist of multiple record batches.
   * In addition, all [tableFromIPC](#tableFromIPC) extraction options are supported.
 
-*Examples*
-
 ```js
-import { columnFromArray } from '@uwdata/flechette';
+import { columnFromArray, float32, int64 } from '@uwdata/flechette';
 
 // create column with inferred type (here, float64)
-const col = columnFromArray([1.1, 2.2, 3.3, 4.4, 5.5]);
-```
-
-```js
-import { columnFromArray, float32 } from '@uwdata/flechette';
+columnFromArray([1.1, 2.2, 3.3, 4.4, 5.5]);
 
 // create column with specified type
-const col = columnFromArray([1.1, 2.2, 3.3, 4.4, 5.5], float32());
-```
-
-```js
-import { columnFromArray, int64 } from '@uwdata/flechette';
+columnFromArray([1.1, 2.2, 3.3, 4.4, 5.5], float32());
 
 // create column with specified type and options
-const col = columnFromArray(
+columnFromArray(
   [1n, 32n, 2n << 34n], int64(),
   { maxBatchRows: 1000, useBigInt: true }
 );
@@ -141,8 +125,6 @@ Create a new table from a collection of columns. This method is useful for creat
 
 * *data* (`object | array`): The input columns as an object with name keys, or an array of [name, column] pairs.
 * *useProxy* (`boolean`): Flag indicating if row proxy objects should be used to represent table rows (default `false`). Typically this should match the value of the `useProxy` extraction option used for column generation.
-
-*Examples*
 
 ```js
 import { columnFromArray, tableFromColumns } from '@uwdata/flechette';

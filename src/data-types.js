@@ -23,8 +23,8 @@ export const invalidDataType = (typeId) =>
  */
 export const field = (name, type, nullable = true, metadata = null) => ({
   name,
-  nullable,
   type,
+  nullable,
   metadata
 });
 
@@ -96,10 +96,10 @@ const basicType = (typeId) => ({ typeId });
  */
 export const dictionary = (type, indexType, ordered = false, id = -1) => ({
   typeId: Type.Dictionary,
+  id,
   dictionary: type,
   indices: indexType || int32(),
-  ordered,
-  id
+  ordered
 });
 
 /**

@@ -94,12 +94,31 @@ Create a Dictionary data type instance. A dictionary type consists of a dictiona
 * *ordered* (`boolean`): Indicates if dictionary values are ordered (default `false`).
 * *id* (`number`): Optional dictionary id. The default value (-1) indicates that the dictionary applies to a single column only. Provide an explicit id in order to reuse a dictionary across columns when building, in which case different dictionaries *must* have different unique ids. All dictionary ids are later resolved (possibly to new values) upon IPC encoding.
 
+```js
+import { dictionary, int16, utf8 } from '@uwdata/flechette';
+// dictionary type with string values and int16 indices
+// {
+//   typeId: -1,
+//   id: -1,
+//   dictionary: { typeId: 5, ... },
+//   indices: { typeId: 2, bitWidth: 16, signed: true, ... }
+//   ordered: false
+// }
+dictionary(utf8(), int16())
+```
+
 ### Null
 
 <hr/><a id="nullType" href="#nullType">#</a>
 <b>nullType</b>()
 
 Create a Null data type instance. Null data requires no storage and all extracted values are `null`.
+
+```js
+import { nullType } from '@uwdata/flechette';
+// { typeId: 1 }
+nullType()
+```
 
 ### Int
 
@@ -110,6 +129,12 @@ Create an Int data type instance. Integer values are stored within typed arrays 
 
 * *bitWidth* (`number`): The integer bit width, must be `8`, `16`, `32` (default), or `64`.
 * *signed* (`boolean`): Flag for signed or unsigned integers (default `true`).
+
+```js
+import { int } from '@uwdata/flechette';
+// { typeId: 2, bitWidth: 32, signed: true, ... }
+int()
+```
 
 <hr/><a id="int8" href="#int8">#</a>
 <b>int8</b>()
@@ -160,6 +185,12 @@ Create a Float data type instance for floating point numbers. Floating point val
 
 * *precision* (`number`): The floating point precision, one of `Precision.HALF` (16-bit), `Precision.SINGLE` (32-bit) or `Precision.DOUBLE` (64-bit, default).
 
+```js
+import { float } from '@uwdata/flechette';
+// { typeId: 3, precision: 2, ... }
+float()
+```
+
 <hr/><a id="float16" href="#float16">#</a>
 <b>float16</b>()
 
@@ -182,6 +213,12 @@ Create a Float data type instance for 64-bit (double precision) floating point n
 
 Create a Binary data type instance for variably-sized opaque binary data with 32-bit offsets. Binary values are stored in a `Uint8Array` using a 32-bit offset array and extracted to JavaScript `Uint8Array` subarray values.
 
+```js
+import { binary } from '@uwdata/flechette';
+// { typeId: 4 }
+binary()
+```
+
 ### Utf8
 
 <hr/><a id="utf8" href="#utf8">#</a>
@@ -189,12 +226,24 @@ Create a Binary data type instance for variably-sized opaque binary data with 32
 
 Create a Utf8 data type instance for Unicode string data of variable length with 32-bit offsets. [UTF-8](https://en.wikipedia.org/wiki/UTF-8) code points are stored as binary data and extracted to JavaScript `string` values using [`TextDecoder`](https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder). Due to decoding overhead, repeated access to string data can be costly. If making multiple passes over Utf8 data, we recommended converting the string upfront (e.g., via [`Column.toArray`](column#toArray)) and accessing the result.
 
+```js
+import { utf8 } from '@uwdata/flechette';
+// { typeId: 5 }
+utf8()
+```
+
 ### Bool
 
 <hr/><a id="bool" href="#bool">#</a>
 <b>bool</b>()
 
 Create a Bool data type instance for boolean data. Bool values are stored compactly in `Uint8Array` bitmaps with eight values per byte, and extracted to JavaScript `boolean` values.
+
+```js
+import { bool } from '@uwdata/flechette';
+// { typeId: 6 }
+bool()
+```
 
 ### Decimal
 
@@ -209,6 +258,13 @@ By default, Flechette converts decimals to 64-bit floating point numbers upon ex
 * *scale* (`number`): The number of fractional digits, beyond the decimal point.
 * *bitWidth* (`number`): The decimal bit width, one of `128` (default) or `256`.
 
+```js
+import { utf8 } from '@uwdata/flechette';
+// decimal with 18 total digits, including 3 fractional digits
+// { typeId: 7, precision: 18, scale: 3, bitWidth: 128, ... }
+decimal(18, 3)
+```
+
 ### Date
 
 <hr/><a id="date" href="#date">#</a>
@@ -220,15 +276,33 @@ By default, extracted date values are converted to JavaScript `number` values re
 
 * *unit* (`number`): The date unit, one of `DateUnit.DAY` or `DateUnit.MILLISECOND`.
 
+```js
+import { DateUnit, date } from '@uwdata/flechette';
+// { typeId: 8, unit: 0, ... }
+date(DateUnit.DAY)
+```
+
 <hr/><a id="dateDay" href="#dateDay">#</a>
 <b>dateDay</b>()
 
 Create a Date data type instance with units of `DateUnit.DAY`.
 
+```js
+import { dateDay } from '@uwdata/flechette';
+// { typeId: 8, unit: 0, ... }
+dateDay()
+```
+
 <hr/><a id="dateMillisecond" href="#dateMillisecond">#</a>
 <b>dateMillisecond</b>()
 
 Create a Date data type instance with units of `DateUnit.MILLISECOND`.
+
+```js
+import { dateMillisecond } from '@uwdata/flechette';
+// { typeId: 8, unit: 1, ... }
+dateMillisecond()
+```
 
 ### Time
 
@@ -244,25 +318,57 @@ Time values are stored as integers in either an `Int32Array` (*bitWidth* = 32) o
 * *unit* (`number`): The time unit, one of `TimeUnit.SECOND`, `TimeUnit.MILLISECOND` (default), `TimeUnit.MICROSECOND`, or `TimeUnit.NANOSECOND`.
 * *bitWidth (`number`): The time bit width, one of `32` (for seconds and milliseconds) or `64` (for microseconds and nanoseconds).
 
+```js
+import { TimeUnit, time } from '@uwdata/flechette';
+// { typeId: 9, unit: 1, bitWidth: 32, ... }
+time()
+// { typeId: 9, unit: 2, bitWidth: 64, ... }
+time(TimeUnit.MICROSECONDS, 64)
+```
+
 <hr/><a id="timeSecond" href="#timeSecond">#</a>
 <b>timeSecond</b>()
 
 Create a Time data type instance with units of `TimeUnit.SECOND`.
+
+```js
+import { timeSecond } from '@uwdata/flechette';
+// { typeId: 9, unit: 0, bitWidth: 32, ... }
+timeSecond()
+```
 
 <hr/><a id="timeMillisecond" href="#timeMillisecond">#</a>
 <b>timeMillisecond</b>()
 
 Create a Time data type instance with units of `TimeUnit.MILLISECOND`.
 
+```js
+import { timeMillisecond } from '@uwdata/flechette';
+// { typeId: 9, unit: 1, bitWidth: 32, ... }
+timeMillisecond()
+```
+
 <hr/><a id="timeMicrosecond" href="#timeMicrosecond">#</a>
 <b>timeMicrosecond</b>()
 
 Create a Time data type instance with units of `TimeUnit.MICROSECOND`.
 
+```js
+import { timeMicrosecond } from '@uwdata/flechette';
+// { typeId: 9, unit: 2, bitWidth: 64, ... }
+timeMicrosecond()
+```
+
 <hr/><a id="timeNanosecond" href="#timeNanosecond">#</a>
 <b>timeNanosecond</b>()
 
 Create a Time data type instance with units of `TimeUnit.NANOSECOND`.
+
+```js
+import { timeNanosecond } from '@uwdata/flechette';
+// { typeId: 9, unit: 3, bitWidth: 64, ... }
+timeNanosecond()
+```
 
 ### Timestamp
 
@@ -274,7 +380,15 @@ Create a Timestamp data type instance. Timestamp values are 64-bit signed intege
 Timestamp values are stored in a `BigInt64Array` and converted to millisecond-based JavaScript `number` values (potentially with fractional digits) upon extraction. An error is raised if a value exceeds either `Number.MIN_SAFE_INTEGER` or `Number.MAX_SAFE_INTEGER`. Pass the `useDate` extraction option (e.g., to [`tableFromIPC`](/flechette/api/#tableFromIPC) or [`tableFromArrays`](/flechette/api/#tableFromArrays)) to instead extract timestamp values as JavaScript `Date` objects.
 
 * *unit* (`number`): The time unit, one of `TimeUnit.SECOND`, `TimeUnit.MILLISECOND` (default), `TimeUnit.MICROSECOND`, or `TimeUnit.NANOSECOND`.
-* *timezone* (`string`): An optional string for the name of a timezone. If provided, the value should either be a string as used in the Olson timezone database (the "tz database" or "tzdata"), such as "America/New_York", or an absolute timezone offset of the form "+XX:XX" or "-XX:XX", such as "+07:30". Whether a timezone string is present indicates different semantics about the data.
+* *timezone* (`string`): An optional string for the name of a timezone. If provided, the value should either be a string as used in the Olson timezone database (the "tz database" or "tzdata"), such as "America/New_York", or an absolute timezone offset of the form "+XX:XX" or "-XX:XX", such as "+07:30". Whether a timezone string is present indicates different semantics about the data. That said, Flechette does not process the timezone information.
+
+```js
+import { timestamp } from '@uwdata/flechette';
+// { typeId: 10, unit: 1, timezone: null, ... }
+timestamp()
+// { typeId: 10, unit: 2, timezone: 'Europe/Berlin', ... }
+timestamp(TimeUnit.MICROSECOND, 'Europe/Berlin')
+```
 
 ### Interval
 
@@ -291,6 +405,14 @@ Create an Interval data type instance. Values represent calendar intervals store
 
 * *unit* (`number`): The interval unit. One of `IntervalUnit.YEAR_MONTH`, `IntervalUnit.DAY_TIME`, or `IntervalUnit.MONTH_DAY_NANO` (default).
 
+```js
+import { interval } from '@uwdata/flechette';
+// { typeId: 11, unit: 0, ... }
+interval(IntervalUnit.YEAR_MONTH)
+// { typeId: 11, unit: 2, ... }
+interval(IntervalUnit.MONTH_DAY_NANO)
+```
+
 ### List
 
 <hr/><a id="list" href="#list">#</a>
@@ -299,6 +421,20 @@ Create an Interval data type instance. Values represent calendar intervals store
 Create a List type instance, representing variably-sized lists (arrays) with 32-bit offsets. A list has a single child data type for list entries. Lists are represented using integer offsets that indicate list extents within a single child array containing all list values. Lists are extracted to either `Array` or `TypedArray` instances, depending on the child type.
 
 * *child* (`DataType | Field`): The child (list item) field or data type.
+
+```js
+import { int32, list } from '@uwdata/flechette';
+// {
+//   typeId: 12,
+//   children: [{
+//     name: '',
+//     type: type: { typeId: 2, bitWidth: 32, signed: true, ... },
+//     ...
+//   }],
+//   ...
+// }
+list(int32())
+```
 
 ### Struct
 
@@ -311,16 +447,20 @@ By default, structs are fully extracted to standard JavaScript objects. Pass the
 
 * *children* (`Field[] | object`): An array of property fields, or an object mapping property names to data types. If an object, the instantiated fields are assumed to be nullable and have no metadata.
 
-*Examples*
-
-```js
-import { bool, float32, int16, struct } from '@uwdata/flechette';
-// using an object with property names and types
-struct({ foo: int16(), bar: bool(), baz: float32() })
-```
 
 ```js
 import { bool, field, float32, int16, struct } from '@uwdata/flechette';
+// using an object with property names and types
+// {
+//   typeId: 13,
+//   children: [
+//     { name: 'foo', type: { typeId: 2, bitWidth: 16, ... }, ... },
+//     { name: 'bar', type: { typeId: 6 }, ... },
+//     { name: 'baz', type: { typeId: 3, precision: 1, ... }, ... }
+//   ]
+// }
+struct({ foo: int16(), bar: bool(), baz: float32() })
+
 // using an array of Field instances
 struct([
   field('foo', int16()),
@@ -345,6 +485,27 @@ Extracted JavaScript values depend on the child types.
 * *typeIds* (`number[]`): Children type ids, in the same order as the children types. Type ids provide a level of indirection over children types. If not provided, the children indices are used as the type ids.
 * *typeIdForValue* (`(value: any, index: number) => number`): A function that takes an arbitrary value and a row index and returns a correponding union type id. This function is required to build union-typed data with [`tableFromArrays`](/flechette/api/#tableFromArrays) or [`columnFromArray`](/flechette/api/#columnFromArray).
 
+```js
+import { float64, utf8, union } from '@uwdata/flechette';
+// {
+//   typeId: 14,
+//   mode: 1,
+//   typeIds: [ 0, 1 ],
+//   typeMap: { '0': 0, '1': 1 },
+//   children: [
+//     { name: '_0', type: { typeId: 3, precision: 2, ... }, ... },
+//     { name: '_1', type: { typeId: 5 }, ... }
+//   ],
+//   typeIdForValue: <<function>>
+// }
+union(
+  UnionMode.Dense,
+  [float64(), utf8()],
+  [0, 1],
+  v => typeof v === 'string' : 1 : 0
+)
+```
+
 ### FixedSizeBinary
 
 <hr/><a id="fixedSizeBinary" href="#fixedSizeBinary">#</a>
@@ -353,6 +514,12 @@ Extracted JavaScript values depend on the child types.
 Create a FixedSizeBinary data type instance for opaque binary data where each entry has the same fixed size. Fixed binary data are stored in a single `Uint8Array`, indexed using the known stride and extracted to JavaScript `Uint8Array` subarray values.
 
 * *stride* (`number`): The fixed size in bytes.
+
+```js
+import { fixedSizeBinary } from '@uwdata/flechette';
+// { typeId: 15, stride: 128 }
+fixedSizeBinary(128)
+```
 
 ### FixedSizeList
 
@@ -363,6 +530,16 @@ Create a FixedSizeList type instance for list (array) data where every list has 
 
 * *child* (`DataType | Field`): The child (list item) field or data type.
 * *stride* (`number`): The fixed list size.
+
+```js
+import { fixedSizeList, float32 } from '@uwdata/flechette';
+// {
+//   typeId: 16,
+//   stride: 8,
+//   children: [ { name: '', type: { typeId: 3, precision: 1, ... }, ... } ]
+// }
+fixedSizeList(float32(), 8)
+```
 
 ### Map
 
@@ -377,6 +554,26 @@ By default, map data is extracted to arrays of `[key, value]` pairs, in the styl
 * *valueField* (`DataType | Field`): The map value field or data type.
 * *keysSorted* (`boolean`): Flag indicating if the map keys are sorted (default `false`).
 
+```js
+import { int64, map, utf8 } from '@uwdata/flechette';
+// {
+//   typeId: 17,
+//   keysSorted: false,
+//   children: [{
+//     name: 'entries',
+//     type: {
+//       typeId: 13,
+//       children: [
+//         { name: 'key', type: { typeId: 5 }, ... },
+//         { name: 'value', type: { typeId: 2, bitWidth: 64, ... }, ... }
+//       ]
+//     }, ...
+//   }
+//  ]}, ...
+// }
+map(utf8(), int64())
+```
+
 ### Duration
 
 <hr/><a id="duration" href="#duration">#</a>
@@ -388,6 +585,12 @@ Duration values are stored as integers in a `BigInt64Array`. By default, duratio
 
 * *unit* (`number`): The duration time unit, one of `TimeUnit.SECOND`, `TimeUnit.MILLISECOND` (default), `TimeUnit.MICROSECOND`, or `TimeUnit.NANOSECOND`.
 
+```js
+import { duration } from '@uwdata/flechette';
+// { typeId: 18, unit: 1, ... }
+duration()
+```
+
 ### LargeBinary
 
 <hr/><a id="largeBinary" href="#largeBinary">#</a>
@@ -395,12 +598,24 @@ Duration values are stored as integers in a `BigInt64Array`. By default, duratio
 
 Create a LargeBinary data type instance for variably-sized opaque binary data with 64-bit offsets, allowing representation of extremely large data values. Large binary values are stored in a `Uint8Array`, indexed using a 64-bit offset array and extracted to JavaScript `Uint8Array` subarray values.
 
+```js
+import { largeBinary } from '@uwdata/flechette';
+// { typeId: 19, ... }
+largeBinary()
+```
+
 ### LargeUtf8
 
 <hr/><a id="largeUtf8" href="#largeUtf8">#</a>
 <b>largeUtf8</b>()
 
 Create a LargeUtf8 data type instance for Unicode string data of variable length with 64-bit offsets, allowing representation of extremely large data values. [UTF-8](https://en.wikipedia.org/wiki/UTF-8) code points are stored as binary data and extracted to JavaScript `string` values using [`TextDecoder`](https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder). Due to decoding overhead, repeated access to string data can be costly. If making multiple passes over Utf8 data, we recommended converting the string upfront (e.g., via [`Column.toArray`](column#toArray)) and accessing the result.
+
+```js
+import { largeUtf8 } from '@uwdata/flechette';
+// { typeId: 20, ... }
+largeUtf8()
+```
 
 ### LargeList
 
@@ -410,6 +625,12 @@ Create a LargeUtf8 data type instance for Unicode string data of variable length
 Create a LargeList type instance, representing variably-sized lists (arrays) with 64-bit offsets, allowing representation of extremely large data values. A list has a single child data type for list entries. Lists are represented using integer offsets that indicate list extents within a single child array containing all list values. Lists are extracted to either `Array` or `TypedArray` instances, depending on the child type.
 
 * *child* (`DataType | Field`): The child (list item) field or data type.
+
+```js
+import { largeList, utf8 } from '@uwdata/flechette';
+// { typeId: 21, children: [ { name: '', type: { typeId: 5 }, ... } ], ... }
+largeList(utf8())
+```
 
 ### RunEndEncoded
 
@@ -423,12 +644,17 @@ To extract values by index, binary search is performed over the run_ends to loca
 * *runsField* (`DataType | Field`): The run-ends field or data type.
 * *valuesField* (`DataType | Field`): The values field or data type.
 
-*Examples*
-
 ```js
 import { int32, runEndEncoded, utf8 } from '@uwdata/flechette';
 // 32-bit integer run ends and utf8 string values
-const type = runEndEncoded(int32(), utf8());
+// {
+//   typeId: 22,
+//   children: [
+//     { name: 'run_ends', type: { typeId: 2, bitWidth: 32, ... }, ... },
+//     { name: 'values', type: { typeId: 5 }, ... }
+//   ]
+// }
+runEndEncoded(int32(), utf8())
 ```
 
 ### BinaryView
@@ -440,6 +666,12 @@ Create a BinaryView type instance. BinaryView data is logically the same as the 
 
 Flechette can encode and decode BinaryView data, extracting `Uint8Array` values. However, Flechette does not currently support building BinaryView columns from JavaScript values.
 
+```js
+import { binaryView } from '@uwdata/flechette';
+// { typeId: 23 }
+binaryView()
+```
+
 ### Utf8View
 
 <hr/><a id="utf8View" href="#utf8View">#</a>
@@ -448,6 +680,12 @@ Flechette can encode and decode BinaryView data, extracting `Uint8Array` values.
 Create a Utf8View type instance. Utf8View data is logically the same as the [Utf8](#utf8) type, but the internal representation uses a view struct that contains the string length and either the string's entire data inline (for small strings) or an inlined prefix, an index of another buffer, and an offset pointing to a slice in that buffer (for non-small strings). For more details, see the [Apache Arrow format documentation](https://arrow.apache.org/docs/format/Columnar.html#variable-size-binary-view-layout).
 
 Flechette can encode and decode Utf8View data, extracting `string` values. However, Flechette does not currently support building Utf8View columns from JavaScript values.
+
+```js
+import { utf8View } from '@uwdata/flechette';
+// { typeId: 24 }
+utf8View()
+```
 
 ### ListView
 
@@ -460,6 +698,15 @@ ListView data are extracted to either `Array` or `TypedArray` instances, dependi
 
 * *child* (`DataType | Field`): The child (list item) field or data type.
 
+```js
+import { float16, listView } from '@uwdata/flechette';
+// {
+//   typeId: 25,
+//   children: [ { name: 'value', type: { typeId: 3, ... }, ... } ]
+// }
+listView(float16())
+```
+
 ### LargeListView
 
 <hr/><a id="largeListView" href="#largeListView">#</a>
@@ -470,3 +717,12 @@ Create a LargeListView type instance, representing variably-sized lists (arrays)
 LargeListView data are extracted to either `Array` or `TypedArray` instances, depending on the child type. Flechette can encode and decode LargeListView data; however, Flechette does not currently support building LargeListView columns from JavaScript values.
 
 * *child* (`DataType | Field`): The child (list item) field or data type.
+
+```js
+import { float16, largeListView } from '@uwdata/flechette';
+// {
+//   typeId: 26,
+//   children: [ { name: 'value', type: { typeId: 3, ... }, ... } ]
+// }
+largeListView(float16())
+```
