@@ -1,7 +1,7 @@
 ---
 title: Table | API Reference
 ---
-# API Reference
+# Flechette API Reference <a href="https://idl.uw.edu/flechette"><img align="right" src="../assets/logo.svg" height="38"/></a>
 
 [Top-Level](/flechette/api) | [Data Types](data-types) | [**Table**](table) | [Column](column)
 
