@@ -2,7 +2,6 @@ import { Column } from '../../column.js';
 import { keyString } from '../../util/strings.js';
 import { batchType } from '../../batch-type.js';
 import { buffer } from '../buffer.js';
-import { builder } from '../builder.js';
 import { ValidityBuilder } from './validity.js';
 
 /**
@@ -53,7 +52,7 @@ export function dictionaryContext() {
  */
 export function dictionaryValues(type, ctx) {
   const keys = Object.create(null);
-  const values = builder(type.dictionary, ctx);
+  const values = ctx.builder(type.dictionary);
   const batches = [];
 
   values.init();

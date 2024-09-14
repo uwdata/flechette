@@ -31,6 +31,7 @@ export function builderContext(
 ) {
   return {
     batchType: type => batchType(type, options),
+    builder(type) { return builder(type, this); },
     dictionary(type) { return dictionaries.get(type, this); },
     finish: () => dictionaries.finish(options)
   };

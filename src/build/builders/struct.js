@@ -1,4 +1,3 @@
-import { builder } from '../builder.js';
 import { ValidityBuilder } from './validity.js';
 
 /**
@@ -7,7 +6,7 @@ import { ValidityBuilder } from './validity.js';
 export class AbstractStructBuilder extends ValidityBuilder {
   constructor(type, ctx) {
     super(type, ctx);
-    this.children = type.children.map(c => builder(c.type, ctx));
+    this.children = type.children.map(c => ctx.builder(c.type));
   }
 
   init() {
