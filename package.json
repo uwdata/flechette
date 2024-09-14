@@ -10,7 +10,7 @@
   "license": "BSD-3-Clause",
   "author": "Jeffrey Heer (https://idl.uw.edu)",
   "type": "module",
-  "main": "./src/index.js",
+  "main": "./dist/flechette.cjs",
   "module": "./src/index.js",
   "jsdelivr": "./dist/flechette.min.js",
   "unpkg": "./dist/flechette.min.js",
@@ -25,7 +25,7 @@
     "perf:decode": "node perf/decode-perf.js",
     "perf:encode": "node perf/encode-perf.js",
     "prebuild": "rimraf dist && mkdir dist",
-    "build": "node esbuild.js flechette",
+    "build": "rollup -c rollup.config.js",
     "types": "tsc --project tsconfig.json && npm run types:merge",
     "types:merge": "cd dist/types; cat types.d.ts >> index.d.ts",
     "postbuild": "npm run types",
@@ -34,12 +34,14 @@
     "prepublishOnly": "npm run test && npm run lint && npm run build"
   },
   "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
     "@uwdata/mosaic-duckdb": "^0.10.0",
     "apache-arrow": "^17.0.0",
-    "esbuild": "^0.23.1",
     "eslint": "^9.10.0",
     "mocha": "^10.7.3",
     "rimraf": "^6.0.1",
+    "rollup": "^4.21.3",
+    "rollup-plugin-bundle-size": "^1.0.3",
     "typescript": "^5.6.2"
   }
 }
