@@ -1,6 +1,5 @@
 import { toOffset } from '../../util/numbers.js';
 import { buffer } from '../buffer.js';
-import { builder } from '../builder.js';
 import { ValidityBuilder } from './validity.js';
 
 /**
@@ -35,7 +34,7 @@ export class AbstractListBuilder extends ValidityBuilder {
  */
 export class ListBuilder extends AbstractListBuilder {
   constructor(type, ctx) {
-    super(type, ctx, builder(type.children[0].type, ctx));
+    super(type, ctx, ctx.builder(type.children[0].type));
   }
 
   set(value, index) {

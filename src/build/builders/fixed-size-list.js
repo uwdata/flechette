@@ -1,4 +1,3 @@
-import { builder } from '../builder.js';
 import { ValidityBuilder } from './validity.js';
 
 /**
@@ -7,7 +6,7 @@ import { ValidityBuilder } from './validity.js';
 export class FixedSizeListBuilder extends ValidityBuilder {
   constructor(type, ctx) {
     super(type, ctx);
-    this.child = builder(this.type.children[0].type, this.ctx);
+    this.child = ctx.builder(this.type.children[0].type);
     this.stride = type.stride;
   }
 

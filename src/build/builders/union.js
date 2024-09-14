@@ -1,7 +1,6 @@
 import { int8Array } from '../../util/arrays.js';
 import { BatchBuilder } from './batch.js';
 import { buffer } from '../buffer.js';
-import { builder } from '../builder.js';
 
 /**
  * Abstract class for building union-typed data batches.
@@ -9,7 +8,7 @@ import { builder } from '../builder.js';
 export class AbstractUnionBuilder extends BatchBuilder {
   constructor(type, ctx) {
     super(type, ctx);
-    this.children = type.children.map(c => builder(c.type, ctx));
+    this.children = type.children.map(c => ctx.builder(c.type));
     this.typeMap = type.typeMap;
     this.lookup = type.typeIdForValue;
   }

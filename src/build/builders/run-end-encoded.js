@@ -1,6 +1,5 @@
 import { keyString } from '../../util/strings.js';
 import { BatchBuilder } from './batch.js';
-import { builder } from '../builder.js';
 
 const NO_VALUE = {}; // empty object that fails strict equality
 
@@ -10,7 +9,7 @@ const NO_VALUE = {}; // empty object that fails strict equality
 export class RunEndEncodedBuilder extends BatchBuilder {
   constructor(type, ctx) {
     super(type, ctx);
-    this.children = type.children.map(c => builder(c.type, ctx));
+    this.children = type.children.map(c => ctx.builder(c.type));
   }
 
   init() {
