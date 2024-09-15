@@ -25,7 +25,7 @@ export function decodeIPC(data) {
   const source = data instanceof ArrayBuffer
     ? new Uint8Array(data)
     : data;
-  return !Array.isArray(source) && isArrowFileFormat(source)
+  return source instanceof Uint8Array && isArrowFileFormat(source)
     ? decodeIPCFile(source)
     : decodeIPCStream(source);
 }
@@ -60,6 +60,9 @@ export function decodeIPCStream(data) {
 
   // consume each message in the stream
   for (const buf of stream) {
+    if (!(buf instanceof Uint8Array)) {
+      throw new Error(`IPC data batch was not a Uint8Array.`);
+    }
     let offset = 0;
 
     // decode all messages in current buffer
