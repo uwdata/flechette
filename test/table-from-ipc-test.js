@@ -53,8 +53,6 @@ describe('tableFromIPC', () => {
     valueTest(bytes, values, BigInt64Array, { useBigInt: true });
   });
 
-  it('decodes boolean data', () => test(bool));
-
   it('decodes uint8 data', () => test(uint8, Uint8Array));
   it('decodes uint16 data', () => test(uint16, Uint16Array));
   it('decodes uint32 data', () => test(uint32, Uint32Array));
@@ -69,6 +67,11 @@ describe('tableFromIPC', () => {
 
   it('decodes float32 data', () => test(float32, Float32Array, {}, toFloat32));
   it('decodes float64 data', () => test(float64, Float64Array));
+
+  it('decodes utf8 data', () => test(utf8));
+
+  it('decodes boolean data', () => test(bool));
+
   it('decodes decimal data', () => test(decimal, Float64Array));
 
   it('decodes date day data', () => test(dateDay, Float64Array));
@@ -85,8 +88,6 @@ describe('tableFromIPC', () => {
 
   it('decodes interval year/month/nano data', () => test(intervalMonthDayNano));
 
-  it('decodes utf8 data', () => test(utf8));
-
   it('decodes list int32 data', () => test(listInt32));
   it('decodes list utf8 data', () => test(listUtf8));
 
@@ -102,7 +103,6 @@ describe('tableFromIPC', () => {
   it('decodes map data to maps', () => test(map, Array, { useMap: true }));
 
   it('decodes struct data', () => test(struct));
-
   it('decodes struct data with useProxy', async () => {
     const data = await struct();
     for (const { bytes, values } of data) {
@@ -122,7 +122,6 @@ describe('tableFromIPC', () => {
       assert.deepStrictEqual([...ree[1]], runs.values);
     }
   });
-
   it('decodes run-end-encoded data with 64-bit run ends', async () => {
     const data = await runEndEncoded64();
     for (const { bytes, runs, values } of data) {

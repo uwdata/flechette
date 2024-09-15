@@ -19,10 +19,11 @@ describe('decodeIPC', () => {
     const expect = decimalDataDecoded();
     assert.deepEqual(decodeIPC(buffer), expect, 'Node Buffer');
     assert.deepStrictEqual(decodeIPC(bytes), expect, 'Uint8Array');
+    assert.deepStrictEqual(decodeIPC([bytes]), expect, 'Uint8Array[]');
     assert.deepStrictEqual(decodeIPC(bytes.buffer), expect, 'ArrayBuffer');
   });
 
-  it('decodes arrow stream format from multiple buffers', async () => {
+  it('decodes arrow stream format from multiple buffers', () => {
     // decimal.arrows, divided into separate messages
     const array = [
       Uint8Array.of(255,255,255,255,120,0,0,0,16,0,0,0,0,0,10,0,12,0,6,0,5,0,8,0,10,0,0,0,0,1,4,0,12,0,0,0,8,0,8,0,0,0,4,0,8,0,0,0,4,0,0,0,1,0,0,0,20,0,0,0,16,0,20,0,8,0,6,0,7,0,12,0,0,0,16,0,16,0,0,0,0,0,1,7,16,0,0,0,28,0,0,0,4,0,0,0,0,0,0,0,1,0,0,0,100,0,0,0,8,0,12,0,4,0,8,0,8,0,0,0,18,0,0,0,3,0,0,0),
@@ -31,5 +32,10 @@ describe('decodeIPC', () => {
     ];
     const expect = decimalDataDecoded();
     assert.deepStrictEqual(decodeIPC(array), expect, 'Uint8Array');
+  });
+
+  it('throws on invalid inputs', () => {
+    assert.throws(() => decodeIPC('foo'));
+    assert.throws(() => decodeIPC(['foo']));
   });
 });

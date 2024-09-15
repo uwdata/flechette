@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { tableFromIPC } from 'apache-arrow';
+import { tableFromIPC as arrowJSTableFromIPC } from 'apache-arrow';
 import { decodeIPC } from '../src/decode/decode-ipc.js';
 import { encodeIPC } from '../src/encode/encode-ipc.js';
 import { MAGIC } from '../src/constants.js';
@@ -7,7 +7,7 @@ import { decimalDataDecoded, decimalDataToEncode } from './util/decimal.js';
 
 function arrowJSCheck(input, bytes) {
   // cross-check against arrow-js
-  const arrowJS = tableFromIPC(bytes);
+  const arrowJS = arrowJSTableFromIPC(bytes);
   assert.strictEqual(arrowJS.numRows, 3);
   assert.strictEqual(arrowJS.numCols, 1);
   const arrowCol = arrowJS.getChildAt(0);
