@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { readFile } from 'node:fs/promises';
-import { Version, tableFromIPC, tableToIPC } from '../src/index.js';
+import { Version, columnFromArray, tableFromColumns, tableFromIPC, tableToIPC } from '../src/index.js';
 import * as dataMethods from './util/data.js';
 
 const files = [
@@ -24,6 +24,13 @@ describe('tableToIPC', () => {
       testEncode(bytes);
     });
   }
+
+  it('throws on inconsistent batch sizes', () => {
+    const a = columnFromArray([1, 2, 3, 4, 5], null);
+    const b = columnFromArray([1, 2, 3, 4, 5], null, { maxBatchRows: 2 });
+    assert.throws(() => tableToIPC(tableFromColumns({ a, b })));
+    assert.throws(() => tableToIPC(tableFromColumns({ b, a })));
+  });
 });
 
 function testEncode(bytes) {
