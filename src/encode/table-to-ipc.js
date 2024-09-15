@@ -28,9 +28,9 @@ export function tableToIPC(table, options) {
 }
 
 function checkBatchLengths(columns) {
-  const lengths = columns[0]?.data.map(d => d.length);
-  columns.forEach(col => {
-    if (col.data.some((batch, i) => batch.length !== lengths[i])) {
+  const n = columns[0]?.data.map(d => d.length);
+  columns.forEach(({ data }) => {
+    if (data.length !== n.length || data.some((b, i) => b.length !== n[i])) {
       throw new Error('Columns have inconsistent batch sizes.');
     }
   });
