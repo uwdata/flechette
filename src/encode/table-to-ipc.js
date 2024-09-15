@@ -16,12 +16,24 @@ export function tableToIPC(table, options) {
   if (typeof options === 'string') {
     options = { format: options };
   }
+
   const columns = table.children;
+  checkBatchLengths(columns);
+
   const { dictionaries, idMap } = assembleDictionaryBatches(columns);
   const records = assembleRecordBatches(columns);
   const schema = assembleSchema(table.schema, idMap);
   const data = { schema, dictionaries, records };
   return encodeIPC(data, options).finish();
+}
+
+function checkBatchLengths(columns) {
+  const lengths = columns[0]?.data.map(d => d.length);
+  columns.forEach(col => {
+    if (col.data.some((batch, i) => batch.length !== lengths[i])) {
+      throw new Error('Columns have inconsistent batch sizes.');
+    }
+  });
 }
 
 /**
