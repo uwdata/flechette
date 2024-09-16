@@ -42,9 +42,10 @@ function columnFromTypedArray(values, { maxBatchRows, useBigInt }) {
   const batches = [];
   const batchType = isInt64ArrayType(arrayType) && !useBigInt ? Int64Batch : DirectBatch;
   const add = (start, end) => batches.push(new batchType({
-    length: limit,
+    length: end - start,
     nullCount: 0,
     type,
+    validity: new uint8Array(0),
     values: values.subarray(start, end)
   }));
 

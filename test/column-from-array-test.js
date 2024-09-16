@@ -382,6 +382,13 @@ describe('columnFromArray', () => {
     assert.strictEqual(col.nullCount, 10);
     assert.strictEqual(col.data.length, 4);
     assert.deepStrictEqual(col.data.map(d => d.length), [10, 10, 10, 3]);
+
+    const floats = Float64Array.from({ length: 10 }, Math.random);
+    const tcol = test(floats, null, { maxBatchRows: 4 });
+    assert.strictEqual(tcol.nullCount, 0);
+    assert.strictEqual(tcol.length, 10);
+    assert.strictEqual(tcol.data.length, 3);
+    assert.deepStrictEqual(tcol.data.map(d => d.length), [4, 4, 2]);
   });
 
   it('builds columns from typed arrays', () => {
