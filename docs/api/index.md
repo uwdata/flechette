@@ -100,7 +100,7 @@ Create a new column from a provided data array. The data types for the column ca
 * *array* (`Array | TypedArray`): The input data as an Array or TypedArray.
 * *type*: (`DataType`): The [data type](data-types) for the column. If not specified, type inference is attempted.
 * *options* (`object`): Options for building new columns and controlling how values are transformed when extracted from an Arrow binary representation.
-  * *maxBatchRows* (`number`): The maximum number of rows to include in a single record batch. If the array lengths exceed this number, the resulting table will consist of multiple record batches.
+  * *maxBatchRows* (`number`): The maximum number of rows to include in a single record batch. If the array length exceeds this number, the resulting column will consist of multiple record batches.
   * In addition, all [tableFromIPC](#tableFromIPC) extraction options are supported.
 
 ```js
@@ -127,18 +127,19 @@ Create a new column by iterating over provided *values*. The *values* argument c
 * *values* (`Iterable | (callback: (value: any) => void) => void`): An iterable object or a visitor function that applies a callback to successive data values (akin to `Array.forEach`). In most cases, providing a visitor function will be more efficient than an iterator, so is recommended for larger datasets.
 * *type*: (`DataType`): The [data type](data-types) for the column. If not specified, type inference is attempted.
 * *options* (`object`): Options for building new columns and controlling how values are transformed when extracted from an Arrow binary representation.
-  * *maxBatchRows* (`number`): The maximum number of rows to include in a single record batch. If the array lengths exceed this number, the resulting table will consist of multiple record batches.
+  * *maxBatchRows* (`number`): The maximum number of rows to include in a single record batch. If the number of values exceeds this number, the resulting column will consist of multiple record batches.
   * In addition, all [tableFromIPC](#tableFromIPC) extraction options are supported.
 
 ```js
 import { columnFromValues, float32, int64 } from '@uwdata/flechette';
 
-// create column with inferred type (here, float64)
+// an iterable set of values
 const set = new Set([1.1, 1.1, 2.2, 3.4]);
+
+// create column with inferred type (here, float64)
 columnFromValues(set);
 
 // create column with specified type
-const set = new Set([1.1, 1.1, 2.2, 3.4]);
 columnFromValues(set, float32());
 
 // create column using only values with odd-numbered indices
