@@ -3,48 +3,54 @@ import { Column } from '../column.js';
 import { inferType } from './infer-type.js';
 import { builder, builderContext } from './builder.js';
 import { Type } from '../constants.js';
+import { isIterable } from '../util/objects.js';
 
 /**
  * Create a new column by iterating over provided values.
  * @template T
- * @param {number} length The input data length.
- * @param {(visitor: (value: any) => void) => void} visit
- *  A function that applies a callback to successive data values.
- * @param {import('../types.js').DataType} type The data type.
+ * @param {Iterable | ((callback: (value: any) => void) => void)} values
+ *  Either an iterable object or a visitor function that applies a callback
+ *  to successive data values (akin to Array.forEach).
+ * @param {import('../types.js').DataType} [type] The data type.
  * @param {import('../types.js').ColumnBuilderOptions} [options]
  *  Builder options for the generated column.
  * @param {ReturnType<
  *    import('./builders/dictionary.js').dictionaryContext
- *  >} [dicts] Builder context object, for internal use only.
+ *  >} [dicts] Dictionary context object, for internal use only.
  * @returns {Column<T>} The generated column.
  */
-export function columnFromValues(length, visit, type, options, dicts) {
+export function columnFromValues(values, type, options = {}, dicts) {
+  const visit = isIterable(values)
+    ? callback => { for (const value of values) callback(value); }
+    : values;
+
   type ??= inferType(visit);
-  const { maxBatchRows, ...opt } = options;
-  const limit = Math.min(maxBatchRows || Infinity, length);
+  const { maxBatchRows = Infinity, ...opt } = options;
+  let data;
 
-  // if null type, generate batches and exit early
   if (type.typeId === Type.Null) {
-    return new Column(nullBatches(type, length, limit), type);
+    let length = 0;
+    visit(() => ++length);
+    data = nullBatches(type, length, maxBatchRows);
+  } else {
+    const ctx = builderContext(opt, dicts);
+    const b = builder(type, ctx).init();
+    const next = b => data.push(b.batch());
+    data = [];
+
+    let row = 0;
+    visit(value => {
+      b.set(value, row++);
+      if (row >= maxBatchRows) {
+        next(b);
+        row = 0;
+      }
+    });
+    if (row) next(b);
+
+    // resolve dictionaries
+    ctx.finish();
   }
-
-  const ctx = builderContext(opt, dicts);
-  const b = builder(type, ctx).init();
-  const data = [];
-  const next = b => data.push(b.batch());
-
-  let row = 0;
-  visit(value => {
-    b.set(value, row++);
-    if (row >= limit) {
-      next(b);
-      row = 0;
-    }
-  });
-  if (row) next(b);
-
-  // resolve dictionaries
-  ctx.finish();
 
   return new Column(data, type);
 }

@@ -8,6 +8,15 @@ export function isDate(value) {
 }
 
 /**
+ * Check if a value is iterable.
+ * @param {*} value The value to check.
+ * @returns {value is Iterable} True if value is iterable, false otherwise.
+ */
+export function isIterable(value) {
+  return typeof value[Symbol.iterator] === 'function';
+}
+
+/**
  * Return the input value if it passes a test.
  * Otherwise throw an error using the given message generator.
  * @template T

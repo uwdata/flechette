@@ -7,7 +7,7 @@ import { columnFromValues } from './column-from-values.js';
 /**
  * Create a new column from a provided data array.
  * @template T
- * @param {Array | import('../types.js').TypedArray} data The input data.
+ * @param {Array | import('../types.js').TypedArray} array The input data.
  * @param {import('../types.js').DataType} [type] The data type.
  *  If not specified, type inference is attempted.
  * @param {import('../types.js').ColumnBuilderOptions} [options]
@@ -16,10 +16,10 @@ import { columnFromValues } from './column-from-values.js';
  *  Builder context object, for internal use only.
  * @returns {Column<T>} The generated column.
  */
-export function columnFromArray(data, type, options = {}, dicts) {
-  return !type && isTypedArray(data)
-    ? columnFromTypedArray(data, options)
-    : columnFromValues(data.length, v => data.forEach(v), type, options, dicts);
+export function columnFromArray(array, type, options = {}, dicts) {
+  return !type && isTypedArray(array)
+    ? columnFromTypedArray(array, options)
+    : columnFromValues(v => array.forEach(v), type, options, dicts);
 }
 
 /**
