@@ -11,6 +11,7 @@ title: API Reference
 * [tableToIPC](#tableToIPC)
 * [tableFromArrays](#tableFromArrays)
 * [columnFromArray](#columnFromArray)
+* [columnFromValues](#columnFromValues)
 * [tableFromColumns](#tableFromColumns)
 
 <hr/><a id="tableFromIPC" href="#tableFromIPC">#</a>
@@ -20,11 +21,11 @@ Decode [Apache Arrow IPC data](https://arrow.apache.org/docs/format/Columnar.htm
 
 * *data* (`ArrayBuffer` \| `Uint8Array` \| `Uint8Array[]`): The source byte buffer, or an array of buffers. If an array, each byte array may contain one or more self-contained messages. Messages may NOT span multiple byte arrays.
 * *options* (`ExtractionOptions`): Options for controlling how values are transformed when extracted from an Arrow binary representation.
-  * *useDate* (`boolean`): If true, extract dates and timestamps as JavaScript `Date` objects Otherwise, return numerical timestamp values (default).
-  * *useDecimalBigInt* (`boolean`): If true, extract decimal-type data as BigInt values, where fractional digits are scaled to integers. Otherwise, return converted floating-point numbers (default).
-  * *useBigInt* (`boolean`): If true, extract 64-bit integers as JavaScript `BigInt` values Otherwise, coerce long integers to JavaScript number values (default).
-  * *useMap* (`boolean`): If true, extract Arrow 'Map' values as JavaScript `Map` instances Otherwise, return an array of [key, value] pairs compatible with both `Map` and `Object.fromEntries` (default).
-  * *useProxy* (`boolean`): If true, extract Arrow 'Struct' values and table row objects using zero-copy proxy objects that extract data from underlying Arrow batches. The proxy objects can improve performance and reduce memory usage, but do not support property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`).
+  * *useBigInt* (`boolean`): If true, extract 64-bit integers as JavaScript `BigInt` values. Otherwise, coerce long integers to JavaScript number values (default `false`).
+  * *useDate* (`boolean`): If true, extract dates and timestamps as JavaScript `Date` objects. Otherwise, return numerical timestamp values (default `false`).
+  * *useDecimalBigInt* (`boolean`): If true, extract decimal-type data as BigInt values, where fractional digits are scaled to integers. Otherwise, return converted floating-point numbers (default `false`).
+  * *useMap* (`boolean`): If true, extract Arrow 'Map' values as JavaScript `Map` instances. Otherwise, return an array of [key, value] pairs compatible with both `Map` and `Object.fromEntries` (default `false`).
+  * *useProxy* (`boolean`): If true, extract Arrow 'Struct' values and table row objects using zero-copy proxy objects that extract data from underlying Arrow batches. The proxy objects can improve performance and reduce memory usage, but do not support property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`). Otherwise, use standard JS objects for structs and table rows (default `false`).
 
 ```js
 import { tableFromIPC } from '@uwdata/flechette';
@@ -92,11 +93,11 @@ const table = tableFromArrays({
 ```
 
 <hr/><a id="columnFromArray" href="#columnFromArray">#</a>
-<b>columnFromArray</b>(<i>data</i>[, <i>type</i>, <i>options</i>])
+<b>columnFromArray</b>(<i>array</i>[, <i>type</i>, <i>options</i>])
 
 Create a new column from a provided data array. The data types for the column can be automatically inferred or specified using the *type* argument.
 
-* *data* (`Array | TypedArray`): The input data as an Array or TypedArray.
+* *array* (`Array | TypedArray`): The input data as an Array or TypedArray.
 * *type*: (`DataType`): The [data type](data-types) for the column. If not specified, type inference is attempted.
 * *options* (`object`): Options for building new columns and controlling how values are transformed when extracted from an Arrow binary representation.
   * *maxBatchRows* (`number`): The maximum number of rows to include in a single record batch. If the array lengths exceed this number, the resulting table will consist of multiple record batches.
@@ -116,6 +117,35 @@ columnFromArray(
   [1n, 32n, 2n << 34n], int64(),
   { maxBatchRows: 1000, useBigInt: true }
 );
+```
+
+<hr/><a id="columnFromValues" href="#columnFromValues">#</a>
+<b>columnFromValues</b>(<i>values</i>[, <i>type</i>, <i>options</i>])
+
+Create a new column by iterating over provided *values*. The *values* argument can either be an iterable collection or a visitor function that applies a callback to successive data values (akin to `Array.forEach`). The data types for the column can be automatically inferred or specified using the *type* argument.
+
+* *values* (`Iterable | (callback: (value: any) => void) => void`): An iterable object or a visitor function that applies a callback to successive data values (akin to `Array.forEach`). In most cases, providing a visitor function will be more efficient than an iterator, so is recommended for larger datasets.
+* *type*: (`DataType`): The [data type](data-types) for the column. If not specified, type inference is attempted.
+* *options* (`object`): Options for building new columns and controlling how values are transformed when extracted from an Arrow binary representation.
+  * *maxBatchRows* (`number`): The maximum number of rows to include in a single record batch. If the array lengths exceed this number, the resulting table will consist of multiple record batches.
+  * In addition, all [tableFromIPC](#tableFromIPC) extraction options are supported.
+
+```js
+import { columnFromValues, float32, int64 } from '@uwdata/flechette';
+
+// create column with inferred type (here, float64)
+const set = new Set([1.1, 1.1, 2.2, 3.4]);
+columnFromValues(set);
+
+// create column with specified type
+const set = new Set([1.1, 1.1, 2.2, 3.4]);
+columnFromValues(set, float32());
+
+// create column using only values with odd-numbered indices
+const values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+columnFromValues(callback => {
+  values.forEach((v, i) => { if (i % 2) callback(v); })
+});
 ```
 
 <hr/><a id="tableFromColumns" href="#tableFromColumns">#</a>
