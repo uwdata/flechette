@@ -299,10 +299,17 @@ export async function utf8View() {
 
 // For empty result sets, DuckDB node only returns a zero byte
 // Other variants may include a schema message
-export function empty() {
-  return [{
-    values: [],
-    bytes: Uint8Array.of(0, 0, 0, 0),
-    nullCount: 0
-  }];
+export async function empty() {
+  return [
+    {
+      values: [],
+      bytes: Uint8Array.of(0, 0, 0, 0),
+      nullCount: 0
+    },
+    {
+      values: [],
+      bytes: new Uint8Array(await readFile(`test/data/empty.arrows`)),
+      nullCount: 0
+    }
+  ];
 }

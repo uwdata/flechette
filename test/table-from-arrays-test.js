@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { float64, int8, int32, bool, dictionary, tableFromArrays, utf8, float32 } from '../src/index.js';
+import { float64, int8, int32, bool, dictionary, tableFromArrays, utf8, float32, nullType } from '../src/index.js';
 
 describe('tableFromArrays', () => {
   const values = {
@@ -57,10 +57,29 @@ describe('tableFromArrays', () => {
   });
 
   it('creates empty table', () => {
-    const table = tableFromArrays({});
-    assert.strictEqual(table.numRows, 0);
-    assert.strictEqual(table.numCols, 0);
-    assert.deepStrictEqual(table.schema.fields, []);
+    const withoutCols = tableFromArrays({});
+    assert.strictEqual(withoutCols.numRows, 0);
+    assert.strictEqual(withoutCols.numCols, 0);
+    assert.deepStrictEqual(withoutCols.schema.fields, []);
+
+    const withCols = tableFromArrays({ foo: [], bar: [] });
+    assert.strictEqual(withCols.numRows, 0);
+    assert.strictEqual(withCols.numCols, 2);
+    assert.deepStrictEqual(
+      withCols.schema.fields.map(f => f.type),
+      [ nullType(), nullType() ]
+    );
+
+    const withTypes = tableFromArrays(
+      { foo: [], bar: [] },
+      { types: { foo: int32(), bar: float32() }}
+    );
+    assert.strictEqual(withTypes.numRows, 0);
+    assert.strictEqual(withTypes.numCols, 2);
+    assert.deepStrictEqual(
+      withTypes.schema.fields.map(f => f.type),
+      [ int32(), float32() ]
+    );
   });
 
   it('throws when array lengths differ', () => {

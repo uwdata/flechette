@@ -20,11 +20,12 @@ A data column. A column provides a view over one or more value batches, each cor
 * [Symbol.iterator](#iterator)
 
 <hr/><a id="constructor" href="#constructor">#</a>
-Column.<b>constructor</b>(<i>data</i>)
+Column.<b>constructor</b>(<i>data</i>[, <i>type</i>])
 
 Create a new column with the given data batches.
 
 * *data* (`Batch[]`): The column data batches.
+* *type* (`DataType`): The column [data type](data-types). If not specified, the type is extracted from the data batches. This argument is only needed to ensure correct types for "empty" columns without any data.
 
 <hr/><a id="type" href="#type">#</a>
 Column.<b>type</b>

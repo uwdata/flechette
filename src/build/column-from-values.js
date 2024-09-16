@@ -25,7 +25,7 @@ export function columnFromValues(length, visit, type, options, dicts) {
 
   // if null type, generate batches and exit early
   if (type.typeId === Type.Null) {
-    return new Column(nullBatches(type, length, limit));
+    return new Column(nullBatches(type, length, limit), type);
   }
 
   const ctx = builderContext(opt, dicts);
@@ -46,7 +46,7 @@ export function columnFromValues(length, visit, type, options, dicts) {
   // resolve dictionaries
   ctx.finish();
 
-  return new Column(data);
+  return new Column(data, type);
 }
 
 /**

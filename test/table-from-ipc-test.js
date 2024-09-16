@@ -149,11 +149,14 @@ describe('tableFromIPC', () => {
   });
 
   it('decodes empty data', async () => {
-    for (const { bytes } of empty()) {
+    const data = await empty();
+    for (const { bytes } of data) {
       const table = tableFromIPC(bytes);
+      table.schema.fields.map((f, i) => {
+        assert.deepStrictEqual(table.getChildAt(i).type, f.type);
+      });
       assert.strictEqual(table.numRows, 0);
-      assert.strictEqual(table.numCols, 0);
-      assert.deepStrictEqual(table.toColumns(), {});
+      assert.strictEqual(table.numCols, table.schema.fields.length);
       assert.deepStrictEqual(table.toArray(), []);
       assert.deepStrictEqual([...table], []);
     }
