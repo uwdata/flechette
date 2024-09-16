@@ -3,7 +3,7 @@ title: Table | API Reference
 ---
 # Flechette API Reference <a href="https://idl.uw.edu/flechette"><img align="right" src="../assets/logo.svg" height="38"/></a>
 
-[Top-Level](/flechette/api) | [Data Types](data-types) | [**Table**](table) | [Column](column)
+[Top-Level](/flechette/api) | [Data Types](data-types) | [Schema](schema) | [**Table**](table) | [Column](column)
 
 ## Table Class
 
@@ -25,7 +25,7 @@ A table consists of named data [columns](#column) (or 'children'). To extract ta
 <hr/><a id="constructor" href="#constructor">#</a>
 Table.<b>constructor</b>(<i>schema</i>, <i>children</i>[, <i>useProxy</i>])
 
-Create a new table with the given *schema* and *children* columns. The column types and order *must* be consistent with the given *schema*.
+Create a new table with the given *schema* and *children* columns. The column types and order *must* be consistent with the given *schema*. The [`tableFromArrays`](/flechette/api/#tableFromArrays) and [`tableFromColumns`](/flechette/api/#tableFromColumns) methods provide more convenient ways to construct a table.
 
 * *schema* (`Schema`): The table schema.
 * *children* (`Column[]`): The table columns.
@@ -74,7 +74,7 @@ Construct a new table containing only columns with the specified *names*. If col
 <hr/><a id="at" href="#at">#</a>
 Table.<b>at</b>(<i>index</i>)
 
-Return a row object for the given *index*. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument.
+Return a row object for the given *index*. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument. The property values of the object are determined by the column data types and extraction options; see the [data types](data-types#data-type-overview) documentation for more.
 
 * *index* (`number`): The row index.
 
@@ -86,14 +86,14 @@ Return a row object for the given *index*. This method is the same as [`at`](#at
 <hr/><a id="toColumns" href="#toColumns">#</a>
 Table.<b>toColumns</b>()
 
-Return an object that maps column names to extracted value arrays.
+Return an object that maps column names to extracted value arrays. The values in each array are determined by the column data types and extraction options; see the [data types](data-types#data-type-overview) documentation for more.
 
 <hr/><a id="toArray" href="#toArray">#</a>
 Table.<b>toArray</b>()
 
-Return an array of objects representing the rows of this table. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument.
+Return an array of objects representing the rows of this table. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument. The property values of the object are determined by the column data types and extraction options; see the [data types](data-types#data-type-overview) documentation for more.
 
 <hr/><a id="iterator" href="#iterator">#</a>
-Table<b>[Symbol.iterator]</b>()
+Table[<b>Symbol.iterator</b>]()
 
-Return an iterator over row objects representing the rows of this table. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument.
+Return an iterator over row objects representing the rows of this table. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument. The property values of the object are determined by the column data types and extraction options; see the [data types](data-types#data-type-overview) documentation for more.

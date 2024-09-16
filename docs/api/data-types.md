@@ -3,7 +3,7 @@ title: Data Types | API Reference
 ---
 # Flechette API Reference <a href="https://idl.uw.edu/flechette"><img align="right" src="../assets/logo.svg" height="38"/></a>
 
-[Top-Level](/flechette/api) | [**Data Types**](data-types) | [Table](table) | [Column](column)
+[Top-Level](/flechette/api) | [**Data Types**](data-types) | [Schema](schema) | [Table](table) | [Column](column)
 
 ## Data Type Overview
 
@@ -41,7 +41,8 @@ The table below provides an overview of all data types supported by the Apache A
 
 ## Data Type Methods
 
-* [field](#field)
+Each of the methods below returns a `DataType` instance as a standard JavaScript object. Data types are used to define a `Field` within a table `Schema`. See the [Schema documentation](./schema) for more.
+
 * [dictionary](#dictionary)
 * [nullType](#nullType)
 * [int](#int), [int8](#int8), [int16](#int16), [int32](#int32), [int64](#int64), [uint8](#uint8), [uint16](#uint16), [uint32](#uint32), [uint64](#uint64)
@@ -69,18 +70,6 @@ The table below provides an overview of all data types supported by the Apache A
 * [utf8View](#utf8View)
 * [listView](#listView)
 * [largeListView](#largeListView)
-
-### Field
-
-<hr/><a id="field" href="#field">#</a>
-<b>field</b>(<i>name</i>, <i>type</i>[, <i>nullable</i>, <i>metadata</i>])
-
-Create a new field instance for use in a schema or type definition. A field represents a field name, data type, and additional metadata. Fields are used to represent child types within nested types like [List](#list), [Struct](#struct), and [Union](#union).
-
-* *name* (`string`): The field name.
-* *type* (`DataType`): The field data type.
-* *nullable* (`boolean`): Flag indicating if the field is nullable (default `true`).
-* *metadata* (`Map<string,string>`): Custom field metadata annotations (default `null`).
 
 ### Dictionary
 
