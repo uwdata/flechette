@@ -4,12 +4,12 @@ import { isDirectBatch } from './batch.js';
 /**
  * Build up a column from batches.
  */
-export function columnBuilder() {
+export function columnBuilder(type) {
   let data = [];
   return {
     add(batch) { data.push(batch); return this; },
     clear: () => data = [],
-    done: () => new Column(data)
+    done: () => new Column(data, type)
   };
 }
 
@@ -25,14 +25,16 @@ export class Column {
   /**
    * Create a new column instance.
    * @param {import('./batch.js').Batch<T>[]} data The value batches.
+   * @param {import('./types.js').DataType} [type] The column data type.
+   *  If not specified, the type is extracted from the batches.
    */
-  constructor(data) {
+  constructor(data, type = data[0]?.type) {
     /**
      * The column data type.
      * @type {import('./types.js').DataType}
      * @readonly
      */
-    this.type = data[0].type;
+    this.type = type;
     /**
      * The column length.
      * @type {number}
