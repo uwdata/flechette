@@ -160,7 +160,7 @@ Create a new table from a collection of columns. This method is useful for creat
 ```js
 import { columnFromArray, tableFromColumns } from '@uwdata/flechette';
 
-// create column with inferred type (here, float64)
+// create table from columns with inferred types (here, bool and float64)
 const table = tableFromColumns({
   bools: columnFromArray([true, true, null, false, true]),
   floats: columnFromArray([1.1, 2.2, 3.3, 4.4, 5.5])
