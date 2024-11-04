@@ -1,5 +1,5 @@
 {
-  "include": ["src/index.js"],
+  "include": ["src/index-types.ts"],
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
