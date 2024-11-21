@@ -67,6 +67,6 @@ Column.<b>toArray</b>()
 Extract column values into a single array instance. The value type is determined by the column data type and extraction options; see the [data types](data-types#data-type-overview) documentation for more. When possible, a zero-copy subarray of the input Arrow data is returned. A typed array is used if possible. If a column contains `null` values, a standard `Array` is created and populated.
 
 <hr/><a id="iterator" href="#iterator">#</a>
-Column[<b>Symbol.iterator</b>]()
+Column\[<b>Symbol.iterator</b>\]()
 
 Return an iterator over the values in this column. The value type is determined by the column data type and extraction options; see the [data types](data-types#data-type-overview) documentation for more.

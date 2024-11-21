@@ -94,6 +94,6 @@ Table.<b>toArray</b>()
 Return an array of objects representing the rows of this table. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument. The property values of the object are determined by the column data types and extraction options; see the [data types](data-types#data-type-overview) documentation for more.
 
 <hr/><a id="iterator" href="#iterator">#</a>
-Table[<b>Symbol.iterator</b>]()
+Table\[<b>Symbol.iterator</b>\]()
 
 Return an iterator over row objects representing the rows of this table. The type of object (standard object or row proxy object) is determined by the table `useProxy` constructor argument. The property values of the object are determined by the column data types and extraction options; see the [data types](data-types#data-type-overview) documentation for more.
