@@ -109,7 +109,7 @@ export function dateDay() {
 }
 
 export function timestampNanosecond() {
-  const ns = [0.456, 0.738]; // DuckDB truncates here
+  const ns = [0.4568, 0.7382]; // DuckDB truncates here
   const ts = ['1992-09-20T11:30:00.123456789Z', '2002-12-13T07:28:56.564738209Z'];
   const data = [ts, ts.concat(null)];
   const vals = data.map(v => v.map((d, i) => toTimestamp(d, ns[i])));
