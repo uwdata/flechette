@@ -33,7 +33,7 @@ The project name stems from the French word [fléchette](https://en.wikipedia.or
 ```js
 import { tableFromIPC } from '@uwdata/flechette';
 
-const url = 'https://vega.github.io/vega-datasets/data/flights-200k.arrow';
+const url = 'https://cdn.jsdelivr.net/npm/vega-datasets@2/data/flights-200k.arrow';
 const ipc = await fetch(url).then(r => r.arrayBuffer());
 const table = tableFromIPC(ipc);
 
