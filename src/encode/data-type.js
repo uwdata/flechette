@@ -133,17 +133,13 @@ function encodeUnion(builder, type) {
 }
 
 function encodeDictionary(builder, type) {
-  const keyTypeOffset = isInt32(type.indices)
-    ? 0
-    : encodeDataType(builder, type.indices);
+  // The Arrow spec uses signed 32-bit integers as the default index type.
+  // However, multiple 3rd party tools fail on a null (default) index type,
+  // so we always encode the index data type explicitly here.
   return builder.addObject(4, b => {
     b.addInt64(0, type.id, 0);
-    b.addOffset(1, keyTypeOffset, 0);
+    b.addOffset(1, encodeDataType(builder, type.indices), 0);
     b.addInt8(2, +type.ordered, 0);
     // NOT SUPPORTED: 3, dictionaryKind (defaults to dense array)
   });
-}
-
-function isInt32(type) {
-  return type.typeId === Type.Int && type.bitWidth === 32 && type.signed;
 }
