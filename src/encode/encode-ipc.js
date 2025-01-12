@@ -1,4 +1,4 @@
-import { MAGIC, MessageHeader } from '../constants.js';
+import { EOS, MAGIC, MessageHeader } from '../constants.js';
 import { Builder } from './builder.js';
 import { encodeDictionaryBatch } from './dictionary-batch.js';
 import { writeFooter } from './footer.js';
@@ -64,6 +64,8 @@ export function encodeIPC(data, { sink, format = STREAM } = {}) {
 
   if (file) {
     writeFooter(builder, schema, dictBlocks, recordBlocks, metadata);
+  } else {
+    builder.addBuffer(EOS);
   }
 
   return builder.sink;

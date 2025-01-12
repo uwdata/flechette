@@ -1,6 +1,9 @@
 /** Magic bytes 'ARROW1' indicating the Arrow 'file' format. */
 export const MAGIC = Uint8Array.of(65, 82, 82, 79, 87, 49);
 
+/** Bytes for an 'end of stream' message. */
+export const EOS = Uint8Array.of(255, 255, 255, 255, 0, 0, 0, 0);
+
 /**
  * Apache Arrow version.
  */
