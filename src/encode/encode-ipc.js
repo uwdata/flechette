@@ -30,7 +30,10 @@ export function encodeIPC(data, { sink, format = STREAM } = {}) {
 
   if (file) {
     builder.addBuffer(MAGIC);
-  } else if (schema) {
+  }
+
+  // both stream and file start with the schema
+  if (schema) {
     writeMessage(
       builder,
       MessageHeader.Schema,
@@ -39,6 +42,7 @@ export function encodeIPC(data, { sink, format = STREAM } = {}) {
     );
   }
 
+  // write dictionary messages
   for (const dict of dictionaries) {
     const { data } = dict;
     writeMessage(
@@ -51,6 +55,7 @@ export function encodeIPC(data, { sink, format = STREAM } = {}) {
     writeBuffers(builder, data.buffers);
   }
 
+  // write record batch messages
   for (const batch of records) {
     writeMessage(
       builder,
@@ -62,10 +67,11 @@ export function encodeIPC(data, { sink, format = STREAM } = {}) {
     writeBuffers(builder, batch.buffers);
   }
 
+  // both stream and file include end-of-stream message
+  builder.addBuffer(EOS);
+
   if (file) {
     writeFooter(builder, schema, dictBlocks, recordBlocks, metadata);
-  } else {
-    builder.addBuffer(EOS);
   }
 
   return builder.sink;
