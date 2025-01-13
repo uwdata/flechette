@@ -14,14 +14,16 @@ describe('tableToIPC', () => {
   for (const [name, method] of Object.entries(dataMethods)) {
     it(`encodes ${name} data`, async () => {
       const data = await method();
-      data.forEach(({ bytes }) => testEncode(bytes));
+      data.forEach(({ bytes }) => testEncode(bytes, 'stream'));
+      data.forEach(({ bytes }) => testEncode(bytes, 'file'));
     });
   }
 
   for (const file of files) {
     it(`encodes ${file}`, async () => {
       const bytes = new Uint8Array(await readFile(`test/data/${file}`));
-      testEncode(bytes);
+      testEncode(bytes, 'stream');
+      testEncode(bytes, 'file');
     });
   }
 
@@ -33,7 +35,7 @@ describe('tableToIPC', () => {
   });
 });
 
-function testEncode(bytes) {
+function testEncode(bytes, format = 'stream') {
   // load table
   const table = tableFromIPC(bytes);
 
@@ -46,9 +48,9 @@ function testEncode(bytes) {
   };
 
   // encode table to ipc bytes
-  const ipc = tableToIPC(table);
+  const ipc = tableToIPC(table, { format });
 
-  // parse ipc byte to get a "round-trip" table
+  // parse ipc bytes to get a "round-trip" table
   const round = tableFromIPC(ipc);
 
   // check schema and shape equality
