@@ -18,7 +18,7 @@ The table below provides an overview of all data types supported by the Apache A
 |   4 | [Binary](#binary)                   | ✅ | ✅ | ✅ | `Uint8Array` |
 |   5 | [Utf8](#utf8)                       | ✅ | ✅ | ✅ | `string` |
 |   6 | [Bool](#bool)                       | ✅ | ✅ | ✅ | `boolean` |
-|   7 | [Decimal](#decimal)                 | ✅ | ✅ | ✅ | `number`, or `bigint` via the `useDecimalBigInt` flag |
+|   7 | [Decimal](#decimal)                 | ✅ | ✅ | ✅ | `number`, or scaled integers via the `useDecimalInt` flag |
 |   8 | [Date](#date)                       | ✅ | ✅ | ✅ | `number`, or `Date` via the `useDate` flag. |
 |   9 | [Time](#time)                       | ✅ | ✅ | ✅ | `number`, or `bigint` for 64-bit values via the `useBigInt` flag |
 |  10 | [Timestamp](#timestamp)             | ✅ | ✅ | ✅ | `number`, or `Date` via the `useDate` flag. |
@@ -241,7 +241,7 @@ bool()
 
 Create an Decimal data type instance for exact decimal values, represented as a 32, 64, 128, or 256-bit integer value in two's complement. Decimals are fixed point numbers with a set *precision* (total number of decimal digits) and *scale* (number of fractional digits). For example, the number `35.42` can be represented as `3542` with *precision* ≥ 4 and *scale* = 2.
 
-By default, Flechette converts decimals to 64-bit floating point numbers upon extraction (e.g., mapping `3542` back to `35.42`). While useful for many downstream applications, this conversion may be lossy and introduce inaccuracies. Pass the `useDecimalBigInt` extraction option (e.g., to [`tableFromIPC`](/flechette/api/#tableFromIPC) or [`tableFromArrays`](/flechette/api/#tableFromArrays)) to instead extract decimal data as `BigInt` values (64-bit or larger decimals) or integer `number` values (32-bit decimals).
+By default, Flechette converts decimals to 64-bit floating point numbers upon extraction (e.g., mapping `3542` back to `35.42`). While useful for many downstream applications, this conversion may be lossy and introduce inaccuracies. Pass the `useDecimalInt` extraction option (e.g., to [`tableFromIPC`](/flechette/api/#tableFromIPC) or [`tableFromArrays`](/flechette/api/#tableFromArrays)) to instead extract decimal data as `BigInt` values (64-bit or larger decimals) or integer `number` values (32-bit decimals).
 
 * *precision* (`number`): The total number of decimal digits that can be represented.
 * *scale* (`number`): The number of fractional digits, beyond the decimal point.
