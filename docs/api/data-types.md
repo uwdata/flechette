@@ -50,7 +50,7 @@ Each of the methods below returns a `DataType` instance as a standard JavaScript
 * [binary](#binary)
 * [utf8](#utf8)
 * [bool](#bool)
-* [decimal](#decimal), [decimal32](#decimal32), [decimal64](#decimal63), [decimal128](#decimal128), [decimal256](#decimal256)
+* [decimal](#decimal), [decimal32](#decimal32), [decimal64](#decimal64), [decimal128](#decimal128), [decimal256](#decimal256)
 * [date](#date), [dateDay](#dateDay), [dateMillisecond](#dateMillisecond)
 * [time](#time), [timeSecond](#timeSecond), [timeMillisecond](#timeMillisecond), [timeMicrosecond](#timeMicrosecond), [timeNanosecond](#timeNanosecond)
 * [timestamp](#timestamp)
