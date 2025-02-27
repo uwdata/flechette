@@ -50,7 +50,7 @@ Each of the methods below returns a `DataType` instance as a standard JavaScript
 * [binary](#binary)
 * [utf8](#utf8)
 * [bool](#bool)
-* [decimal](#decimal)
+* [decimal](#decimal), [decimal32](#decimal32), [decimal64](#decimal63), [decimal128](#decimal128), [decimal256](#decimal256)
 * [date](#date), [dateDay](#dateDay), [dateMillisecond](#dateMillisecond)
 * [time](#time), [timeSecond](#timeSecond), [timeMillisecond](#timeMillisecond), [timeMicrosecond](#timeMicrosecond), [timeNanosecond](#timeNanosecond)
 * [timestamp](#timestamp)
@@ -239,20 +239,52 @@ bool()
 <hr/><a id="decimal" href="#decimal">#</a>
 <b>decimal</b>(<i>precision</i>, <i>scale</i>[, <i>bitWidth</i>])
 
-Create an Decimal data type instance for exact decimal values, represented as a 128 or 256-bit integer value in two's complement. Decimals are fixed point numbers with a set *precision* (total number of decimal digits) and *scale* (number of fractional digits). For example, the number `35.42` can be represented as `3542` with *precision* ≥ 4 and *scale* = 2.
+Create an Decimal data type instance for exact decimal values, represented as a 32, 64, 128, or 256-bit integer value in two's complement. Decimals are fixed point numbers with a set *precision* (total number of decimal digits) and *scale* (number of fractional digits). For example, the number `35.42` can be represented as `3542` with *precision* ≥ 4 and *scale* = 2.
 
-By default, Flechette converts decimals to 64-bit floating point numbers upon extraction (e.g., mapping `3542` back to `35.42`). While useful for many downstream applications, this conversion may be lossy and introduce inaccuracies. Pass the `useDecimalBigInt` extraction option (e.g., to [`tableFromIPC`](/flechette/api/#tableFromIPC) or [`tableFromArrays`](/flechette/api/#tableFromArrays)) to instead extract decimal data as `BigInt` values.
+By default, Flechette converts decimals to 64-bit floating point numbers upon extraction (e.g., mapping `3542` back to `35.42`). While useful for many downstream applications, this conversion may be lossy and introduce inaccuracies. Pass the `useDecimalBigInt` extraction option (e.g., to [`tableFromIPC`](/flechette/api/#tableFromIPC) or [`tableFromArrays`](/flechette/api/#tableFromArrays)) to instead extract decimal data as `BigInt` values (64-bit or larger decimals) or integer `number` values (32-bit decimals).
 
 * *precision* (`number`): The total number of decimal digits that can be represented.
 * *scale* (`number`): The number of fractional digits, beyond the decimal point.
-* *bitWidth* (`number`): The decimal bit width, one of `128` (default) or `256`.
+* *bitWidth* (`number`): The decimal bit width, one of `32`, `64`, `128` (default) or `256`.
 
 ```js
-import { utf8 } from '@uwdata/flechette';
+import { decimal } from '@uwdata/flechette';
 // decimal with 18 total digits, including 3 fractional digits
 // { typeId: 7, precision: 18, scale: 3, bitWidth: 128, ... }
 decimal(18, 3)
 ```
+
+<hr/><a id="decimal32" href="#decimal32">#</a>
+<b>decimal32</b>(<i>precision</i>, <i>scale</i>)
+
+Create a Decimal data type instance that uses 32 bits per decimal. 32-bit decimals are stored within an `Int32Array`.
+
+* *precision* (`number`): The total number of decimal digits that can be represented.
+* *scale* (`number`): The number of fractional digits, beyond the decimal point.
+
+<hr/><a id="decimal64" href="#decimal64">#</a>
+<b>decimal64</b>(<i>precision</i>, <i>scale</i>)
+
+Create a Decimal data type instance that uses 64 bits per decimal. 64-bit decimals are stored within a `Uint64Array`.
+
+* *precision* (`number`): The total number of decimal digits that can be represented.
+* *scale* (`number`): The number of fractional digits, beyond the decimal point.
+
+<hr/><a id="decimal128" href="#decimal128">#</a>
+<b>decimal128</b>(<i>precision</i>, <i>scale</i>)
+
+Create a Decimal data type instance that uses 128 bits per decimal. 128-bit decimals are stored within a `Uint64Array` with a stride of 2 (two array entries per decimal value).
+
+* *precision* (`number`): The total number of decimal digits that can be represented.
+* *scale* (`number`): The number of fractional digits, beyond the decimal point.
+
+<hr/><a id="decimal256" href="#decimal256">#</a>
+<b>decimal256</b>(<i>precision</i>, <i>scale</i>)
+
+Create a Decimal data type instance that uses 256 bits per decimal. 256-bit decimals are stored within a `Uint64Array` with a stride of 4 (four array entries per decimal value).
+
+* *precision* (`number`): The total number of decimal digits that can be represented.
+* *scale* (`number`): The number of fractional digits, beyond the decimal point.
 
 ### Date
 

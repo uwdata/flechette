@@ -6,7 +6,8 @@ import * as dataMethods from './util/data.js';
 // Arrow types not supported by DuckDB
 const skip = new Set([
   'binaryView', 'empty', 'largeListView', 'listView',
-  'runEndEncoded32', 'runEndEncoded64', 'utf8View'
+  'runEndEncoded32', 'runEndEncoded64', 'utf8View',
+  'decimal32', 'decimal64', 'decimal128', 'decimal256'
 ]);
 
 describe('DuckDB compatibility', () => {

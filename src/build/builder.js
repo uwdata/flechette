@@ -2,7 +2,7 @@ import { batchType } from '../batch-type.js';
 import { IntervalUnit, Type } from '../constants.js';
 import { invalidDataType } from '../data-types.js';
 import { isInt64ArrayType } from '../util/arrays.js';
-import { toBigInt, toDateDay, toFloat16, toTimestamp } from '../util/numbers.js';
+import { toBigInt, toDateDay, toDecimal32, toFloat16, toTimestamp } from '../util/numbers.js';
 import { BinaryBuilder } from './builders/binary.js';
 import { BoolBuilder } from './builders/bool.js';
 import { DecimalBuilder } from './builders/decimal.js';
@@ -65,7 +65,9 @@ export function builder(type, ctx = builderContext()) {
     case Type.Bool:
       return new BoolBuilder(type, ctx);
     case Type.Decimal:
-      return new DecimalBuilder(type, ctx);
+      return type.bitWidth === 32
+        ? new TransformBuilder(type, ctx, toDecimal32(type.scale))
+        : new DecimalBuilder(type, ctx);
     case Type.Date:
       return new TransformBuilder(type, ctx, type.unit ? toBigInt : toDateDay);
     case Type.Timestamp:

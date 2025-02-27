@@ -1,5 +1,5 @@
 import { bisect, float64Array } from './util/arrays.js';
-import { divide, fromDecimal128, fromDecimal256, toNumber } from './util/numbers.js';
+import { divide, fromDecimal128, fromDecimal256, fromDecimal64, toNumber } from './util/numbers.js';
 import { decodeBit, readInt32, readInt64 } from './util/read.js';
 import { decodeUtf8 } from './util/strings.js';
 import { objectFactory, proxyFactory } from './util/struct.js';
@@ -213,7 +213,7 @@ export class NullBatch extends ArrayBatch {
 
 /**
  * A batch that coerces BigInt values to 64-bit numbers.
- * * @extends {NumberBatch}
+ * @extends {NumberBatch}
  */
 export class Int64Batch extends NumberBatch {
   /**
@@ -259,7 +259,27 @@ export class BoolBatch extends ArrayBatch {
 }
 
 /**
- * An abstract class for a batch of 128- or 256-bit decimal numbers,
+ * A batch of 32-bit decimal numbers, returned as converted 64-bit floating
+ * point numbers. Number coercion may be lossy if the decimal precision can
+ * not be represented in a 64-bit floating point format.
+ * @extends {NumberBatch}
+ */
+export class Decimal32NumberBatch extends NumberBatch {
+  constructor(options) {
+    super(options);
+    const { scale } = /** @type {import('./types.js').DecimalType} */ (this.type);
+    this.scale = 10 ** scale;
+  }
+  /**
+   * @param {number} index The value index
+   */
+  value(index) {
+    return /** @type {number} */(this.values[index]) / this.scale;
+  }
+}
+
+/**
+ * An abstract class for a batch of 64-, 128- or 256-bit decimal numbers,
  * accessed in strided BigUint64Arrays.
  * @template T
  * @extends {Batch<T>}
@@ -268,14 +288,16 @@ export class DecimalBatch extends Batch {
   constructor(options) {
     super(options);
     const { bitWidth, scale } = /** @type {import('./types.js').DecimalType} */ (this.type);
-    this.decimal = bitWidth === 128 ? fromDecimal128 : fromDecimal256;
+    this.decimal = bitWidth === 64 ? fromDecimal64
+      : bitWidth === 128 ? fromDecimal128
+      : fromDecimal256;
     this.scale = 10n ** BigInt(scale);
   }
 }
 
 /**
- * A batch of 128- or 256-bit decimal numbers, returned as converted
- * 64-bit numbers. The number coercion may be lossy if the decimal
+ * A batch of 64-, 128- or 256-bit decimal numbers, returned as converted
+ * 64-bit floating point numbers. Number coercion may be lossy if the decimal
  * precision can not be represented in a 64-bit floating point format.
  * @extends {DecimalBatch<number>}
  */
@@ -293,7 +315,7 @@ export class DecimalNumberBatch extends DecimalBatch {
 }
 
 /**
- * A batch of 128- or 256-bit decimal numbers, returned as scaled
+ * A batch of 64-, 128- or 256-bit decimal numbers, returned as scaled
  * bigint values, such that all fractional digits have been shifted
  * to integer places by the decimal type scale factor.
  * @extends {DecimalBatch<bigint>}
