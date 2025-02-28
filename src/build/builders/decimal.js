@@ -3,7 +3,7 @@ import { buffer } from '../buffer.js';
 import { ValidityBuilder } from './validity.js';
 
 /**
- * Builder for batches of decimal-typed data.
+ * Builder for batches of decimal-typed data (64-bits or more).
  */
 export class DecimalBuilder extends ValidityBuilder {
   constructor(type, ctx) {

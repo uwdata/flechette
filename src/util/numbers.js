@@ -98,12 +98,13 @@ export function divide(num, div) {
 /**
  * Return a 32-bit decimal conversion method for the given decimal scale.
  * @param {number} scale The scale mapping fractional digits to integers.
- * @returns {(value: number) => number} A conversion method that maps
+ * @returns {(value: number|bigint) => number} A conversion method that maps
  *  floating point numbers to 32-bit decimals.
  */
 export function toDecimal32(scale) {
-  const s = 10 ** scale;
-  return (value) => Math.round(value * s) | 0;
+  return (value) => typeof value === 'bigint'
+    ? Number(value)
+    : Math.trunc(value * scale);
 }
 
 /**
