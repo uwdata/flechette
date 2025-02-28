@@ -1,12 +1,14 @@
 import assert from 'node:assert';
 import { tableFromIPC } from '../src/index.js';
 import { arrowFromDuckDB } from './util/arrow-from-duckdb.js';
-import { binaryView, bool, dateDay, decimal, empty, fixedListInt32, fixedListUtf8, float32, float64, int16, int32, int64, int8, intervalMonthDayNano, largeListView, listInt32, listUtf8, listView, map, runEndEncoded32, runEndEncoded64, struct, timestampMicrosecond, timestampMillisecond, timestampNanosecond, timestampSecond, uint16, uint32, uint64, uint8, union, utf8, utf8View } from './util/data.js';
+import { binaryView, bool, dateDay, decimal, decimal32, decimal128, decimal256, decimal64, empty, fixedListInt32, fixedListUtf8, float32, float64, int16, int32, int64, int8, intervalMonthDayNano, largeListView, listInt32, listUtf8, listView, map, runEndEncoded32, runEndEncoded64, struct, timestampMicrosecond, timestampMillisecond, timestampNanosecond, timestampSecond, uint16, uint32, uint64, uint8, union, utf8, utf8View } from './util/data.js';
 import { RowIndex } from '../src/util/struct.js';
 
 const toBigInt = v => BigInt(v);
 const toDate = v => new Date(v);
 const toFloat32 = v => Math.fround(v);
+const toDecimalInt = v => Math.round(v * 100);
+const toDecimalBigInt = v => BigInt(toDecimalInt(v));
 
 async function test(dataMethod, arrayType, opt, transform) {
   const data = await dataMethod();
@@ -73,6 +75,14 @@ describe('tableFromIPC', () => {
   it('decodes boolean data', () => test(bool));
 
   it('decodes decimal data', () => test(decimal, Float64Array));
+  it('decodes decimal32 data', () => test(decimal32, Float64Array));
+  it('decodes decimal64 data', () => test(decimal64, Float64Array));
+  it('decodes decimal128 data', () => test(decimal128, Float64Array));
+  it('decodes decimal256 data', () => test(decimal256, Float64Array));
+  it('decodes decimal32 data to int', () => test(decimal32, Int32Array, { useDecimalBigInt: true }, toDecimalInt));
+  it('decodes decimal64 data to bigint', () => test(decimal64, Array, { useDecimalBigInt: true }, toDecimalBigInt));
+  it('decodes decimal128 data to bigint', () => test(decimal128, Array, { useDecimalBigInt: true }, toDecimalBigInt));
+  it('decodes decimal256 data to bigint', () => test(decimal256, Array, { useDecimalBigInt: true }, toDecimalBigInt));
 
   it('decodes date day data', () => test(dateDay, Float64Array));
   it('decodes date day data to dates', () => test(dateDay, Array, { useDate: true }, toDate));

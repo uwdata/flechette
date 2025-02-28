@@ -99,6 +99,20 @@ export function decimal() {
   ], 'DECIMAL(18,3)');
 }
 
+async function loadDecimal(bitWidth) {
+  const bytes = new Uint8Array(await readFile(`test/data/decimal${bitWidth}.arrows`));
+  return [{
+    values: [123.45, 0, -123.45],
+    bytes,
+    nullCount: 0
+  }];
+}
+
+export function decimal32() { return loadDecimal(32); }
+export function decimal64() { return loadDecimal(64); }
+export function decimal128() { return loadDecimal(128); }
+export function decimal256() { return loadDecimal(256); }
+
 export function dateDay() {
   const data = [
     ['2001-01-01', '2004-02-03', '2006-12-31'],
