@@ -106,7 +106,7 @@ describe('columnFromArray', () => {
     test([0.1000012345678987, -0.1000012345678987], decimal(40, 16, 256));
     test([0.12345678987654321, -0.12345678987654321], decimal(40, 18, 256));
 
-    const opt = { useDecimalBigInt: true };
+    const opt = { useDecimalInt: true };
 
     test([11n, 23n, 34n], decimal(18, 1, 128), opt);
     test([-11n, -23n, -34n], decimal(18, 1, 128), opt);

@@ -312,11 +312,13 @@ export interface ExtractionOptions {
    */
   useDate?: boolean;
   /**
-   * If true, extract decimal-type data as BigInt values, where fractional
-   * digits are scaled to integers. Otherwise, return converted floating-point
-   * numbers (default).
+   * If true, extract decimal-type data as scaled integer values, where
+   * fractional digits are scaled to integer positions. Returned integers
+   * are `BigInt` values for decimal bit widths of 64 bits or higher and
+   * 32-bit integers (as JavaScript `number`) otherwise. If false, decimals
+   * are converted to floating-point numbers (default).
    */
-  useDecimalBigInt?: boolean;
+  useDecimalInt?: boolean;
   /**
    * If true, extract 64-bit integers as JavaScript `BigInt` values.
    * Otherwise, coerce long integers to JavaScript number values (default).

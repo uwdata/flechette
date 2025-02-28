@@ -79,10 +79,10 @@ describe('tableFromIPC', () => {
   it('decodes decimal64 data', () => test(decimal64, Float64Array));
   it('decodes decimal128 data', () => test(decimal128, Float64Array));
   it('decodes decimal256 data', () => test(decimal256, Float64Array));
-  it('decodes decimal32 data to int', () => test(decimal32, Int32Array, { useDecimalBigInt: true }, toDecimalInt));
-  it('decodes decimal64 data to bigint', () => test(decimal64, Array, { useDecimalBigInt: true }, toDecimalBigInt));
-  it('decodes decimal128 data to bigint', () => test(decimal128, Array, { useDecimalBigInt: true }, toDecimalBigInt));
-  it('decodes decimal256 data to bigint', () => test(decimal256, Array, { useDecimalBigInt: true }, toDecimalBigInt));
+  it('decodes decimal32 data to int', () => test(decimal32, Int32Array, { useDecimalInt: true }, toDecimalInt));
+  it('decodes decimal64 data to bigint', () => test(decimal64, Array, { useDecimalInt: true }, toDecimalBigInt));
+  it('decodes decimal128 data to bigint', () => test(decimal128, Array, { useDecimalInt: true }, toDecimalBigInt));
+  it('decodes decimal256 data to bigint', () => test(decimal256, Array, { useDecimalInt: true }, toDecimalBigInt));
 
   it('decodes date day data', () => test(dateDay, Float64Array));
   it('decodes date day data to dates', () => test(dateDay, Array, { useDate: true }, toDate));

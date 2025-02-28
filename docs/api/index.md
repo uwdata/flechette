@@ -23,7 +23,7 @@ Decode [Apache Arrow IPC data](https://arrow.apache.org/docs/format/Columnar.htm
 * *options* (`ExtractionOptions`): Options for controlling how values are transformed when extracted from an Arrow binary representation.
   * *useBigInt* (`boolean`): If true, extract 64-bit integers as JavaScript `BigInt` values. Otherwise, coerce long integers to JavaScript number values (default `false`).
   * *useDate* (`boolean`): If true, extract dates and timestamps as JavaScript `Date` objects. Otherwise, return numerical timestamp values (default `false`).
-  * *useDecimalBigInt* (`boolean`): If true, extract decimal-type data as BigInt values, where fractional digits are scaled to integers. Otherwise, return converted floating-point numbers (default `false`).
+  * *useDecimalInt* (`boolean`): If true, extract decimal-type data as scaled integer values, where fractional digits are scaled to integer positions. Returned integers are `BigInt` values for decimal bit widths of 64 bits or higher and 32-bit integers (as JavaScript `number`) otherwise. If false, decimals are converted to floating-point numbers (default).
   * *useMap* (`boolean`): If true, extract Arrow 'Map' values as JavaScript `Map` instances. Otherwise, return an array of [key, value] pairs compatible with both `Map` and `Object.fromEntries` (default `false`).
   * *useProxy* (`boolean`): If true, extract Arrow 'Struct' values and table row objects using zero-copy proxy objects that extract data from underlying Arrow batches. The proxy objects can improve performance and reduce memory usage, but do not support property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`). Otherwise, use standard JS objects for structs and table rows (default `false`).
 
