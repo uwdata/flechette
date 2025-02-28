@@ -26,6 +26,7 @@ export class DirectBuilder extends ValidityBuilder {
       this.values.set(value, index);
     }
   }
+
   done() {
     return {
       ...super.done(),

@@ -75,6 +75,10 @@ export type DateTimeArrayConstructor =
   | Int32ArrayConstructor
   | BigInt64ArrayConstructor;
 
+export type DecimalArrayConstructor =
+  | Int32ArrayConstructor
+  | BigUint64ArrayConstructor;
+
 export type TypedArrayConstructor =
   | Uint8ArrayConstructor
   | Uint16ArrayConstructor
@@ -146,7 +150,7 @@ export type Utf8Type = { typeId: 5, offsets: Int32ArrayConstructor };
 export type BoolType = { typeId: 6 };
 
 /** Fixed decimal number data type. */
-export type DecimalType = { typeId: 7, precision: number, scale: number, bitWidth: 128 | 256, values: BigUint64ArrayConstructor };
+export type DecimalType = { typeId: 7, precision: number, scale: number, bitWidth: 32 | 64 | 128 | 256, values: DecimalArrayConstructor };
 
 /** Date data type. */
 export type DateType = { typeId: 8, unit: DateUnit_, values: DateTimeArrayConstructor };

@@ -221,26 +221,62 @@ export const utf8 = () => ({
 export const bool = () => basicType(Type.Bool);
 
 /**
- * Return a Decimal data type instance. Decimal values are represented as 128
- * or 256 bit integers in two's complement. Decimals are fixed point numbers
- * with a set *precision* (total number of decimal digits) and *scale*
+ * Return a Decimal data type instance. Decimal values are represented as 32,
+ * 64, 128, or 256 bit integers in two's complement. Decimals are fixed point
+ * numbers with a set *precision* (total number of decimal digits) and *scale*
  * (number of fractional digits). For example, the number `35.42` can be
  * represented as `3542` with *precision* ≥ 4 and *scale* = 2.
  * @param {number} precision The decimal precision: the total number of
  *  decimal digits that can be represented.
  * @param {number} scale The number of fractional digits, beyond the
  *  decimal point.
- * @param {128 | 256} [bitWidth] The decimal bit width.
- *  One of 128 (default) or 256.
+ * @param {32 | 64 | 128 | 256} [bitWidth] The decimal bit width.
+ *  One of 32, 64, 128 (default), or 256.
  * @returns {import('./types.js').DecimalType} The decimal data type.
  */
 export const decimal = (precision, scale, bitWidth = 128) => ({
   typeId: Type.Decimal,
   precision,
   scale,
-  bitWidth: checkOneOf(bitWidth, [128, 256]),
-  values: uint64Array
+  bitWidth: checkOneOf(bitWidth, [32, 64, 128, 256]),
+  values: bitWidth === 32 ? int32Array : uint64Array
 });
+/**
+ * Return an Decimal data type instance with a bit width of 32.
+ * @param {number} precision The decimal precision: the total number of
+ *  decimal digits that can be represented.
+ * @param {number} scale The number of fractional digits, beyond the
+ *  decimal point.
+ * @returns {import('./types.js').DecimalType} The decimal data type.
+ */
+export const decimal32 = (precision, scale) => decimal(precision, scale, 32);
+/**
+ * Return an Decimal data type instance with a bit width of 64.
+ * @param {number} precision The decimal precision: the total number of
+ *  decimal digits that can be represented.
+ * @param {number} scale The number of fractional digits, beyond the
+ *  decimal point.
+ * @returns {import('./types.js').DecimalType} The decimal data type.
+ */
+export const decimal64 = (precision, scale) => decimal(precision, scale, 64);
+/**
+ * Return an Decimal data type instance with a bit width of 128.
+ * @param {number} precision The decimal precision: the total number of
+ *  decimal digits that can be represented.
+ * @param {number} scale The number of fractional digits, beyond the
+ *  decimal point.
+ * @returns {import('./types.js').DecimalType} The decimal data type.
+ */
+export const decimal128 = (precision, scale) => decimal(precision, scale, 128);
+/**
+ * Return an Decimal data type instance with a bit width of 256.
+ * @param {number} precision The decimal precision: the total number of
+ *  decimal digits that can be represented.
+ * @param {number} scale The number of fractional digits, beyond the
+ *  decimal point.
+ * @returns {import('./types.js').DecimalType} The decimal data type.
+ */
+export const decimal256 = (precision, scale) => decimal(precision, scale, 256);
 
 /**
  * Return a Date data type instance. Date values are 32-bit or 64-bit signed

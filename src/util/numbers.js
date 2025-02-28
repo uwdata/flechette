@@ -96,6 +96,18 @@ export function divide(num, div) {
 }
 
 /**
+ * Return a 32-bit decimal conversion method for the given decimal scale.
+ * @param {number} scale The scale mapping fractional digits to integers.
+ * @returns {(value: number|bigint) => number} A conversion method that maps
+ *  floating point numbers to 32-bit decimals.
+ */
+export function toDecimal32(scale) {
+  return (value) => typeof value === 'bigint'
+    ? Number(value)
+    : Math.trunc(value * scale);
+}
+
+/**
  * Convert a floating point number or bigint to decimal bytes.
  * @param {number|bigint} value The number to encode. If a bigint, we assume
  *  it already represents the decimal in integer form with the correct scale.
@@ -111,15 +123,28 @@ export function toDecimal(value, buf, offset, stride, scale) {
     : toBigInt(Math.trunc(value * scale));
   // assignment into uint64array performs needed truncation for us
   buf[offset] = v;
-  buf[offset + 1] = (v >> 64n);
-  if (stride > 2) {
-    buf[offset + 2] = (v >> 128n);
-    buf[offset + 3] = (v >> 192n);
+  if (stride > 1) {
+    buf[offset + 1] = (v >> 64n);
+    if (stride > 2) {
+      buf[offset + 2] = (v >> 128n);
+      buf[offset + 3] = (v >> 192n);
+    }
   }
 }
 
 // helper method to extract uint64 values from bigints
 const asUint64 = v => BigInt.asUintN(64, v);
+
+/**
+ * Convert a 64-bit decimal value to a bigint.
+ * @param {BigUint64Array} buf The uint64 array containing the decimal bytes.
+ * @param {number} offset The starting index offset into the array.
+ * @returns {bigint} The converted decimal as a bigint, such that all
+ *  fractional digits are scaled up to integers (for example, 1.12 -> 112).
+ */
+export function fromDecimal64(buf, offset) {
+  return BigInt.asIntN(64, buf[offset]);
+}
 
 /**
  * Convert a 128-bit decimal value to a bigint.

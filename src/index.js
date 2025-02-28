@@ -17,7 +17,7 @@ export {
   binary,
   utf8,
   bool,
-  decimal,
+  decimal, decimal32, decimal64, decimal128, decimal256,
   date, dateDay, dateMillisecond,
   dictionary,
   time, timeSecond, timeMillisecond, timeMicrosecond, timeNanosecond,
