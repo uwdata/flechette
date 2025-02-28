@@ -79,7 +79,7 @@ export function builder(type, ctx = builderContext()) {
         case IntervalUnit.MONTH_DAY_NANO:
           return new IntervalMonthDayNanoBuilder(type, ctx);
       }
-      // IntervalUnit.YEAR_MONTH:
+      // case IntervalUnit.YEAR_MONTH:
       return new DirectBuilder(type, ctx);
     case Type.List:
     case Type.LargeList:
