@@ -4,7 +4,7 @@ import { invalidDataType } from './data-types.js';
 
 export function batchType(type, options = {}) {
   const { typeId, bitWidth, precision, unit } = type;
-  const { useBigInt, useDate, useDecimalBigInt, useMap, useProxy } = options;
+  const { useBigInt, useDate, useDecimalInt, useMap, useProxy } = options;
 
   switch (typeId) {
     case Type.Null: return NullBatch;
@@ -30,8 +30,8 @@ export function batchType(type, options = {}) {
       );
     case Type.Decimal:
       return bitWidth === 32
-        ? (useDecimalBigInt ? DirectBatch : Decimal32NumberBatch)
-        : (useDecimalBigInt ? DecimalBigIntBatch : DecimalNumberBatch);
+        ? (useDecimalInt ? DirectBatch : Decimal32NumberBatch)
+        : (useDecimalInt ? DecimalBigIntBatch : DecimalNumberBatch);
     case Type.Interval:
       return unit === IntervalUnit.DAY_TIME ? IntervalDayTimeBatch
         : unit === IntervalUnit.YEAR_MONTH ? DirectBatch

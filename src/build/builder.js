@@ -66,7 +66,7 @@ export function builder(type, ctx = builderContext()) {
       return new BoolBuilder(type, ctx);
     case Type.Decimal:
       return type.bitWidth === 32
-        ? new TransformBuilder(type, ctx, toDecimal32(10 ** type.scale))
+        ? new TransformBuilder(type, ctx, toDecimal32(type.scale))
         : new DecimalBuilder(type, ctx);
     case Type.Date:
       return new TransformBuilder(type, ctx, type.unit ? toBigInt : toDateDay);
