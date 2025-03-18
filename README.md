@@ -115,7 +115,7 @@ Data extraction can be customized using options provided to table generation met
 ```js
 const table = tableFromIPC(ipc, {
   useDate: true,          // map dates and timestamps to Date objects
-  useDecimalBigInt: true, // use BigInt for decimals, do not coerce to number
+  useDecimalInt: true,    // use BigInt for decimals, do not coerce to number
   useBigInt: true,        // use BigInt for 64-bit ints, do not coerce to number
   useMap: true,           // create Map objects for [key, value] pair lists
   useProxy: true          // use zero-copy proxies for struct and table row objects
