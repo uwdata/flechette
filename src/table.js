@@ -155,7 +155,7 @@ export class Table {
 
   /**
    * Return an iterator over objects representing the rows of this table.
-   * @returns {Generator<Record<string, any>, any, null>}
+   * @returns {Generator<Record<string, any>, any, any>}
    */
   *[Symbol.iterator]() {
     const { children, getFactory } = this;
