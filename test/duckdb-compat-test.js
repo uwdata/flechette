@@ -1,7 +1,7 @@
 import assert from 'node:assert';
-import { DuckDB } from '@uwdata/mosaic-duckdb';
 import { tableFromArrays, tableFromIPC, tableToIPC } from '../src/index.js';
 import * as dataMethods from './util/data.js';
+import { duckdb } from './util/duckdb.js';
 
 // Arrow types not supported by DuckDB
 const skip = new Set([
@@ -28,10 +28,10 @@ describe('DuckDB compatibility', () => {
   });
 });
 
-function loadIPC(table) {
+async function loadIPC(table) {
   const bytes = tableToIPC(table, { format: 'stream' });
+  const db = await duckdb();
   return new Promise((resolve) => {
-    const db = new DuckDB();
     db.db.register_buffer('arrow_ipc', [bytes], true, (err) => {
       if (err) {
         console.error(err);

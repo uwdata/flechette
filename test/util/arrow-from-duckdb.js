@@ -1,9 +1,9 @@
-import { DuckDB } from '@uwdata/mosaic-duckdb';
+import { duckdb } from './duckdb.js';
 
-const db = new DuckDB();
+const db = await duckdb();
 
 export async function arrowQuery(sql, cleanup) {
-  const ipc = await db.arrowBuffer(sql);
+  const ipc = await db.query(sql);
   if (cleanup) await db.exec(cleanup);
   return ipc;
 }
