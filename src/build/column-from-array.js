@@ -1,6 +1,5 @@
 /**
  * @import { ColumnBuilderOptions, DataType, TypedArray, TypedArrayConstructor } from '../types.js'
- * @import { BatchBuilder } from './builders/batch.js'
  * @import { dictionaryContext } from './builders/dictionary.js'
  */
 import { float32Array, float64Array, int16Array, int32Array, int64Array, int8Array, isInt64ArrayType, isTypedArray, uint16Array, uint32Array, uint64Array, uint8Array } from '../util/arrays.js';
