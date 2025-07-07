@@ -1,3 +1,6 @@
+/**
+ * @import { Column } from '../column.js'
+ */
 import { Endianness, Version } from '../constants.js';
 import { field } from '../data-types.js';
 import { Table } from '../table.js';
@@ -5,8 +8,7 @@ import { Table } from '../table.js';
 /**
  * Create a new table from a collection of columns. Columns are assumed
  * to have the same record batch sizes.
- * @param {[string, import('../column.js').Column][]
- *  | Record<string, import('../column.js').Column>} data The columns,
+ * @param {[string, Column][] | Record<string, Column>} data The columns,
  *  as an object with name keys, or an array of [name, column] pairs.
  * @param {boolean} [useProxy] Flag indicating if row proxy
  *  objects should be used to represent table rows (default `false`).

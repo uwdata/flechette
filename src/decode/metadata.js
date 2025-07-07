@@ -1,10 +1,13 @@
+/**
+ * @import { Metadata } from '../types.js'
+ */
 import { readObject, readString, readVector } from '../util/read.js';
 
 /**
  * Decode custom metadata consisting of key-value string pairs.
  * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
  * @param {number} index The starting index in the byte buffer
- * @returns {import('../types.js').Metadata | null} The custom metadata map
+ * @returns {Metadata | null} The custom metadata map
  */
 export function decodeMetadata(buf, index) {
   const entries = readVector(buf, index, 4, (buf, pos) => {

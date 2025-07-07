@@ -1,3 +1,7 @@
+/**
+ * @import { DataType, ExtractionOptions } from '../types.js'
+ * @import { BatchBuilder } from './builders/batch.js'
+ */
 import { batchType } from '../batch-type.js';
 import { IntervalUnit, Type } from '../constants.js';
 import { invalidDataType } from '../data-types.js';
@@ -20,8 +24,7 @@ import { DirectBuilder, Int64Builder, TransformBuilder } from './builders/values
 
 /**
  * Create a context object for shared builder state.
- * @param {import('../types.js').ExtractionOptions} [options]
- *  Batch extraction options.
+ * @param {ExtractionOptions} [options]  Batch extraction options.
 * @param {ReturnType<dictionaryContext>} [dictionaries]
  *  Context object for tracking dictionaries.
  */
@@ -39,9 +42,9 @@ export function builderContext(
 
 /**
  * Returns a batch builder for the given type and builder context.
- * @param {import('../types.js').DataType} type A data type.
+ * @param {DataType} type A data type.
  * @param {ReturnType<builderContext>} [ctx] A builder context.
- * @returns {import('./builders/batch.js').BatchBuilder}
+ * @returns {BatchBuilder}
  */
 export function builder(type, ctx = builderContext()) {
   const { typeId } = type;

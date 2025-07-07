@@ -1,11 +1,15 @@
+/**
+ * @import { DataType } from '../types.js';
+ * @import { Builder } from './builder.js';
+ */
 import { DateUnit, IntervalUnit, Precision, TimeUnit, Type, UnionMode } from '../constants.js';
 import { invalidDataType } from '../data-types.js';
 import { checkOneOf } from '../util/objects.js';
 
 /**
  * Encode a data type into a flatbuffer.
- * @param {import('./builder.js').Builder} builder
- * @param {import('../types.js').DataType} type
+ * @param {Builder} builder
+ * @param {DataType} type
  * @returns {number} The offset at which the data type is written.
  */
 export function encodeDataType(builder, type) {

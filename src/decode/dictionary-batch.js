@@ -1,3 +1,6 @@
+/**
+ * @import { DictionaryBatch, Version_ } from '../types.js'
+ */
 import { readBoolean, readInt64, readObject } from '../util/read.js';
 import { decodeRecordBatch } from './record-batch.js';
 
@@ -5,8 +8,8 @@ import { decodeRecordBatch } from './record-batch.js';
  * Decode a dictionary batch.
  * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
  * @param {number} index The starting index in the byte buffer
- * @param {import('../types.js').Version_} version Arrow version value
- * @returns {import('../types.js').DictionaryBatch} The dictionary batch
+ * @param {Version_} version Arrow version value
+ * @returns {DictionaryBatch} The dictionary batch
  */
 export function decodeDictionaryBatch(buf, index, version) {
   //  4: id

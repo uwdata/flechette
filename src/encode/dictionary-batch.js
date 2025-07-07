@@ -1,8 +1,12 @@
+/**
+ * @import { DictionaryBatch } from '../types.js';
+ * @import { Builder } from './builder.js';
+ */
 import { encodeRecordBatch } from './record-batch.js';
 
 /**
- * @param {import('./builder.js').Builder} builder
- * @param {import('../types.js').DictionaryBatch} dictionaryBatch
+ * @param {Builder} builder
+ * @param {DictionaryBatch} dictionaryBatch
  * @returns {number}
  */
 export function encodeDictionaryBatch(builder, dictionaryBatch) {

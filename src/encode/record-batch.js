@@ -1,6 +1,11 @@
 /**
- * @param {import('./builder.js').Builder} builder
- * @param {import('../types.js').RecordBatch} batch
+ * @import { RecordBatch } from '../types.js';
+ * @import { Builder } from './builder.js';
+ */
+
+/**
+ * @param {Builder} builder
+ * @param {RecordBatch} batch
  * @returns {number}
  */
 export function encodeRecordBatch(builder, batch) {

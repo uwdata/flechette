@@ -1,4 +1,8 @@
 /**
+ * @import { Batch } from '../../batch.js'
+ */
+
+/**
  * Abstract class for building a column data batch.
  */
 export class BatchBuilder {
@@ -39,7 +43,7 @@ export class BatchBuilder {
 
   /**
    * Returns a completed batch and reinitializes the builder state.
-   * @returns {import('../../batch.js').Batch}
+   * @returns {Batch}
    */
   batch() {
     const b = new this.batchClass(this.done());

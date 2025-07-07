@@ -1,3 +1,6 @@
+/**
+ * @import { Batch } from '../batch.js';
+ */
 export const RowIndex = Symbol('rowIndex');
 
 /**
@@ -5,7 +8,7 @@ export const RowIndex = Symbol('rowIndex');
  * batch-level row index as input and returns an object that proxies
  * access to underlying batches.
  * @param {string[]} names The column (property) names
- * @param {import('../batch.js').Batch[]} batches The value batches.
+ * @param {Batch[]} batches The value batches.
  * @returns {(index: number) => Record<string, any>}
  */
 export function proxyFactory(names, batches) {
@@ -49,7 +52,7 @@ export function proxyFactory(names, batches) {
  * batch-level row index as input and returns an object whose property
  * values have been extracted from the batches.
  * @param {string[]} names The column (property) names
- * @param {import('../batch.js').Batch[]} batches The value batches.
+ * @param {Batch[]} batches The value batches.
  * @returns {(index: number) => Record<string, any>}
  */
 export function objectFactory(names, batches) {
@@ -59,7 +62,7 @@ export function objectFactory(names, batches) {
 /**
  * Return a vanilla object representing a struct (row object) type.
  * @param {string[]} names The column (property) names
- * @param {import('../batch.js').Batch[]} batches The value batches.
+ * @param {Batch[]} batches The value batches.
  * @param {number} index The record batch row index.
  * @returns {Record<string, any>}
  */

@@ -1,3 +1,6 @@
+/**
+ * @import { DataType, IntType, UnionType } from '../types.js'
+ */
 import { bool, dateDay, dictionary, field, fixedSizeList, float64, int16, int32, int64, int8, list, nullType, struct, timestamp, utf8 } from '../data-types.js';
 import { isArray } from '../util/arrays.js';
 
@@ -5,7 +8,7 @@ import { isArray } from '../util/arrays.js';
  * Infer the data type for a given input array.
  * @param {(visitor: (value: any) => void) => void} visit
  *  A function that applies a callback to successive data values.
- * @returns {import('../types.js').DataType} The data type.
+ * @returns {DataType} The data type.
  */
 export function inferType(visit) {
   const profile = profiler();
@@ -106,10 +109,10 @@ function profiler() {
 
 /**
  * Return a list or fixed list type.
- * @param {import('../types.js').DataType} type The child data type.
+ * @param {DataType} type The child data type.
  * @param {number} minLength The minumum list length.
  * @param {number} maxLength The maximum list length.
- * @returns {import('../types.js').DataType} The data type.
+ * @returns {DataType} The data type.
  */
 function arrayType(type, minLength, maxLength) {
   return maxLength === minLength
@@ -120,7 +123,7 @@ function arrayType(type, minLength, maxLength) {
 /**
  * @param {number} min
  * @param {number} max
- * @returns {import('../types.js').DataType}
+ * @returns {DataType}
  */
 function intType(min, max) {
   const v = Math.max(Math.abs(min) - 1, max);
@@ -133,7 +136,7 @@ function intType(min, max) {
 /**
  * @param {bigint} min
  * @param {bigint} max
- * @returns {import('../types.js').IntType}
+ * @returns {IntType}
  */
 function bigintType(min, max) {
   const v = -min > max ? -min - 1n : max;
@@ -144,7 +147,7 @@ function bigintType(min, max) {
 }
 
 /**
- * @returns {import('../types.js').UnionType}
+ * @returns {UnionType}
  */
 function unionType() {
   throw new Error('Mixed types detected, please define a union type.');

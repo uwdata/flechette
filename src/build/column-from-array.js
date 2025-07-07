@@ -1,3 +1,8 @@
+/**
+ * @import { ColumnBuilderOptions, DataType, TypedArray, TypedArrayConstructor } from '../types.js'
+ * @import { BatchBuilder } from './builders/batch.js'
+ * @import { dictionaryContext } from './builders/dictionary.js'
+ */
 import { float32Array, float64Array, int16Array, int32Array, int64Array, int8Array, isInt64ArrayType, isTypedArray, uint16Array, uint32Array, uint64Array, uint8Array } from '../util/arrays.js';
 import { DirectBatch, Int64Batch } from '../batch.js';
 import { Column } from '../column.js';
@@ -7,12 +12,12 @@ import { columnFromValues } from './column-from-values.js';
 /**
  * Create a new column from a provided data array.
  * @template T
- * @param {Array | import('../types.js').TypedArray} array The input data.
- * @param {import('../types.js').DataType} [type] The data type.
+ * @param {Array | TypedArray} array The input data.
+ * @param {DataType} [type] The data type.
  *  If not specified, type inference is attempted.
- * @param {import('../types.js').ColumnBuilderOptions} [options]
+ * @param {ColumnBuilderOptions} [options]
  *  Builder options for the generated column.
- * @param {ReturnType<import('./builders/dictionary.js').dictionaryContext>} [dicts]
+ * @param {ReturnType<dictionaryContext>} [dicts]
  *  Builder context object, for internal use only.
  * @returns {Column<T>} The generated column.
  */
@@ -25,13 +30,13 @@ export function columnFromArray(array, type, options = {}, dicts) {
 /**
  * Create a new column from a typed array input.
  * @template T
- * @param {import('../types.js').TypedArray} values The input data.
- * @param {import('../types.js').ColumnBuilderOptions} options
+ * @param {TypedArray} values The input data.
+ * @param {ColumnBuilderOptions} options
  *  Builder options for the generated column.
  * @returns {Column<T>} The generated column.
  */
 function columnFromTypedArray(values, { maxBatchRows, useBigInt }) {
-  const arrayType = /** @type {import('../types.js').TypedArrayConstructor} */ (
+  const arrayType = /** @type {TypedArrayConstructor} */ (
     values.constructor
   );
   const type = typeForTypedArray(arrayType);
@@ -58,9 +63,8 @@ function columnFromTypedArray(values, { maxBatchRows, useBigInt }) {
 
 /**
  * Return an Arrow data type for a given typed array type.
- * @param {import('../types.js').TypedArrayConstructor} arrayType
- *  The typed array type.
- * @returns {import('../types.js').DataType} The data type.
+ * @param {TypedArrayConstructor} arrayType The typed array type.
+ * @returns {DataType} The data type.
  */
 function typeForTypedArray(arrayType) {
   switch (arrayType) {

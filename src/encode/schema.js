@@ -1,3 +1,7 @@
+/**
+ * @import { DictionaryType, Field, Schema } from '../types.js';
+ * @import { Builder } from './builder.js';
+ */
 import { Type } from '../constants.js';
 import { encodeDataType } from './data-type.js';
 import { encodeMetadata } from './metadata.js';
@@ -5,8 +9,8 @@ import { encodeMetadata } from './metadata.js';
 const isLittleEndian = new Uint16Array(new Uint8Array([1, 0]).buffer)[0] === 1;
 
 /**
- * @param {import('./builder.js').Builder} builder
- * @param {import('../types.js').Schema} schema
+ * @param {Builder} builder
+ * @param {Schema} schema
  * @returns {number}
  */
 export function encodeSchema(builder, schema) {
@@ -23,8 +27,8 @@ export function encodeSchema(builder, schema) {
 }
 
 /**
- * @param {import('./builder.js').Builder} builder
- * @param {import('../types.js').Field} field
+ * @param {Builder} builder
+ * @param {Field} field
  * @returns {number}
  */
 function encodeField(builder, field) {
@@ -37,7 +41,7 @@ function encodeField(builder, field) {
   if (typeId !== Type.Dictionary) {
     typeOffset = encodeDataType(builder, type);
   } else {
-    const dict = /** @type {import('../types.js').DictionaryType} */ (type).dictionary;
+    const dict = /** @type {DictionaryType} */ (type).dictionary;
     typeId = dict.typeId;
     dictionaryOffset = encodeDataType(builder, type);
     typeOffset = encodeDataType(builder, dict);

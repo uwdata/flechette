@@ -1,3 +1,7 @@
+/**
+ * @import { ColumnBuilderOptions, DataType, NullType } from '../types.js'
+ * @import { dictionaryContext } from './builders/dictionary.js'
+ */
 import { NullBatch } from '../batch.js';
 import { Column } from '../column.js';
 import { inferType } from './infer-type.js';
@@ -11,12 +15,11 @@ import { isIterable } from '../util/objects.js';
  * @param {Iterable | ((callback: (value: any) => void) => void)} values
  *  Either an iterable object or a visitor function that applies a callback
  *  to successive data values (akin to Array.forEach).
- * @param {import('../types.js').DataType} [type] The data type.
- * @param {import('../types.js').ColumnBuilderOptions} [options]
+ * @param {DataType} [type] The data type.
+ * @param {ColumnBuilderOptions} [options]
  *  Builder options for the generated column.
- * @param {ReturnType<
- *    import('./builders/dictionary.js').dictionaryContext
- *  >} [dicts] Dictionary context object, for internal use only.
+ * @param {ReturnType<dictionaryContext>} [dicts]
+ *  Dictionary context object, for internal use only.
  * @returns {Column<T>} The generated column.
  */
 export function columnFromValues(values, type, options = {}, dicts) {
@@ -57,10 +60,10 @@ export function columnFromValues(values, type, options = {}, dicts) {
 
 /**
  * Create null batches with the given batch size limit.
- * @param {import('../types.js').NullType} type The null data type.
+ * @param {NullType} type The null data type.
  * @param {number} length The total column length.
  * @param {number} limit The maximum batch size.
- * @returns {import('../batch.js').NullBatch[]} The null batches.
+ * @returns {NullBatch[]} The null batches.
  */
 function nullBatches(type, length, limit) {
   const data = [];

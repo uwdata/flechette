@@ -1,3 +1,6 @@
+/**
+ * @import { Sink } from './sink.js';
+ */
 import { EOS, MAGIC, MessageHeader } from '../constants.js';
 import { Builder } from './builder.js';
 import { encodeDictionaryBatch } from './dictionary-batch.js';
@@ -14,9 +17,9 @@ const FILE = 'file';
  * Encode assembled data into Arrow IPC binary format.
  * @param {any} data Assembled table data.
  * @param {object} options Encoding options.
- * @param {import('./sink.js').Sink} [options.sink] IPC byte consumer.
+ * @param {Sink} [options.sink] IPC byte consumer.
  * @param {'stream' | 'file'} [options.format] Arrow stream or file format.
- * @returns {import('./sink.js').Sink} The sink that was passed in.
+ * @returns {Sink} The sink that was passed in.
  */
 export function encodeIPC(data, { sink, format = STREAM } = {}) {
   if (format !== STREAM && format !== FILE) {
@@ -80,7 +83,7 @@ export function encodeIPC(data, { sink, format = STREAM } = {}) {
 /**
  * Write byte buffers to the builder sink.
  * Buffers are aligned to 64 bits (8 bytes) as needed.
- * @param {import('./builder.js').Builder} builder
+ * @param {Builder} builder
  * @param {Uint8Array[]} buffers
  */
 function writeBuffers(builder, buffers) {

@@ -1,3 +1,7 @@
+/**
+ * @import { Batch } from './batch.js'
+ * @import { DataType, ValueArray } from './types.js'
+ */
 import { bisect } from './util/arrays.js';
 import { isDirectBatch } from './batch.js';
 
@@ -24,14 +28,14 @@ export function columnBuilder(type) {
 export class Column {
   /**
    * Create a new column instance.
-   * @param {import('./batch.js').Batch<T>[]} data The value batches.
-   * @param {import('./types.js').DataType} [type] The column data type.
+   * @param {Batch<T>[]} data The value batches.
+   * @param {DataType} [type] The column data type.
    *  If not specified, the type is extracted from the batches.
    */
   constructor(data, type = data[0]?.type) {
     /**
      * The column data type.
-     * @type {import('./types.js').DataType}
+     * @type {DataType}
      * @readonly
      */
     this.type = type;
@@ -49,7 +53,7 @@ export class Column {
     this.nullCount = data.reduce((m, c) => m + c.nullCount, 0);
     /**
      * An array of column data batches.
-     * @type {readonly import('./batch.js').Batch<T>[]}
+     * @type {readonly Batch<T>[]}
      * @readonly
      */
     this.data = data;
@@ -125,7 +129,7 @@ export class Column {
   /**
    * Extract column values into a single array instance. When possible,
    * a zero-copy subarray of the input Arrow data is returned.
-   * @returns {import('./types.js').ValueArray<T?>}
+   * @returns {ValueArray<T?>}
    */
   toArray() {
     const { length, nullCount, data } = this;
