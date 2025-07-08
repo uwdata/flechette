@@ -1,3 +1,4 @@
+/** @import { ValueArray } from '../src/types.js' */
 import assert from 'node:assert';
 import { arrowFromDuckDB } from './util/arrow-from-duckdb.js';
 import { tableFromIPC } from '../src/index.js';
@@ -9,6 +10,7 @@ const values = [
   {a: 2, b: 'baz', c: [null, 5, 6] }
 ];
 
+/** @type {Table<{ value: { a: number, b: string, c: ValueArray<number | null> }> }} */
 const table = tableFromIPC(await arrowFromDuckDB(values));
 
 describe('Table', () => {
