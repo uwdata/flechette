@@ -1,13 +1,17 @@
+/**
+ * @import { Block, Schema } from '../types.js';
+ * @import { Builder } from './builder.js';
+ */
 import { MAGIC, Version } from '../constants.js';
 import { encodeMetadata } from './metadata.js';
 import { encodeSchema } from './schema.js';
 
 /**
  * Write a file footer.
- * @param {import('./builder.js').Builder} builder The binary builder.
- * @param {import('../types.js').Schema} schema The table schema.
- * @param {import('../types.js').Block[]} dictBlocks Dictionary batch file blocks.
- * @param {import('../types.js').Block[]} recordBlocks Record batch file blocks.
+ * @param {Builder} builder The binary builder.
+ * @param {Schema} schema The table schema.
+ * @param {Block[]} dictBlocks Dictionary batch file blocks.
+ * @param {Block[]} recordBlocks Record batch file blocks.
  * @param {Map<string,string> | null} metadata File-level metadata.
  */
 export function writeFooter(builder, schema, dictBlocks, recordBlocks, metadata) {
@@ -41,8 +45,8 @@ export function writeFooter(builder, schema, dictBlocks, recordBlocks, metadata)
 
 /**
  * Encode a file pointer block.
- * @param {import('./builder.js').Builder} builder
- * @param {import('../types.js').Block} block
+ * @param {Builder} builder
+ * @param {Block} block
  * @returns {number} the current block offset
  */
 function encodeBlock(builder, { offset, metadataLength, bodyLength }) {

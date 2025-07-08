@@ -1,12 +1,16 @@
+/**
+ * @import { Block, MessageHeader_ } from '../types.js';
+ * @import { Builder } from './builder.js';
+ */
 import { MessageHeader, Version } from '../constants.js';
 
 /**
  * Write an IPC message to the builder sink.
- * @param {import('./builder.js').Builder} builder
- * @param {import('../types.js').MessageHeader_} headerType
+ * @param {Builder} builder
+ * @param {MessageHeader_} headerType
  * @param {number} headerOffset
  * @param {number} bodyLength
- * @param {import('../types.js').Block[]} [blocks]
+ * @param {Block[]} [blocks]
  */
 export function writeMessage(builder, headerType, headerOffset, bodyLength, blocks) {
   builder.finish(

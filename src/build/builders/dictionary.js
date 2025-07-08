@@ -1,3 +1,7 @@
+/**
+ * @import { builderContext } from '../builder.js'
+ * @import { DictionaryType, ExtractionOptions } from '../../types.js'
+ */
 import { Column } from '../../column.js';
 import { keyString } from '../../util/strings.js';
 import { batchType } from '../../batch-type.js';
@@ -13,7 +17,7 @@ export function dictionaryContext() {
   return {
     /**
      * Get a dictionary values builder for the given dictionary type.
-     * @param {import('../../types.js').DictionaryType} type
+     * @param {DictionaryType} type
      *  The dictionary type.
      * @param {*} ctx The builder context.
      * @returns {ReturnType<dictionaryValues>}
@@ -35,7 +39,7 @@ export function dictionaryContext() {
     /**
      * Finish building dictionary values columns and assign them to
      * their corresponding dictionary batches.
-     * @param {import('../../types.js').ExtractionOptions} options
+     * @param {ExtractionOptions} options
      */
     finish(options) {
       dicts.forEach(dict => dict.finish(options));
@@ -45,9 +49,9 @@ export function dictionaryContext() {
 
 /**
  * Builder helper for creating dictionary values.
- * @param {import('../../types.js').DictionaryType} type
+ * @param {DictionaryType} type
  *  The dictionary data type.
- * @param {ReturnType<import('../builder.js').builderContext>} ctx
+ * @param {ReturnType<builderContext>} ctx
  *  The builder context.
  */
 export function dictionaryValues(type, ctx) {

@@ -1,3 +1,6 @@
+/**
+ * @import { ArrowData, ExtractionOptions, Field, RecordBatch, Schema } from '../types.js'
+ */
 import { batchType } from '../batch-type.js';
 import { columnBuilder } from '../column.js';
 import { Type, UnionMode, Version } from '../constants.js';
@@ -17,7 +20,7 @@ import { decodeIPC } from './decode-ipc.js';
  *  The source byte buffer, or an array of buffers. If an array, each byte
  *  array may contain one or more self-contained messages. Messages may NOT
  *  span multiple byte arrays.
- * @param {import('../types.js').ExtractionOptions} [options]
+ * @param {ExtractionOptions} [options]
  *  Options for controlling how values are transformed when extracted
  *  from an Arrow binary representation.
  * @returns {Table} A Table instance.
@@ -28,9 +31,9 @@ export function tableFromIPC(data, options) {
 
 /**
  * Create a table from parsed IPC data.
- * @param {import('../types.js').ArrowData} data
+ * @param {ArrowData} data
  *  The IPC data, as returned by parseIPC.
- * @param {import('../types.js').ExtractionOptions} [options]
+ * @param {ExtractionOptions} [options]
  *  Options for controlling how values are transformed when extracted
  *  from am Arrow binary representation.
  * @returns {Table} A Table instance.
@@ -81,8 +84,8 @@ export function createTable(data, options = {}) {
 
 /**
  * Visit all fields within a schema.
- * @param {import('../types.js').Schema} schema
- * @param {(field: import('../types.js').Field) => void} visitor
+ * @param {Schema} schema
+ * @param {(field: Field) => void} visitor
  */
 function visitSchemaFields(schema, visitor) {
   schema.fields.forEach(function visitField(field) {
@@ -106,7 +109,7 @@ function contextGenerator(options, version, dictionaryMap) {
 
   /**
    * Return a context generator.
-   * @param {import('../types.js').RecordBatch} batch
+   * @param {RecordBatch} batch
    */
   return batch => {
     const { length, nodes, regions, variadic, body } = batch;

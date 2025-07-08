@@ -1,3 +1,6 @@
+/**
+ * @import { ArrowData, Version_ } from '../types.js'
+ */
 import { MAGIC, MessageHeader, Version } from '../constants.js';
 import { readInt16, readInt32, readObject } from '../util/read.js';
 import { decodeBlocks } from './block.js';
@@ -49,7 +52,7 @@ function isArrowFileFormat(buf) {
  * @param {Uint8Array | Uint8Array[]} data The source byte buffer, or an
  *  array of buffers. If an array, each byte array may contain one or more
  *  self-contained messages. Messages may NOT span multiple byte arrays.
- * @returns {import('../types.js').ArrowData}
+ * @returns {ArrowData}
  */
 export function decodeIPCStream(data) {
   const stream = [data].flat();
@@ -86,7 +89,7 @@ export function decodeIPCStream(data) {
     }
   }
 
-  return /** @type {import('../types.js').ArrowData} */ (
+  return /** @type {ArrowData} */ (
     { schema, dictionaries, records, metadata: null }
   );
 }
@@ -96,7 +99,7 @@ export function decodeIPCStream(data) {
  *
  * [1]: https://arrow.apache.org/docs/format/Columnar.html#ipc-file-format
  * @param {Uint8Array} data The source byte buffer.
- * @returns {import('../types.js').ArrowData}
+ * @returns {ArrowData}
  */
 export function decodeIPCFile(data) {
   // find footer location
@@ -110,12 +113,12 @@ export function decodeIPCFile(data) {
   // 10: batches (vector)
   // 12: metadata
   const get = readObject(data, offset - length);
-  const version = /** @type {import('../types.js').Version_} */
+  const version = /** @type {Version_} */
     (get(4, readInt16, Version.V1));
   const dicts = get(8, decodeBlocks, []);
   const recs = get(10, decodeBlocks, []);
 
-  return /** @type {import('../types.js').ArrowData} */ ({
+  return /** @type {ArrowData} */ ({
     schema: get(6, (buf, index) => decodeSchema(buf, index, version)),
     dictionaries: dicts.map(({ offset }) => decodeMessage(data, offset).content),
     records: recs.map(({ offset }) => decodeMessage(data, offset).content),

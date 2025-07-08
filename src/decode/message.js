@@ -1,3 +1,6 @@
+/**
+ * @import { Message, MessageHeader_, Version_ } from '../types.js'
+ */
 import { MessageHeader, Version } from '../constants.js';
 import { keyFor } from '../util/objects.js';
 import { SIZEOF_INT, readInt16, readInt32, readInt64, readObject, readOffset, readUint8 } from '../util/read.js';
@@ -20,7 +23,7 @@ const invalidMessageType = (type) =>
  * message, returning its associated metadata and content.
  * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
  * @param {number} index The starting index in the byte buffer
- * @returns {import('../types.js').Message} The decoded message.
+ * @returns {Message} The decoded message.
  */
 export function decodeMessage(buf, index) {
   // get message start
@@ -47,9 +50,9 @@ export function decodeMessage(buf, index) {
   //  8: headerIndex
   // 10: bodyLength
   const get = readObject(head, 0);
-  const version = /** @type {import('../types.js').Version_} */
+  const version = /** @type {Version_} */
     (get(4, readInt16, Version.V1));
-  const type = /** @type {import('../types.js').MessageHeader_} */
+  const type = /** @type {MessageHeader_} */
     (get(6, readUint8, MessageHeader.NONE));
   const offset = get(8, readOffset, 0);
   const bodyLength = get(10, readInt64, 0);

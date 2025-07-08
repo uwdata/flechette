@@ -1,3 +1,7 @@
+/**
+ * @import { Column } from './column.js'
+ * @import { Schema, StructFactory, TypeMap, ValueArray } from './types.js'
+ */
 import { bisect } from './util/arrays.js';
 import { objectFactory, proxyFactory } from './util/struct.js';
 
@@ -7,29 +11,36 @@ import { objectFactory, proxyFactory } from './util/struct.js';
  * to extract an object that maps column names to extracted value arrays,
  * or `toArray()` to extract an array of row objects. For random access
  * by row index, use `getChild()` to access data for a specific column.
+ * @template {TypeMap} [T=TypeMap]
  */
 export class Table {
   /**
    * Create a new table with the given schema and columns (children).
-   * @param {import('./types.js').Schema} schema The table schema.
-   * @param {import('./column.js').Column[]} children The table columns.
+   * @param {Schema} schema The table schema.
+   * @param {Column[]} children The table columns.
    * @param {boolean} [useProxy=false] Flag indicating if row proxy
    *  objects should be used to represent table rows (default `false`).
    */
   constructor(schema, children, useProxy = false) {
     const names = schema.fields.map(f => f.name);
 
-    /** @readonly */
+    /**
+     * @type {Schema}
+     * @readonly
+     */
     this.schema = schema;
-    /** @readonly */
+    /**
+     * @type {(keyof T)[]}
+     * @readonly
+     */
     this.names = names;
     /**
-     * @type {import('./column.js').Column[]}
+     * @type {Column[]}
      * @readonly
      */
     this.children = children;
     /**
-     * @type {import('./types.js').StructFactory}
+     * @type {StructFactory}
      * @readonly
      */
     this.factory = useProxy ? proxyFactory : objectFactory;
@@ -42,7 +53,7 @@ export class Table {
      * @private
      * @readonly
      * @param {number} b The batch index.
-     * @returns {(index: number) => Record<string,any>}
+     * @returns {(index: number) => { [P in keyof T]: T[P] }}
      */
     this.getFactory = b => gen[b]
       ?? (gen[b] = this.factory(names, children.map(c => c.data[b])));
@@ -73,8 +84,9 @@ export class Table {
 
   /**
    * Return the child column at the given index position.
+   * @template {T[keyof T]} R
    * @param {number} index The column index.
-   * @returns {import('./column.js').Column<any>}
+   * @returns {Column<R>}
    */
   getChildAt(index) {
     return this.children[index];
@@ -82,8 +94,9 @@ export class Table {
 
   /**
    * Return the first child column with the given name.
-   * @param {string} name The column name.
-   * @returns {import('./column.js').Column<any>}
+   * @template {keyof T} P
+   * @param {P} name The column name.
+   * @returns {Column<T[P]>}
    */
   getChild(name) {
     const i = this.names.findIndex(x => x === name);
@@ -93,9 +106,10 @@ export class Table {
   /**
    * Construct a new table containing only columns at the specified indices.
    * The order of columns in the new table matches the order of input indices.
+   * @template {T[keyof T]} V
    * @param {number[]} indices The indices of columns to keep.
    * @param {string[]} [as] Optional new names for selected columns.
-   * @returns {Table} A new table with columns at the specified indices.
+   * @returns {Table<{ [key: string]: V }>} A new table with selected columns.
    */
   selectAt(indices, as = []) {
     const { children, factory, schema } = this;
@@ -114,23 +128,25 @@ export class Table {
    * Construct a new table containing only columns with the specified names.
    * If columns have duplicate names, the first (with lowest index) is used.
    * The order of columns in the new table matches the order of input names.
-   * @param {string[]} names Names of columns to keep.
+   * @template {keyof T} K
+   * @param {K[]} names Names of columns to keep.
    * @param {string[]} [as] Optional new names for selected columns.
-   * @returns {Table} A new table with columns matching the specified names.
+   * @returns A new table with columns matching the specified names.
    */
   select(names, as) {
-    const all = this.names;
+    const all = /** @type {K[]} */(this.names);
     const indices = names.map(name => all.indexOf(name));
     return this.selectAt(indices, as);
   }
 
   /**
    * Return an object mapping column names to extracted value arrays.
-   * @returns {Record<string, import('./types.js').ValueArray<any>>}
+   * @returns {{ [P in keyof T]: ValueArray<T[P]> }}
    */
   toColumns() {
     const { children, names } = this;
-    /** @type {Record<string, import('./types.js').ValueArray<any>>} */
+    /** @type {{ [P in keyof T]: ValueArray<T[P]> }} */
+    // @ts-expect-error assign to empty object
     const cols = {};
     names.forEach((name, i) => cols[name] = children[i]?.toArray() ?? [] );
     return cols;
@@ -138,7 +154,7 @@ export class Table {
 
   /**
    * Return an array of objects representing the rows of this table.
-   * @returns {Record<string, any>[]}
+   * @returns {{ [P in keyof T]: T[P] }[]}
    */
   toArray() {
     const { children, getFactory, numRows } = this;
@@ -155,7 +171,7 @@ export class Table {
 
   /**
    * Return an iterator over objects representing the rows of this table.
-   * @returns {Generator<Record<string, any>, any, any>}
+   * @returns {Generator<{ [P in keyof T]: T[P] }, any, any>}
    */
   *[Symbol.iterator]() {
     const { children, getFactory } = this;
@@ -171,7 +187,7 @@ export class Table {
   /**
    * Return a row object for the given index.
    * @param {number} index The row index.
-   * @returns {Record<string, any>} The row object.
+   * @returns {{ [P in keyof T]: T[P] }} The row object.
    */
   at(index) {
     const { children, getFactory, numRows } = this;
@@ -185,7 +201,7 @@ export class Table {
    * Return a row object for the given index. This method is the same as
    * `at()` and is provided for better compatibility with Apache Arrow JS.
    * @param {number} index The row index.
-   * @returns {Record<string, any>} The row object.
+   * @returns {{ [P in keyof T]: T[P] }} The row object.
    */
   get(index) {
     return this.at(index);

@@ -1,3 +1,6 @@
+/**
+ * @import { DataType, Field } from '../types.js'
+ */
 import { DateUnit, IntervalUnit, Precision, TimeUnit, Type, UnionMode } from '../constants.js';
 import { binary, date, decimal, duration, fixedSizeBinary, fixedSizeList, float, int, interval, invalidDataType, largeBinary, largeList, largeListView, largeUtf8, list, listView, mapType, runEndEncoded, struct, time, timestamp, union, utf8 } from '../data-types.js';
 import { checkOneOf } from '../util/objects.js';
@@ -8,8 +11,8 @@ import { readBoolean, readInt16, readInt32, readObject, readOffset, readString, 
  * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data.
  * @param {number} index The starting index in the byte buffer.
  * @param {number} typeId The data type id.
- * @param {import('../types.js').Field[]} [children] A list of parsed child fields.
- * @returns {import('../types.js').DataType} The data type.
+ * @param {Field[]} [children] A list of parsed child fields.
+ * @returns {DataType} The data type.
  */
 export function decodeDataType(buf, index, typeId, children) {
   checkOneOf(typeId, Type, invalidDataType);

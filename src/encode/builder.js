@@ -1,3 +1,6 @@
+/**
+ * @import { Sink } from './sink.js';
+ */
 import { grow } from '../util/arrays.js';
 import { SIZEOF_INT, SIZEOF_SHORT, readInt16 } from '../util/read.js';
 import { encodeUtf8 } from '../util/strings.js';
@@ -15,12 +18,12 @@ const INIT_SIZE = 1024;
 export class Builder {
   /**
    * Create a new builder instance.
-   * @param {import('./sink.js').Sink} sink The byte consumer.
+   * @param {Sink} sink The byte consumer.
    */
   constructor(sink) {
     /**
      * Sink that consumes built byte buffers;
-     * @type {import('./sink.js').Sink}
+     * @type {Sink}
      */
     this.sink = sink;
     /**

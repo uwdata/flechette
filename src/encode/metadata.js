@@ -1,5 +1,9 @@
 /**
- * @param {import('./builder.js').Builder} builder
+ * @import { Builder } from './builder.js';
+ */
+
+/**
+ * @param {Builder} builder
  * @param {Map<string, string>} metadata
  * @returns {number}
  */

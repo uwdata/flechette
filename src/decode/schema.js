@@ -1,3 +1,6 @@
+/**
+ * @import { DictionaryType, Endianness_, Field, IntType, Schema, Version_ } from '../types.js'
+ */
 import { Type } from '../constants.js';
 import { dictionary, int32 } from '../data-types.js';
 import { readBoolean, readInt16, readInt64, readObject, readOffset, readString, readUint8, readVector } from '../util/read.js';
@@ -8,8 +11,8 @@ import { decodeMetadata } from './metadata.js';
  * Decode a table schema describing the fields and their data types.
  * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
  * @param {number} index The starting index in the byte buffer
- * @param {import('../types.js').Version_} version Arrow version value
- * @returns {import('../types.js').Schema} The schema
+ * @param {Version_} version Arrow version value
+ * @returns {Schema} The schema
  */
 export function decodeSchema(buf, index, version) {
   //  4: endianness (int16)
@@ -19,21 +22,21 @@ export function decodeSchema(buf, index, version) {
   const get = readObject(buf, index);
   return {
     version,
-    endianness: /** @type {import('../types.js').Endianness_} */ (get(4, readInt16, 0)),
+    endianness: /** @type {Endianness_} */ (get(4, readInt16, 0)),
     fields: get(6, decodeSchemaFields, []),
     metadata: get(8, decodeMetadata)
   };
 }
 
 /**
- * @returns {import('../types.js').Field[] | null}
+ * @returns {Field[] | null}
  */
 function decodeSchemaFields(buf, fieldsOffset) {
   return readVector(buf, fieldsOffset, 4, decodeField);
 }
 
 /**
- * @returns {import('../types.js').Field}
+ * @returns {Field}
  */
 function decodeField(buf, index) {
   //  4: name (string)
@@ -64,7 +67,7 @@ function decodeField(buf, index) {
 }
 
 /**
- * @returns {import('../types.js').Field[] | null}
+ * @returns {Field[] | null}
  */
 function decodeFieldChildren(buf, fieldOffset) {
   const children = readVector(buf, fieldOffset, 4, decodeField);
@@ -74,7 +77,7 @@ function decodeFieldChildren(buf, fieldOffset) {
 /**
  * @param {Uint8Array} buf
  * @param {number} index
- * @returns {import('../types.js').DictionaryType}
+ * @returns {DictionaryType}
  */
 function decodeDictionary(buf, index) {
   if (!index) return null;
@@ -95,10 +98,10 @@ function decodeDictionary(buf, index) {
  * Decode an integer data type.
  * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data.
  * @param {number} index The starting index in the byte buffer.
- * @returns {import('../types.js').IntType}
+ * @returns {IntType}
  */
 function decodeInt(buf, index) {
-  return /** @type {import('../types.js').IntType} */ (
+  return /** @type {IntType} */ (
     decodeDataType(buf, index, Type.Int)
   );
 }

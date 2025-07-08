@@ -1,3 +1,6 @@
+/**
+ * @import { RecordBatch, Version_ } from '../types.js'
+ */
 import { Version } from '../constants.js';
 import { readInt64, readObject, readOffset, readVector } from '../util/read.js';
 
@@ -5,8 +8,8 @@ import { readInt64, readObject, readOffset, readVector } from '../util/read.js';
  * Decode a record batch.
  * @param {Uint8Array} buf A byte buffer of binary Arrow IPC data
  * @param {number} index The starting index in the byte buffer
- * @param {import('../types.js').Version_} version Arrow version value
- * @returns {import('../types.js').RecordBatch} The record batch
+ * @param {Version_} version Arrow version value
+ * @returns {RecordBatch} The record batch
  */
 export function decodeRecordBatch(buf, index, version) {
   //  4: length

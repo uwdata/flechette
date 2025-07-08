@@ -1,8 +1,11 @@
+/**
+ * @import { TypedArray, TypedArrayConstructor } from '../types.js'
+ */
 import { align, grow, uint8Array } from '../util/arrays.js';
 
 /**
  * Create a new resizable buffer instance.
- * @param {import('../types.js').TypedArrayConstructor} [arrayType]
+ * @param {TypedArrayConstructor} [arrayType]
  *  The array type.
  * @returns {Buffer} The buffer.
  */
@@ -16,7 +19,7 @@ export function buffer(arrayType) {
 export class Buffer {
   /**
    * Create a new resizable buffer instance.
-   * @param {import('../types.js').TypedArrayConstructor} arrayType
+   * @param {TypedArrayConstructor} arrayType
    */
   constructor(arrayType = uint8Array) {
     this.buf = new arrayType(512);
@@ -24,7 +27,7 @@ export class Buffer {
   /**
    * Return the underlying data as a 64-bit aligned array of minimum size.
    * @param {number} size The desired minimum array size.
-   * @returns {import('../types.js').TypedArray} The 64-bit aligned array.
+   * @returns {TypedArray} The 64-bit aligned array.
    */
   array(size) {
     return align(this.buf, size);

@@ -361,3 +361,8 @@ export interface TableBuilderOptions extends ColumnBuilderOptions {
    */
   types?: Record<string, DataType>;
 }
+
+/**
+ * A map of types for representing table columns.
+ */
+export type TypeMap = Record<string, any>;

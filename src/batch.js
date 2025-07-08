@@ -1,3 +1,7 @@
+/**
+ * @import { Column } from './column.js'
+ * @import { DataType, DecimalType, IntegerArray, OffsetArray, TypedArray, TypedArrayConstructor, ValueArray } from './types.js'
+ */
 import { bisect, float64Array } from './util/arrays.js';
 import { divide, fromDecimal128, fromDecimal256, fromDecimal64, toNumber } from './util/numbers.js';
 import { decodeBit, readInt32, readInt64 } from './util/read.js';
@@ -24,7 +28,7 @@ export class Batch {
    * The array type to use when extracting data from the batch.
    * A null value indicates that the array type should match
    * the type of the batch's values array.
-   * @type {ArrayConstructor | import('./types.js').TypedArrayConstructor | null}
+   * @type {ArrayConstructor | TypedArrayConstructor | null}
    */
   static ArrayType = null;
 
@@ -33,11 +37,11 @@ export class Batch {
    * @param {object} options
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
-   * @param {import('./types.js').DataType} options.type The data type.
+   * @param {DataType} options.type The data type.
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
-   * @param {import('./types.js').TypedArray} [options.values] Values buffer
-   * @param {import('./types.js').OffsetArray} [options.offsets] Offsets buffer
-   * @param {import('./types.js').OffsetArray} [options.sizes] Sizes buffer
+   * @param {TypedArray} [options.values] Values buffer
+   * @param {OffsetArray} [options.offsets] Offsets buffer
+   * @param {OffsetArray} [options.sizes] Sizes buffer
    * @param {Batch[]} [options.children] Children batches
    */
   constructor({
@@ -109,7 +113,7 @@ export class Batch {
    * Array.slice, all arguments are required and may not be negative indices.
    * @param {number} start The starting index, inclusive
    * @param {number} end The ending index, exclusive
-   * @returns {import('./types.js').ValueArray<T?>} The slice of values
+   * @returns {ValueArray<T?>} The slice of values
    */
   slice(start, end) {
     const n = end - start;
@@ -142,9 +146,9 @@ export class DirectBatch extends Batch {
    * @param {object} options
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
-   * @param {import('./types.js').DataType} options.type The data type.
+   * @param {DataType} options.type The data type.
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
-   * @param {import('./types.js').TypedArray} options.values Values buffer
+   * @param {TypedArray} options.values Values buffer
    */
   constructor(options) {
     super(options);
@@ -160,7 +164,7 @@ export class DirectBatch extends Batch {
    * When feasible, a zero-copy subarray of a typed array is returned.
    * @param {number} start The starting index, inclusive
    * @param {number} end The ending index, exclusive
-   * @returns {import('./types.js').ValueArray<T?>} The slice of values
+   * @returns {ValueArray<T?>} The slice of values
    */
   slice(start, end) {
     // @ts-ignore
@@ -267,7 +271,7 @@ export class BoolBatch extends ArrayBatch {
 export class Decimal32NumberBatch extends NumberBatch {
   constructor(options) {
     super(options);
-    const { scale } = /** @type {import('./types.js').DecimalType} */ (this.type);
+    const { scale } = /** @type {DecimalType} */ (this.type);
     this.scale = 10 ** scale;
   }
   /**
@@ -287,7 +291,7 @@ export class Decimal32NumberBatch extends NumberBatch {
 export class DecimalBatch extends Batch {
   constructor(options) {
     super(options);
-    const { bitWidth, scale } = /** @type {import('./types.js').DecimalType} */ (this.type);
+    const { bitWidth, scale } = /** @type {DecimalType} */ (this.type);
     this.decimal = bitWidth === 64 ? fromDecimal64
       : bitWidth === 128 ? fromDecimal128
       : fromDecimal256;
@@ -515,12 +519,12 @@ export class LargeUtf8Batch extends ArrayBatch {
  * A batch of list (array) values of variable length. The list offsets are
  * 32-bit ints.
  * @template V
- * @extends {ArrayBatch<import('./types.js').ValueArray<V>>}
+ * @extends {ArrayBatch<ValueArray<V>>}
  */
 export class ListBatch extends ArrayBatch {
   /**
    * @param {number} index
-   * @returns {import('./types.js').ValueArray<V>}
+   * @returns {ValueArray<V>}
    */
   value(index) {
     const offsets = /** @type {Int32Array} */ (this.offsets);
@@ -533,12 +537,12 @@ export class ListBatch extends ArrayBatch {
  * 64-bit ints. Value extraction will fail if an offset exceeds
  * `Number.MAX_SAFE_INTEGER`.
  * @template V
- * @extends {ArrayBatch<import('./types.js').ValueArray<V>>}
+ * @extends {ArrayBatch<ValueArray<V>>}
  */
 export class LargeListBatch extends ArrayBatch {
   /**
    * @param {number} index
-   * @returns {import('./types.js').ValueArray<V>}
+   * @returns {ValueArray<V>}
    */
   value(index) {
     const offsets = /** @type {BigInt64Array} */ (this.offsets);
@@ -550,12 +554,12 @@ export class LargeListBatch extends ArrayBatch {
  * A batch of list (array) values of variable length. The list offsets and
  * sizes are 32-bit ints.
  * @template V
- * @extends {ArrayBatch<import('./types.js').ValueArray<V>>}
+ * @extends {ArrayBatch<ValueArray<V>>}
  */
 export class ListViewBatch extends ArrayBatch {
   /**
    * @param {number} index
-   * @returns {import('./types.js').ValueArray<V>}
+   * @returns {ValueArray<V>}
    */
   value(index) {
     const a = /** @type {number} */ (this.offsets[index]);
@@ -569,12 +573,12 @@ export class ListViewBatch extends ArrayBatch {
  * sizes are 64-bit ints. Value extraction will fail if an offset or size
  * exceeds `Number.MAX_SAFE_INTEGER`.
  * @template V
- * @extends {ArrayBatch<import('./types.js').ValueArray<V>>}
+ * @extends {ArrayBatch<ValueArray<V>>}
  */
 export class LargeListViewBatch extends ArrayBatch {
   /**
    * @param {number} index
-   * @returns {import('./types.js').ValueArray<V>}
+   * @returns {ValueArray<V>}
    */
   value(index) {
     const a = /** @type {bigint} */ (this.offsets[index]);
@@ -617,12 +621,12 @@ export class FixedBinaryBatch extends FixedBatch {
 /**
  * A batch of list (array) values of fixed length.
  * @template V
- * @extends {FixedBatch<import('./types.js').ValueArray<V>>}
+ * @extends {FixedBatch<ValueArray<V>>}
  */
 export class FixedListBatch extends FixedBatch {
   /**
    * @param {number} index
-   * @returns {import('./types.js').ValueArray<V>}
+   * @returns {ValueArray<V>}
    */
   value(index) {
     const { children, stride } = this;
@@ -690,7 +694,7 @@ export class SparseUnionBatch extends ArrayBatch {
    * @param {object} options
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
-   * @param {import('./types.js').DataType} options.type The data type.
+   * @param {DataType} options.type The data type.
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
    * @param {Int32Array} [options.offsets] Offsets buffer
    * @param {Batch[]} options.children Children batches
@@ -777,7 +781,7 @@ export class RunEndEncodedBatch extends ArrayBatch {
   value(index) {
     const [ { values: runs }, vals ] = this.children;
     return vals.at(
-      bisect(/** @type {import('./types.js').IntegerArray} */(runs), index)
+      bisect(/** @type {IntegerArray} */(runs), index)
     );
   }
 }
@@ -792,7 +796,7 @@ export class DictionaryBatch extends ArrayBatch {
    * Register the backing dictionary. Dictionaries are added
    * after batch creation as the complete dictionary may not
    * be finished across multiple record batches.
-   * @param {import('./column.js').Column<T>} dictionary
+   * @param {Column<T>} dictionary
    * The dictionary of column values.
    */
   setDictionary(dictionary) {
@@ -827,7 +831,7 @@ class ViewBatch extends ArrayBatch {
    * @param {object} options Batch options.
    * @param {number} options.length The length of the batch
    * @param {number} options.nullCount The null value count
-   * @param {import('./types.js').DataType} options.type The data type.
+   * @param {DataType} options.type The data type.
    * @param {Uint8Array} [options.validity] Validity bitmap buffer
    * @param {Uint8Array} options.values Values buffer
    * @param {Uint8Array[]} options.data View data buffers

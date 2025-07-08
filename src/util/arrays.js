@@ -1,3 +1,6 @@
+/**
+ * @import { Int64ArrayConstructor, IntArrayConstructor, IntegerArray, TypedArray } from '../types.js'
+ */
 export const uint8Array = Uint8Array;
 export const uint16Array = Uint16Array;
 export const uint32Array = Uint32Array;
@@ -14,7 +17,7 @@ export const float64Array = Float64Array;
  * integer type metadata.
  * @param {number} bitWidth The integer size in bits.
  * @param {boolean} signed Flag indicating if the integer is signed.
- * @returns {import('../types.js').IntArrayConstructor}
+ * @returns {IntArrayConstructor}
  */
 export function intArrayType(bitWidth, signed) {
   const i = Math.log2(bitWidth) - 3;
@@ -31,7 +34,7 @@ const TypedArray = Object.getPrototypeOf(Int8Array);
 /**
  * Check if a value is a typed array.
  * @param {*} value The value to check.
- * @returns {value is import('../types.js').TypedArray}
+ * @returns {value is TypedArray}
  *  True if value is a typed array, false otherwise.
  */
 export function isTypedArray(value) {
@@ -41,7 +44,7 @@ export function isTypedArray(value) {
 /**
  * Check if a value is either a standard array or typed array.
  * @param {*} value The value to check.
- * @returns {value is (Array | import('../types.js').TypedArray)}
+ * @returns {value is (Array | TypedArray)}
  *  True if value is an array, false otherwise.
  */
 export function isArray(value) {
@@ -52,7 +55,7 @@ export function isArray(value) {
  * Check if a value is an array type (constructor) for 64-bit integers,
  * one of BigInt64Array or BigUint64Array.
  * @param {*} value The value to check.
- * @returns {value is import('../types.js').Int64ArrayConstructor}
+ * @returns {value is Int64ArrayConstructor}
  *  True if value is a 64-bit array type, false otherwise.
  */
 export function isInt64ArrayType(value) {
@@ -63,7 +66,7 @@ export function isInt64ArrayType(value) {
  * Determine the correct index into an offset array for a given
  * full column row index. Assumes offset indices can be manipulated
  * as 32-bit signed integers.
- * @param {import('../types.js').IntegerArray} offsets The offsets array.
+ * @param {IntegerArray} offsets The offsets array.
  * @param {number} index The full column row index.
  */
 export function bisect(offsets, index) {
@@ -101,7 +104,7 @@ function align64(length, bpe = 1) {
 
 /**
  * Return a 64-bit aligned version of the array.
- * @template {import('../types.js').TypedArray} T
+ * @template {TypedArray} T
  * @param {T} array The array.
  * @param {number} length The current array length.
  * @returns {T} The aligned array.
@@ -115,7 +118,7 @@ export function align(array, length = array.length) {
 
 /**
  * Resize a typed array to exactly the specified length.
- * @template {import('../types.js').TypedArray} T
+ * @template {TypedArray} T
  * @param {T} array The array.
  * @param {number} newLength The new length.
  * @param {number} [offset] The offset at which to copy the old array.
@@ -131,7 +134,7 @@ export function resize(array, newLength, offset = 0) {
 /**
  * Grow a typed array to accommdate a minimum index. The array size is
  * doubled until it exceeds the minimum index.
- * @template {import('../types.js').TypedArray} T
+ * @template {TypedArray} T
  * @param {T} array The array.
  * @param {number} index The minimum index.
  * @param {boolean} [shift] Flag to shift copied bytes to back of array.

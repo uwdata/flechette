@@ -1,3 +1,6 @@
+/**
+ * @import { TimeUnit_, TypedArray } from '../types.js';
+ */
 import { float64Array, int32Array, int64Array, isInt64ArrayType, uint32Array, uint8Array } from './arrays.js';
 import { TimeUnit } from '../constants.js';
 
@@ -30,7 +33,7 @@ export function toBigInt(value) {
 
 /**
  * Return an offset conversion method for the given data type.
- * @param {{ offsets: import('../types.js').TypedArray}} type The array type.
+ * @param {{ offsets: TypedArray}} type The array type.
  */
 export function toOffset(type) {
   return isInt64ArrayType(type) ? toBigInt : identity;
@@ -47,7 +50,7 @@ export function toDateDay(value) {
 
 /**
  * Return a timestamp conversion method for the given time unit.
- * @param {import('../types.js').TimeUnit_} unit The time unit.
+ * @param {TimeUnit_} unit The time unit.
  * @returns {(value: number) => bigint} The conversion method.
  */
 export function toTimestamp(unit) {
