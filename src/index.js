@@ -40,6 +40,8 @@ export {
   largeListView
 } from './data-types.js';
 
+export { RowIndex } from './util/struct.js';
+
 export { Batch } from './batch.js';
 export { Column } from './column.js';
 export { Table } from './table.js';
