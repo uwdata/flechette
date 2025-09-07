@@ -36,11 +36,11 @@
     "@rollup/plugin-terser": "^0.4.4",
     "apache-arrow": "^21.0.0",
     "duckdb": "~1.1.3",
-    "eslint": "^9.30.1",
-    "mocha": "^11.7.1",
+    "eslint": "^9.35.0",
+    "mocha": "^11.7.2",
     "rimraf": "^6.0.1",
-    "rollup": "^4.44.2",
+    "rollup": "^4.50.1",
     "rollup-plugin-bundle-size": "^1.0.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   }
 }
