@@ -1,9 +1,17 @@
+/**
+ * @import { DataType, ExtractionOptions } from './types.js';
+ */
 import { BinaryBatch, BinaryViewBatch, BoolBatch, DateBatch, DateDayBatch, DateDayMillisecondBatch, Decimal32NumberBatch, DecimalBigIntBatch, DecimalNumberBatch, DenseUnionBatch, DictionaryBatch, DirectBatch, FixedBinaryBatch, FixedListBatch, Float16Batch, Int64Batch, IntervalDayTimeBatch, IntervalMonthDayNanoBatch, LargeBinaryBatch, LargeListBatch, LargeListViewBatch, LargeUtf8Batch, ListBatch, ListViewBatch, MapBatch, MapEntryBatch, NullBatch, RunEndEncodedBatch, SparseUnionBatch, StructBatch, StructProxyBatch, TimestampMicrosecondBatch, TimestampMillisecondBatch, TimestampNanosecondBatch, TimestampSecondBatch, Utf8Batch, Utf8ViewBatch } from './batch.js';
 import { DateUnit, IntervalUnit, TimeUnit, Type } from './constants.js';
 import { invalidDataType } from './data-types.js';
 
+/**
+ * Return a batch constructor for the given data type and extraction options.
+ * @param {DataType} type The data type.
+ * @param {ExtractionOptions} options The extraction options.
+ */
 export function batchType(type, options = {}) {
-  const { typeId, bitWidth, precision, unit } = type;
+  const { typeId, bitWidth, mode, precision, unit } = /** @type {any} */(type);
   const { useBigInt, useDate, useDecimalInt, useMap, useProxy } = options;
 
   switch (typeId) {
@@ -52,7 +60,7 @@ export function batchType(type, options = {}) {
     case Type.Struct: return useProxy ? StructProxyBatch : StructBatch;
     case Type.RunEndEncoded: return RunEndEncodedBatch;
     case Type.Dictionary: return DictionaryBatch;
-    case Type.Union: return type.mode ? DenseUnionBatch : SparseUnionBatch;
+    case Type.Union: return mode ? DenseUnionBatch : SparseUnionBatch;
   }
   throw new Error(invalidDataType(typeId));
 }
