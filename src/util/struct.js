@@ -1,6 +1,10 @@
 /**
  * @import { Batch } from '../batch.js';
  */
+
+/**
+ * Symbol for the row index value of a struct object proxy.
+ */
 export const RowIndex = Symbol('rowIndex');
 
 /**

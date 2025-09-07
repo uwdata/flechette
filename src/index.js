@@ -40,8 +40,6 @@ export {
   largeListView
 } from './data-types.js';
 
-export { RowIndex } from './util/struct.js';
-
 export { Batch } from './batch.js';
 export { Column } from './column.js';
 export { Table } from './table.js';
@@ -53,3 +51,4 @@ export { tableFromColumns } from './build/table-from-columns.js';
 export { columnFromArray } from './build/column-from-array.js';
 export { columnFromValues } from './build/column-from-values.js';
 export { dictionaryContext } from './build/builders/dictionary.js';
+export { RowIndex } from './util/struct.js';

@@ -19,8 +19,8 @@ export function columnBuilder(type) {
 
 /**
  * A data column. A column provides a view over one or more value batches,
- * each drawn from an Arrow record batch. While this class supports random
- * access to column values by integer index; however, extracting arrays using
+ * each drawn from an Arrow record batch. This class supports random access
+ * to column values by integer index; however, extracting arrays using
  * `toArray()` or iterating over values (`for (const value of column) {...}`)
  * provide more efficient ways for bulk access or scanning.
  * @template T
