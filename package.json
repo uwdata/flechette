@@ -1,6 +1,6 @@
 {
   "name": "@uwdata/flechette",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Fast, lightweight access to Apache Arrow data.",
   "keywords": [
     "arrow",
