@@ -2,6 +2,7 @@
  * @import { ArrowData, Version_ } from '../types.js'
  */
 import { MAGIC, MessageHeader, Version } from '../constants.js';
+import { isArrayBufferLike } from '../util/arrays.js';
 import { readInt16, readInt32, readObject } from '../util/read.js';
 import { decodeBlocks } from './block.js';
 import { decodeMessage } from './message.js';
@@ -25,9 +26,7 @@ import { decodeSchema } from './schema.js';
  * @returns {import('../types.js').ArrowData}
  */
 export function decodeIPC(data) {
-  const source = data instanceof ArrayBuffer || data instanceof SharedArrayBuffer
-    ? new Uint8Array(data)
-    : data;
+  const source = isArrayBufferLike(data) ? new Uint8Array(data) : data;
   return source instanceof Uint8Array && isArrowFileFormat(source)
     ? decodeIPCFile(source)
     : decodeIPCStream(source);

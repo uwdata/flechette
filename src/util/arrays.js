@@ -13,6 +13,18 @@ export const float32Array = Float32Array;
 export const float64Array = Float64Array;
 
 /**
+ * Check if an input value is an ArrayBuffer or SharedArrayBuffer.
+ * @param {unknown} data
+ * @returns {data is ArrayBufferLike}
+ */
+export function isArrayBufferLike(data) {
+  return data instanceof ArrayBuffer || (
+    typeof SharedArrayBuffer !== 'undefined' &&
+    data instanceof SharedArrayBuffer
+  );
+}
+
+/**
  * Return the appropriate typed array constructor for the given
  * integer type metadata.
  * @param {number} bitWidth The integer size in bits.
