@@ -18,14 +18,14 @@ import { decodeSchema } from './schema.js';
  * `createData()` method on the result to enable column data access.
  *
  * [1]: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
- * @param {ArrayBuffer | Uint8Array | Uint8Array[]} data
+ * @param {ArrayBufferLike | Uint8Array | Uint8Array[]} data
  *  The source byte buffer, or an array of buffers. If an array, each byte
  *  array may contain one or more self-contained messages. Messages may NOT
  *  span multiple byte arrays.
  * @returns {import('../types.js').ArrowData}
  */
 export function decodeIPC(data) {
-  const source = data instanceof ArrayBuffer
+  const source = data instanceof ArrayBuffer || data instanceof SharedArrayBuffer
     ? new Uint8Array(data)
     : data;
   return source instanceof Uint8Array && isArrowFileFormat(source)
