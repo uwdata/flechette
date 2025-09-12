@@ -16,7 +16,7 @@ import { decodeIPC } from './decode-ipc.js';
  *
  * [1]: https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc
  * [2]: https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format
- * @param {ArrayBuffer | Uint8Array | Uint8Array[]} data
+ * @param {ArrayBufferLike | Uint8Array | Uint8Array[]} data
  *  The source byte buffer, or an array of buffers. If an array, each byte
  *  array may contain one or more self-contained messages. Messages may NOT
  *  span multiple byte arrays.
