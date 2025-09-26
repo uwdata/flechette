@@ -226,11 +226,11 @@ function assembleRecordBatch(columns, batchIndex = 0) {
 function visit(type, batch, ctx) {
   const { typeId } = type;
 
-  // no field node, no buffers
-  if (typeId === Type.Null) return;
-
-  // record field node info
+  // record field node info - ALL fields need field nodes, including nulls
   ctx.node(batch.length, batch.nullCount);
+
+  // null fields have field nodes but no data buffers
+  if (typeId === Type.Null) return;
 
   switch (typeId) {
     // validity and value buffers
