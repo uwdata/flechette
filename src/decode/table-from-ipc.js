@@ -137,16 +137,16 @@ function contextGenerator(options, version, dictionaryMap) {
  */
 function visit(type, ctx) {
   const { typeId } = type;
-  const { length, options, node, buffer, variadic, version } = ctx;
+  const { options, node, buffer, variadic, version } = ctx;
   const BatchType = batchType(type, options);
 
-  if (typeId === Type.Null) {
-    // no field node, no buffers
-    return new BatchType({ length, nullCount: length, type });
-  }
-
-  // extract the next { length, nullCount } field node
+  // extract the next { length, nullCount } field node - ALL fields have field nodes
   const base = { ...node(), type };
+
+  if (typeId === Type.Null) {
+    // null fields have field nodes but no data buffers
+    return new BatchType({ ...base, nullCount: base.length });
+  }
 
   switch (typeId) {
     // validity and data value buffers
