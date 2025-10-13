@@ -98,4 +98,78 @@ describe('Null field compatibility', () => {
     assert.deepStrictEqual(Array.from(mixedData), [1, null, 3, null, 5]);
     assert.deepStrictEqual(Array.from(nullData), [null, null, null, null, null]);
   });
+
+  it('handles null-type column NOT in last position (field node alignment bug)', async () => {
+    // Regression test: 2.2.4 added null column support (7b9b5eb), but the encoder/decoder
+    // got out of sync. Encoder wrote field nodes for null columns, decoder didn't read them.
+    // Result: columns after null-type columns read wrong field nodes and got corrupted.
+
+    // Test data generated with flechette itself, contains:
+    // - strings column: ['s1', 's2', 's3']
+    // - nulls column: [null, null, null] (Type.Null)
+    // - floats column: [3.14, 3.14, 3.14]
+    const bytes = new Uint8Array(await readFile('test/data/null_not_last.arrows'));
+    const table = tableFromIPC(bytes);
+
+    assert.strictEqual(table.numRows, 3);
+    assert.strictEqual(table.numCols, 3);
+
+    const fields = table.schema.fields;
+    assert.strictEqual(fields[0].name, 'strings');
+    assert.strictEqual(fields[1].name, 'nulls');
+    assert.strictEqual(fields[2].name, 'floats');
+    assert.strictEqual(fields[1].type.typeId, 1); // Type.Null
+
+    const strings = table.getChild('strings');
+    const nulls = table.getChild('nulls');
+    const floats = table.getChild('floats');
+
+    // Validate strings column
+    assert.deepStrictEqual(Array.from(strings.toArray()), ['s1', 's2', 's3']);
+    assert.strictEqual(strings.data[0].nullCount, 0);
+
+    // Validate nulls column
+    assert.deepStrictEqual(Array.from(nulls.toArray()), [null, null, null]);
+    assert.strictEqual(nulls.data[0].nullCount, 3);
+
+    // Critical: floats column after null-type column must decode correctly
+    // Bug would cause: nullCount=3, values=[null, null, null]
+    assert.strictEqual(floats.data[0].nullCount, 0);
+    assert.strictEqual(floats.data[0].length, 3);
+    assert.deepStrictEqual(Array.from(floats.toArray()), [3.14, 3.14, 3.14]);
+  });
+
+  it('handles multiple consecutive null-type columns', () => {
+    // Edge case: multiple null-type columns in a row
+    const table = tableFromColumns({
+      str1: columnFromArray(['a', 'b']),
+      null1: columnFromArray([null, null]),
+      null2: columnFromArray([null, null]),
+      float: columnFromArray([3.14, 3.14])
+    });
+
+    const bytes = tableToIPC(table, { format: 'stream' });
+    const decoded = tableFromIPC(bytes);
+
+    assert.strictEqual(decoded.numRows, 2);
+    assert.strictEqual(decoded.numCols, 4);
+
+    // All columns must decode correctly despite two null columns in between
+    const str1 = decoded.getChild('str1');
+    const null1 = decoded.getChild('null1');
+    const null2 = decoded.getChild('null2');
+    const float = decoded.getChild('float');
+
+    assert.deepStrictEqual(Array.from(str1.toArray()), ['a', 'b']);
+    assert.strictEqual(str1.data[0].nullCount, 0);
+
+    assert.deepStrictEqual(Array.from(null1.toArray()), [null, null]);
+    assert.strictEqual(null1.data[0].nullCount, 2);
+
+    assert.deepStrictEqual(Array.from(null2.toArray()), [null, null]);
+    assert.strictEqual(null2.data[0].nullCount, 2);
+
+    assert.deepStrictEqual(Array.from(float.toArray()), [3.14, 3.14]);
+    assert.strictEqual(float.data[0].nullCount, 0);
+  });
 });
