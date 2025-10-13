@@ -137,7 +137,7 @@ function contextGenerator(options, version, dictionaryMap) {
  */
 function visit(type, ctx) {
   const { typeId } = type;
-  const { length, options, node, buffer, variadic, version } = ctx;
+  const { options, node, buffer, variadic, version } = ctx;
   const BatchType = batchType(type, options);
 
   // extract the next { length, nullCount } field node - ALL fields have field nodes
