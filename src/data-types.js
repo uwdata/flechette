@@ -308,9 +308,9 @@ export const dateMillisecond = () => date(DateUnit.MILLISECOND);
 
 /**
  * Return a Time data type instance, stored in one of four *unit*s: seconds,
- * milliseconds, microseconds or nanoseconds. The integer *bitWidth* depends
- * on the *unit* and must be 32 bits for seconds and milliseconds or 64 bits
- * for microseconds and nanoseconds. The allowed values are between 0
+ * milliseconds, microseconds or nanoseconds. The integer *bitWidth* is
+ * inferred from the *unit* and is 32 bits for seconds and milliseconds or
+ * 64 bits for microseconds and nanoseconds. The allowed values are between 0
  * (inclusive) and 86400 (=24*60*60) seconds (exclusive), adjusted for the
  * time unit (for example, up to 86400000 exclusive for the
  * `DateUnit.MILLISECOND` unit.
@@ -321,36 +321,38 @@ export const dateMillisecond = () => date(DateUnit.MILLISECOND);
  * @param {TimeUnit_} unit The time unit.
  *  One of `TimeUnit.SECOND`, `TimeUnit.MILLISECOND` (default),
  *  `TimeUnit.MICROSECOND`, or `TimeUnit.NANOSECOND`.
- * @param {32 | 64} bitWidth The time bit width. One of `32` (for seconds
- *  and milliseconds) or `64` (for microseconds and nanoseconds).
  * @returns {TimeType} The time data type.
  */
-export const time = (unit = TimeUnit.MILLISECOND, bitWidth = 32) => ({
-  typeId: Type.Time,
-  unit: checkOneOf(unit, TimeUnit),
-  bitWidth: checkOneOf(bitWidth, [32, 64]),
-  values: bitWidth === 32 ? int32Array : int64Array
-});
+export const time = (unit = TimeUnit.MILLISECOND) => {
+  const checked = checkOneOf(unit, TimeUnit);
+  const bitWidth = checked === TimeUnit.SECOND || checked === TimeUnit.MILLISECOND ? 32 : 64;
+  return {
+    typeId: Type.Time,
+    unit: checked,
+    bitWidth,
+    values: bitWidth === 32 ? int32Array : int64Array
+  };
+};
 /**
  * Return a Time data type instance, represented as seconds.
  * @returns {TimeType} The time data type.
  */
-export const timeSecond = () => time(TimeUnit.SECOND, 32);
+export const timeSecond = () => time(TimeUnit.SECOND);
 /**
  * Return a Time data type instance, represented as milliseconds.
  * @returns {TimeType} The time data type.
  */
-export const timeMillisecond = () => time(TimeUnit.MILLISECOND, 32);
+export const timeMillisecond = () => time(TimeUnit.MILLISECOND);
 /**
  * Return a Time data type instance, represented as microseconds.
  * @returns {TimeType} The time data type.
  */
-export const timeMicrosecond = () => time(TimeUnit.MICROSECOND, 64);
+export const timeMicrosecond = () => time(TimeUnit.MICROSECOND);
 /**
  * Return a Time data type instance, represented as nanoseconds.
  * @returns {TimeType} The time data type.
  */
-export const timeNanosecond = () => time(TimeUnit.NANOSECOND, 64);
+export const timeNanosecond = () => time(TimeUnit.NANOSECOND);
 
 /**
  * Return a Timestamp data type instance. Timestamp values are 64-bit signed

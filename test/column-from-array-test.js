@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { IntervalUnit, TimeUnit, UnionMode, binary, bool, columnFromArray, dateDay, dateMillisecond, decimal, dictionary, duration, field, fixedSizeBinary, fixedSizeList, float16, float32, float64, int16, int32, int64, int8, interval, largeBinary, largeList, largeUtf8, list, map, nullType, runEndEncoded, struct, timeMicrosecond, timeMillisecond, timeNanosecond, timeSecond, timestamp, uint16, uint32, uint64, uint8, union, utf8 } from '../src/index.js';
+import { IntervalUnit, TimeUnit, UnionMode, binary, bool, columnFromArray, dateDay, dateMillisecond, decimal, dictionary, duration, field, fixedSizeBinary, fixedSizeList, float16, float32, float64, int16, int32, int64, int8, interval, largeBinary, largeList, largeUtf8, list, map, nullType, runEndEncoded, struct, time, timeMicrosecond, timeMillisecond, timeNanosecond, timeSecond, timestamp, uint16, uint32, uint64, uint8, union, utf8 } from '../src/index.js';
 import { isTypedArray } from '../src/util/arrays.js';
 
 function test(values, type, options) {
@@ -151,6 +151,13 @@ describe('columnFromArray', () => {
     test(bigints, timeNanosecond(), opt);
     test(bigints.concat(86400000000n), timeMicrosecond(), opt);
     test(bigints.concat(86400000000000n), timeNanosecond(), opt);
+  });
+
+  it('infers correct bitWidth for time units', () => {
+    assert.strictEqual(time(TimeUnit.SECOND).bitWidth, 32);
+    assert.strictEqual(time(TimeUnit.MILLISECOND).bitWidth, 32);
+    assert.strictEqual(time(TimeUnit.MICROSECOND).bitWidth, 64);
+    assert.strictEqual(time(TimeUnit.NANOSECOND).bitWidth, 64);
   });
 
   it('builds timestamp columns', () => {
