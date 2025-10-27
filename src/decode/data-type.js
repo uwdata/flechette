@@ -53,8 +53,7 @@ export function decodeDataType(buf, index, typeId, children) {
     );
     case Type.Time: return time(
       // @ts-ignore
-      get(4, readInt16, TimeUnit.MILLISECOND), // unit
-      get(6, readInt32, 32) // bitWidth
+      get(4, readInt16, TimeUnit.MILLISECOND) // unit
     );
     case Type.Timestamp: return timestamp(
       // @ts-ignore
