@@ -324,11 +324,11 @@ export const dateMillisecond = () => date(DateUnit.MILLISECOND);
  * @returns {TimeType} The time data type.
  */
 export const time = (unit = TimeUnit.MILLISECOND) => {
-  const checked = checkOneOf(unit, TimeUnit);
-  const bitWidth = checked === TimeUnit.SECOND || checked === TimeUnit.MILLISECOND ? 32 : 64;
+  unit = checkOneOf(unit, TimeUnit);
+  const bitWidth = unit === TimeUnit.SECOND || unit === TimeUnit.MILLISECOND ? 32 : 64;
   return {
     typeId: Type.Time,
-    unit: checked,
+    unit,
     bitWidth,
     values: bitWidth === 32 ? int32Array : int64Array
   };
