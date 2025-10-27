@@ -20,7 +20,7 @@ export function isIterable(value) {
  * Return the input value if it passes a test.
  * Otherwise throw an error using the given message generator.
  * @template T
- * @param {T} value he value to check.
+ * @param {T} value The value to check.
  * @param {(value: T) => boolean} test The test function.
  * @param {(value: *) => string} message Message generator.
  * @returns {T} The input value.
