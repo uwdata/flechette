@@ -1,6 +1,6 @@
 {
   "name": "@uwdata/flechette",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "Fast, lightweight access to Apache Arrow data.",
   "keywords": [
     "arrow",
@@ -34,12 +34,12 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
-    "apache-arrow": "^21.0.0",
+    "apache-arrow": "^21.1.0",
     "duckdb": "~1.1.3",
-    "eslint": "^9.36.0",
+    "eslint": "^9.38.0",
     "mocha": "^11.7.4",
     "rimraf": "^6.0.1",
-    "rollup": "^4.52.3",
+    "rollup": "^4.52.5",
     "rollup-plugin-bundle-size": "^1.0.3",
     "typescript": "^5.9.3"
   }
