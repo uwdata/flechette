@@ -75,6 +75,10 @@ export function decodeMessage(buf, index) {
       }
       // @ts-ignore
       content.body = body;
+    } else if (type !== MessageHeader.Schema) {
+      // table-from-ipc.js buffer accessor requires body to exist, even for empty batches
+      // @ts-ignore
+      content.body = new Uint8Array(0);
     }
   }
 
