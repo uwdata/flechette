@@ -50,7 +50,7 @@ function decodeField(buf, index) {
   const typeId = get(8, readUint8, Type.NONE);
   const typeOffset = get(10, readOffset, 0);
   const dict = get(12, decodeDictionary);
-  const children = get(14, (buf, off) => decodeFieldChildren(buf, off));
+  const children = get(14, decodeFieldChildren, []);
 
   let type = decodeDataType(buf, typeOffset, typeId, children);
   if (dict) {
