@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { tableFromIPC, tableToIPC } from '../src/index.js';
 import assert from 'node:assert';
 
