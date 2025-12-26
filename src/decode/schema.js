@@ -67,11 +67,10 @@ function decodeField(buf, index) {
 }
 
 /**
- * @returns {Field[] | null}
+ * @returns {Field[]}
  */
 function decodeFieldChildren(buf, fieldOffset) {
-  const children = readVector(buf, fieldOffset, 4, decodeField);
-  return children.length ? children : null;
+  return readVector(buf, fieldOffset, 4, decodeField);
 }
 
 /**
