@@ -434,7 +434,7 @@ export const list = (child) => ({
  */
 export const struct = (children) => ({
   typeId: Type.Struct,
-  children: Array.isArray(children) && isField(children[0])
+  children: Array.isArray(children) && children.length > 0 && isField(children[0])
     ? /** @type {Field[]} */ (children)
     : Object.entries(children).map(([name, type]) => field(name, type))
 });
