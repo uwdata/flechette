@@ -1,4 +1,4 @@
-import assert from 'node:assert';
+import { describe, it, expect } from "vitest";
 import { DirectBatch } from '../src/batch.js';
 
 describe('DirectBatch', () => {
@@ -8,8 +8,8 @@ describe('DirectBatch', () => {
       nullCount: 0,
       values: Int32Array.of(1, 2, 3, 4, 5, 6, 7, 8)
     });
-    assert.deepEqual(b.length, 4);
-    assert.deepEqual([...b].length, 4);
-    assert.deepEqual(b.value(4), undefined);
+    expect(b.length).toBe(4);
+    expect([...b].length).toBe(4);
+    expect(b.value(4)).toBeUndefined();
   });
 });

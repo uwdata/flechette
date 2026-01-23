@@ -1,4 +1,4 @@
-import assert from 'node:assert';
+import { describe, it, expect } from "vitest";
 import { readFile } from 'node:fs/promises';
 import { tableFromColumns, columnFromArray, tableFromIPC, tableToIPC } from '../src/index.js';
 
@@ -8,32 +8,32 @@ describe('Null field compatibility', () => {
     const fileBytes = new Uint8Array(await readFile('test/data/null_test.arrow'));
     const fileTable = tableFromIPC(fileBytes);
     
-    assert.strictEqual(fileTable.numRows, 4);
-    assert.strictEqual(fileTable.numCols, 3);
+    expect(fileTable.numRows).toBe(4);
+    expect(fileTable.numCols).toBe(3);
     
     // Check schema
     const fields = fileTable.schema.fields;
-    assert.strictEqual(fields.length, 3);
-    assert.strictEqual(fields[0].name, 'numbers');
-    assert.strictEqual(fields[1].name, 'text');
-    assert.strictEqual(fields[2].name, 'nulls');
-    assert.strictEqual(fields[2].type.typeId, 1); // Type.Null
+    expect(fields.length).toBe(3);
+    expect(fields[0].name).toBe('numbers');
+    expect(fields[1].name).toBe('text');
+    expect(fields[2].name).toBe('nulls');
+    expect(fields[2].type.typeId).toBe(1); // Type.Null
     
     // Check data
     const numbers = fileTable.getChildAt(0).toArray();
     const text = fileTable.getChildAt(1).toArray();
     const nulls = fileTable.getChildAt(2).toArray();
     
-    assert.deepStrictEqual(Array.from(numbers), [1, 2, 3, 4]);
-    assert.deepStrictEqual(Array.from(text), ['hello', 'world', 'test', 'null']);
-    assert.deepStrictEqual(Array.from(nulls), [null, null, null, null]);
+    expect(Array.from(numbers)).toStrictEqual([1, 2, 3, 4]);
+    expect(Array.from(text)).toStrictEqual(['hello', 'world', 'test', 'null']);
+    expect(Array.from(nulls)).toStrictEqual([null, null, null, null]);
     
     // Test stream format
     const streamBytes = new Uint8Array(await readFile('test/data/null_test.arrows'));
     const streamTable = tableFromIPC(streamBytes);
     
-    assert.strictEqual(streamTable.numRows, 4);
-    assert.strictEqual(streamTable.numCols, 3);
+    expect(streamTable.numRows).toBe(4);
+    expect(streamTable.numCols).toBe(3);
   });
 
   it('creates files with null columns that PyArrow can read', () => {
@@ -57,17 +57,17 @@ describe('Null field compatibility', () => {
     const streamTable = tableFromIPC(streamBytes);
     
     // Verify structure
-    assert.strictEqual(fileTable.numRows, 3);
-    assert.strictEqual(fileTable.numCols, 3);
-    assert.strictEqual(streamTable.numRows, 3);
-    assert.strictEqual(streamTable.numCols, 3);
+    expect(fileTable.numRows).toBe(3);
+    expect(fileTable.numCols).toBe(3);
+    expect(streamTable.numRows).toBe(3);
+    expect(streamTable.numCols).toBe(3);
     
     // Verify null column is preserved
     const nullField = fileTable.schema.fields.find(f => f.name === 'nulls');
-    assert.strictEqual(nullField.type.typeId, 1); // Type.Null
+    expect(nullField.type.typeId).toBe(1); // Type.Null
     
     const nullData = fileTable.getChild('nulls').toArray();
-    assert.deepStrictEqual(Array.from(nullData), [null, null, null]);
+    expect(Array.from(nullData)).toStrictEqual([null, null, null]);
   });
 
   it('handles mixed null and non-null data correctly', () => {
@@ -85,18 +85,18 @@ describe('Null field compatibility', () => {
     
     // Verify the mixed column (should not be Type.Null)
     const mixedField = roundTrip.schema.fields.find(f => f.name === 'mixed');
-    assert.notStrictEqual(mixedField.type.typeId, 1); // Should be Int type, not Null
+    expect(mixedField.type.typeId).not.toBe(1); // Should be Int type, not Null
     
     // Verify the pure null column (should be Type.Null)
     const nullField = roundTrip.schema.fields.find(f => f.name === 'pure_nulls');
-    assert.strictEqual(nullField.type.typeId, 1); // Should be Type.Null
+    expect(nullField.type.typeId).toBe(1); // Should be Type.Null
     
     // Verify data integrity
     const mixedData = roundTrip.getChild('mixed').toArray();
     const nullData = roundTrip.getChild('pure_nulls').toArray();
     
-    assert.deepStrictEqual(Array.from(mixedData), [1, null, 3, null, 5]);
-    assert.deepStrictEqual(Array.from(nullData), [null, null, null, null, null]);
+    expect(Array.from(mixedData)).toStrictEqual([1, null, 3, null, 5]);
+    expect(Array.from(nullData)).toStrictEqual([null, null, null, null, null]);
   });
 
   it('handles null-type column NOT in last position (field node alignment bug)', async () => {
@@ -111,32 +111,32 @@ describe('Null field compatibility', () => {
     const bytes = new Uint8Array(await readFile('test/data/null_not_last.arrows'));
     const table = tableFromIPC(bytes);
 
-    assert.strictEqual(table.numRows, 3);
-    assert.strictEqual(table.numCols, 3);
+    expect(table.numRows).toBe(3);
+    expect(table.numCols).toBe(3);
 
     const fields = table.schema.fields;
-    assert.strictEqual(fields[0].name, 'strings');
-    assert.strictEqual(fields[1].name, 'nulls');
-    assert.strictEqual(fields[2].name, 'floats');
-    assert.strictEqual(fields[1].type.typeId, 1); // Type.Null
+    expect(fields[0].name).toBe('strings');
+    expect(fields[1].name).toBe('nulls');
+    expect(fields[2].name).toBe('floats');
+    expect(fields[1].type.typeId).toBe(1); // Type.Null
 
     const strings = table.getChild('strings');
     const nulls = table.getChild('nulls');
     const floats = table.getChild('floats');
 
     // Validate strings column
-    assert.deepStrictEqual(Array.from(strings.toArray()), ['s1', 's2', 's3']);
-    assert.strictEqual(strings.data[0].nullCount, 0);
+    expect(Array.from(strings.toArray())).toStrictEqual(['s1', 's2', 's3']);
+    expect(strings.data[0].nullCount).toBe(0);
 
     // Validate nulls column
-    assert.deepStrictEqual(Array.from(nulls.toArray()), [null, null, null]);
-    assert.strictEqual(nulls.data[0].nullCount, 3);
+    expect(Array.from(nulls.toArray())).toStrictEqual([null, null, null]);
+    expect(nulls.data[0].nullCount).toBe(3);
 
     // Critical: floats column after null-type column must decode correctly
     // Bug would cause: nullCount=3, values=[null, null, null]
-    assert.strictEqual(floats.data[0].nullCount, 0);
-    assert.strictEqual(floats.data[0].length, 3);
-    assert.deepStrictEqual(Array.from(floats.toArray()), [3.14, 3.14, 3.14]);
+    expect(floats.data[0].nullCount).toBe(0);
+    expect(floats.data[0].length).toBe(3);
+    expect(Array.from(floats.toArray())).toStrictEqual([3.14, 3.14, 3.14]);
   });
 
   it('handles multiple consecutive null-type columns', () => {
@@ -151,8 +151,8 @@ describe('Null field compatibility', () => {
     const bytes = tableToIPC(table, { format: 'stream' });
     const decoded = tableFromIPC(bytes);
 
-    assert.strictEqual(decoded.numRows, 2);
-    assert.strictEqual(decoded.numCols, 4);
+    expect(decoded.numRows).toBe(2);
+    expect(decoded.numCols).toBe(4);
 
     // All columns must decode correctly despite two null columns in between
     const str1 = decoded.getChild('str1');
@@ -160,16 +160,16 @@ describe('Null field compatibility', () => {
     const null2 = decoded.getChild('null2');
     const float = decoded.getChild('float');
 
-    assert.deepStrictEqual(Array.from(str1.toArray()), ['a', 'b']);
-    assert.strictEqual(str1.data[0].nullCount, 0);
+    expect(Array.from(str1.toArray())).toStrictEqual(['a', 'b']);
+    expect(str1.data[0].nullCount).toBe(0);
 
-    assert.deepStrictEqual(Array.from(null1.toArray()), [null, null]);
-    assert.strictEqual(null1.data[0].nullCount, 2);
+    expect(Array.from(null1.toArray())).toStrictEqual([null, null]);
+    expect(null1.data[0].nullCount).toBe(2);
 
-    assert.deepStrictEqual(Array.from(null2.toArray()), [null, null]);
-    assert.strictEqual(null2.data[0].nullCount, 2);
+    expect(Array.from(null2.toArray())).toStrictEqual([null, null]);
+    expect(null2.data[0].nullCount).toBe(2);
 
-    assert.deepStrictEqual(Array.from(float.toArray()), [3.14, 3.14]);
-    assert.strictEqual(float.data[0].nullCount, 0);
+    expect(Array.from(float.toArray())).toStrictEqual([3.14, 3.14]);
+    expect(float.data[0].nullCount).toBe(0);
   });
 });

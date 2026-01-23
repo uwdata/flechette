@@ -29,17 +29,18 @@
     "types": "tsc --project tsconfig.json",
     "postbuild": "npm run types",
     "lint": "eslint src test",
-    "test": "mocha 'test/**/*-test.js'",
+    "test:unit": "vitest",
+		"test": "vitest --run",
     "prepublishOnly": "npm run test && npm run lint && npm run build"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "apache-arrow": "^21.1.0",
     "eslint": "^9.39.2",
-    "mocha": "^11.7.5",
     "rimraf": "^6.1.2",
     "rollup": "^4.56.0",
     "rollup-plugin-bundle-size": "^1.0.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
