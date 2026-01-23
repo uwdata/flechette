@@ -5,7 +5,7 @@ import { decimalDataDecoded } from './util/decimal.js';
 
 describe('decodeIPC', () => {
   it('decodes arrow file format', async () => {
-    const buffer = await readFile(`test/data/decimal.arrow`);
+    const buffer = await readFile(`test/data/decimal_test.arrow`);
     const bytes = new Uint8Array(buffer);
     const expect = decimalDataDecoded();
     assert.deepEqual(decodeIPC(buffer), expect, 'Node Buffer');
@@ -14,7 +14,7 @@ describe('decodeIPC', () => {
   });
 
   it('decodes arrow stream format', async () => {
-    const buffer = await readFile(`test/data/decimal.arrows`);
+    const buffer = await readFile(`test/data/decimal_test.arrows`);
     const bytes = new Uint8Array(buffer);
     const expect = decimalDataDecoded();
     assert.deepEqual(decodeIPC(buffer), expect, 'Node Buffer');

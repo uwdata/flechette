@@ -1,102 +1,101 @@
 import { readFile } from 'node:fs/promises';
-import { arrowFromDuckDB } from './arrow-from-duckdb.js';
 
 const toTimestamp = (v, off = 0) => v == null ? null : (+new Date(v) + off);
 const toInt32s = v => v == null ? null : v.some(x => x == null) ? v : Int32Array.of(...v);
 
-async function dataQuery(data, type, jsValues) {
+async function loadData(data, name, jsValues) {
   return Promise.all(data.map(async (array, i) => {
     const values = jsValues?.[i] ?? array;
     return {
       values,
-      bytes: await arrowFromDuckDB(array, type),
+      bytes: new Uint8Array(await readFile(`test/data/${name}_${i}.arrows`)),
       nullCount: values.reduce((nc, v) => v == null ? ++nc : nc, 0)
     };
   }));
 }
 
 export function bool() {
-  return dataQuery([
+  return loadData([
     [true, false, true],
     [true, false, null]
-  ], 'BOOLEAN');
+  ], 'bool');
 }
 
 export function uint8() {
-  return dataQuery([
+  return loadData([
     [1, 2, 3],
     [1, null, 3]
-  ], 'UTINYINT');
+  ], 'uint8');
 }
 
 export function uint16() {
-  return dataQuery([
+  return loadData([
     [1, 2, 3],
     [1, null, 3]
-  ], 'USMALLINT');
+  ], 'uint16');
 }
 
 export function uint32() {
-  return dataQuery([
+  return loadData([
     [1, 2, 3],
     [1, null, 3]
-  ], 'UINTEGER');
+  ], 'uint32');
 }
 
 export function uint64() {
-  return dataQuery([
+  return loadData([
     [1, 2, 3],
     [1, null, 3]
-  ], 'UBIGINT');
+  ], 'uint64');
 }
 
 export function int8() {
-  return dataQuery([
+  return loadData([
     [1, 2, 3],
     [1, null, 3]
-  ], 'TINYINT');
+  ], 'int8');
 }
 
 export function int16() {
-  return dataQuery([
+  return loadData([
     [1, 2, 3],
     [1, null, 3]
-  ], 'SMALLINT');
+  ], 'int16');
 }
 
 export function int32() {
-  return dataQuery([
+  return loadData([
     [1, 2, 3],
     [1, null, 3]
-  ], 'INTEGER');
+  ], 'int32');
 }
 
 export function int64() {
-  return dataQuery([
+  return loadData([
     [1, 2, 3],
     [1, null, 3]
-  ], 'BIGINT');
+  ], 'int64');
 }
 
 export function float32() {
-  return dataQuery([
+  return loadData([
     [1.1, 2.2, 3.3],
     [1.1, null, 3.3]
-  ], 'FLOAT');
+  ], 'float32');
 }
 
 export function float64() {
-  return dataQuery([
+  return loadData([
     [1.1, 2.2, 3.3],
     [1.1, null, 3.3]
-  ], 'DOUBLE');
+  ], 'float64');
 }
 
 export function decimal() {
-  return dataQuery([
+  return loadData([
     [1.212, 3.443, 5.600],
     [1.212, null, 5.600]
-  ], 'DECIMAL(18,3)');
+  ], 'decimal');
 }
 
 async function loadDecimal(bitWidth) {
@@ -119,7 +118,7 @@ export function dateDay() {
     ['2001-01-01', null, '2006-12-31']
   ];
   const vals = data.map(v => v.map(d => toTimestamp(d)));
-  return dataQuery(data, 'DATE', vals);
+  return loadData(data, 'dateDay', vals);
 }
 
 export function timestampNanosecond() {
@@ -127,7 +126,7 @@ export function timestampNanosecond() {
   const ts = ['1992-09-20T11:30:00.123456789Z', '2002-12-13T07:28:56.564738209Z'];
   const data = [ts, ts.concat(null)];
   const vals = data.map(v => v.map((d, i) => toTimestamp(d, ns[i])));
-  return dataQuery(data, 'TIMESTAMP_NS', vals);
+  return loadData(data, 'timestampNanosecond', vals);
 }
 
 export function timestampMicrosecond() {
@@ -135,27 +134,27 @@ export function timestampMicrosecond() {
   const ts = ['1992-09-20T11:30:00.123457Z', '2002-12-13T07:28:56.564738Z'];
   const data = [ts, ts.concat(null)];
   const vals = data.map(v => v.map((d, i) => toTimestamp(d, us[i])));
-  return dataQuery(data, 'TIMESTAMP_NS', vals);
+  return loadData(data, 'timestampMicrosecond', vals);
 }
 
 export function timestampMillisecond() {
   const ts = ['1992-09-20T11:30:00.123Z', '2002-12-13T07:28:56.565Z'];
   const data = [ts, ts.concat(null)];
   const vals = data.map(v => v.map(d => toTimestamp(d)));
-  return dataQuery(data, 'TIMESTAMP_MS', vals);
+  return loadData(data, 'timestampMillisecond', vals);
 }
 
 export function timestampSecond() {
   const ts = ['1992-09-20T11:30:00Z', '2002-12-13T07:28:57Z'];
   const data = [ts, ts.concat(null)];
   const vals = data.map(v => v.map(d => toTimestamp(d)));
-  return dataQuery(data, 'TIMESTAMP_S', vals);
+  return loadData(data, 'timestampSecond', vals);
 }
 
 export function intervalMonthDayNano() {
-  return dataQuery([
+  return loadData([
     ['2 years', null, '12 years 2 month 1 day 5 seconds', '1 microsecond']
-  ], 'INTERVAL', [[
+  ], 'intervalMonthDayNano', [[
     Float64Array.of(24, 0, 0),
     null,
     Float64Array.of(146, 1, 5000000000),
@@ -164,10 +163,10 @@ export function intervalMonthDayNano() {
 }
 
 export function utf8() {
-  return dataQuery([
+  return loadData([
     ['foo', 'bar', 'baz'],
     ['foo', null, 'baz']
-  ], 'VARCHAR');
+  ], 'utf8');
 }
 
 export function listInt32() {
@@ -177,15 +176,15 @@ export function listInt32() {
     [[1, 2, null, 4], [5, null, 6], [7, null, 9]]
   ];
   const vals = data.map(v => v.map(toInt32s));
-  return dataQuery(data, 'INTEGER[]', vals);
+  return loadData(data, 'listInt32', vals);
 }
 
 export function listUtf8() {
-  return dataQuery([
+  return loadData([
     [['a', 'b', 'c', 'd'], ['e', 'f'], ['g', 'h', 'i']],
     [['a', 'b', 'c', 'd'], null, ['g', 'h', 'i']],
     [['a', 'b', null, 'd'], ['e', null, 'f'], ['g', null, 'i']]
-  ], 'VARCHAR[]');
+  ], 'listUtf8');
 }
 
 export function fixedListInt32() {
@@ -195,40 +194,40 @@ export function fixedListInt32() {
     [[1, null, 3], [null, 5, 6], [7, 8, null]]
   ];
   const vals = data.map(v => v.map(toInt32s));
-  return dataQuery(data, 'INTEGER[3]', vals);
+  return loadData(data, 'fixedListInt32', vals);
 }
 
 export function fixedListUtf8() {
-  return dataQuery([
+  return loadData([
     [['a', 'b', 'c'], ['d', 'e', 'f'], ['g', 'h', 'i']],
     [['a', 'b', 'c'], null, ['g', 'h', 'i']],
     [['a', null, 'c'], [null, 'e', 'f'], ['g', 'h', null]]
-  ], 'VARCHAR[3]');
+  ], 'fixedListUtf8');
 }
 
 export function union() {
-  return dataQuery([
+  return loadData([
     ['a', 2, 'c'],
     ['a', null, 'c']
-  ], 'UNION(i INTEGER, v VARCHAR)');
+  ], 'union');
 }
 
 export function map() {
-  return dataQuery([
+  return loadData([
     [
       new Map([ ['foo', 1], ['bar', 2] ]),
       new Map([ ['foo', null], ['baz', 3] ])
     ]
-  ]);
+  ], 'map');
 }
 
 export function struct() {
-  return dataQuery([
+  return loadData([
     [ {a: 1, b: 'foo'}, {a: 2, b: 'baz'} ],
     [ {a: 1, b: 'foo'}, null, {a: 2, b: 'baz'} ],
     [ {a: null, b: 'foo'}, {a: 2, b: null} ],
     [ {a: ['a', 'b'], b: Math.E}, {a: ['c', 'd'], b: Math.PI} ]
-  ]);
+  ], 'struct');
 }
 
 export async function listView() {
