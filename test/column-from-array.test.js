@@ -1,16 +1,16 @@
-import assert from 'node:assert';
+import { describe, it, expect } from "vitest";
 import { IntervalUnit, TimeUnit, UnionMode, binary, bool, columnFromArray, dateDay, dateMillisecond, decimal, dictionary, duration, field, fixedSizeBinary, fixedSizeList, float16, float32, float64, int16, int32, int64, int8, interval, largeBinary, largeList, largeUtf8, list, map, nullType, runEndEncoded, struct, time, timeMicrosecond, timeMillisecond, timeNanosecond, timeSecond, timestamp, uint16, uint32, uint64, uint8, union, utf8 } from '../src/index.js';
 import { isTypedArray } from '../src/util/arrays.js';
 
 function test(values, type, options) {
   const col = columnFromArray(values, type, options);
-  if (type) assert.deepEqual(col.type, type);
+  if (type) expect(col.type).toBe(type);
   if (!type && isTypedArray(values)) {
     // check that inferred data type maintains input array type
-    assert.strictEqual(col.data[0].values.constructor, values.constructor);
+    expect(col.data[0].values.constructor).toBe(values.constructor);
   }
-  assert.strictEqual(col.length, values.length);
-  assert.deepStrictEqual(Array.from(col), Array.from(values));
+  expect(col.length).toBe(values.length);
+  expect(Array.from(col)).toStrictEqual(Array.from(values));
   return col;
 }
 
@@ -154,10 +154,10 @@ describe('columnFromArray', () => {
   });
 
   it('infers correct bitWidth for time units', () => {
-    assert.strictEqual(time(TimeUnit.SECOND).bitWidth, 32);
-    assert.strictEqual(time(TimeUnit.MILLISECOND).bitWidth, 32);
-    assert.strictEqual(time(TimeUnit.MICROSECOND).bitWidth, 64);
-    assert.strictEqual(time(TimeUnit.NANOSECOND).bitWidth, 64);
+    expect(time(TimeUnit.SECOND).bitWidth).toBe(32);
+    expect(time(TimeUnit.MILLISECOND).bitWidth).toBe(32);
+    expect(time(TimeUnit.MICROSECOND).bitWidth).toBe(64);
+    expect(time(TimeUnit.NANOSECOND).bitWidth).toBe(64);
   });
 
   it('builds timestamp columns', () => {
@@ -271,18 +271,18 @@ describe('columnFromArray', () => {
     const sparse = union(UnionMode.Sparse, childTypes, null, unionTypeId);
     const sparseCol = test(values, sparse);
     const sparseBatch = sparseCol.data[0];
-    assert.equal(sparseBatch.nullCount, 1);
-    assert.deepStrictEqual(sparseBatch.children.map(b => b.length), [8, 8, 8]);
-    assert.deepStrictEqual(sparseBatch.children.map(b => b.nullCount), [5, 6, 6]);
-    assert.deepStrictEqual(sparseBatch.typeIds, ids);
+    expect(sparseBatch.nullCount).toBe(1);
+    expect(sparseBatch.children.map(b => b.length)).toStrictEqual([8, 8, 8]);
+    expect(sparseBatch.children.map(b => b.nullCount)).toStrictEqual([5, 6, 6]);
+    expect(sparseBatch.typeIds).toStrictEqual(ids);
 
     const dense = union(UnionMode.Dense, childTypes, null, unionTypeId);
     const denseCol = test(values, dense);
     const denseBatch = denseCol.data[0];
-    assert.equal(denseBatch.nullCount, 1);
-    assert.deepStrictEqual(denseBatch.children.map(b => b.length), [3, 2, 3]);
-    assert.deepStrictEqual(denseBatch.children.map(b => b.nullCount), [0, 0, 1]);
-    assert.deepStrictEqual(denseBatch.typeIds, ids);
+    expect(denseBatch.nullCount).toBe(1);
+    expect(denseBatch.children.map(b => b.length)).toStrictEqual([3, 2, 3]);
+    expect(denseBatch.children.map(b => b.nullCount)).toStrictEqual([0, 0, 1]);
+    expect(denseBatch.typeIds).toStrictEqual(ids);
   });
 
   it('builds fixed size binary columns', () => {
@@ -338,8 +338,8 @@ describe('columnFromArray', () => {
       const col = test(values, type);
       // check run-ends
       const colRuns = col.data[0].children[0];
-      assert.deepStrictEqual([...colRuns], runs);
-      assert.ok(colRuns.values instanceof type.children[0].type.values);
+      expect([...colRuns]).toStrictEqual(runs);
+      expect(colRuns.values instanceof type.children[0].type.values).toBeTruthy();
     }
 
     const strs = ['foo', 'foo', 'baz', 'bar', null, 'baz', 'baz'];
@@ -364,7 +364,7 @@ describe('columnFromArray', () => {
     function check(values, type) {
       const col = test(values, type);
       // check array type of indices
-      assert.ok(col.data[0].values instanceof type.indices.values);
+      expect(col.data[0].values instanceof type.indices.values).toBeTruthy();
     }
 
     const strs = ['foo', 'foo', 'baz', 'bar', null, 'baz', 'bar'];
@@ -386,16 +386,16 @@ describe('columnFromArray', () => {
       4, 5, 6
     ];
     const col = test(data, int16(), { maxBatchRows: 10 });
-    assert.strictEqual(col.nullCount, 10);
-    assert.strictEqual(col.data.length, 4);
-    assert.deepStrictEqual(col.data.map(d => d.length), [10, 10, 10, 3]);
+    expect(col.nullCount).toBe(10);
+    expect(col.data.length).toBe(4);
+    expect(col.data.map(d => d.length)).toStrictEqual([10, 10, 10, 3]);
 
     const floats = Float64Array.from({ length: 10 }, Math.random);
     const tcol = test(floats, null, { maxBatchRows: 4 });
-    assert.strictEqual(tcol.nullCount, 0);
-    assert.strictEqual(tcol.length, 10);
-    assert.strictEqual(tcol.data.length, 3);
-    assert.deepStrictEqual(tcol.data.map(d => d.length), [4, 4, 2]);
+    expect(tcol.nullCount).toBe(0);
+    expect(tcol.length).toBe(10);
+    expect(tcol.data.length).toBe(3);
+    expect(tcol.data.map(d => d.length)).toStrictEqual([4, 4, 2]);
   });
 
   it('builds columns from typed arrays', () => {

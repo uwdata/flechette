@@ -1,4 +1,4 @@
-import assert from 'node:assert';
+import { describe, it, expect } from "vitest";
 import { readFile } from 'node:fs/promises';
 import { tableFromIPC } from '../src/index.js';
 import { binaryView, bool, dateDay, decimal, decimal32, decimal128, decimal256, decimal64, empty, fixedListInt32, fixedListUtf8, float32, float64, int16, int32, int64, int8, intervalMonthDayNano, largeListView, listInt32, listUtf8, listView, map, runEndEncoded32, runEndEncoded64, struct, timestampMicrosecond, timestampMillisecond, timestampNanosecond, timestampSecond, uint16, uint32, uint64, uint8, union, utf8, utf8View } from './util/data.js';
@@ -29,15 +29,15 @@ function valueTest(bytes, values, arrayType, opt = undefined, transform = undefi
 function compare(column, array, arrayType = Array) {
   // test values extracted using toArray
   const data = column.toArray();
-  assert.ok(data instanceof arrayType, 'toArray type check');
-  assert.deepStrictEqual(data, arrayType.from(array), 'toArray equality');
+  expect(data instanceof arrayType).toBe(true); // toArray type check
+  expect(data).toStrictEqual(arrayType.from(array)); // toArray equality
 
   // test values extracted using column iterator
-  assert.deepStrictEqual([...column], array, 'iterator equality');
+  expect([...column]).toStrictEqual(array); // iterator equality
 
   // test values extracted using column at() method
   const extract = Array.from(array, (_, i) => column.at(i));
-  assert.deepStrictEqual(extract, array, 'at equality');
+  expect(extract).toStrictEqual(array); // at equality
 }
 
 describe('tableFromIPC', () => {
@@ -49,7 +49,7 @@ describe('tableFromIPC', () => {
     const bytes = new Uint8Array(await readFile(`test/data/bigint.arrows`));
 
     // coerced to numbers
-    assert.throws(() => tableFromIPC(bytes).getChild('value').toArray());
+    expect(() => tableFromIPC(bytes).getChild('value').toArray()).throws();
 
     // as bigints
     valueTest(bytes, values, BigInt64Array, { useBigInt: true });
@@ -118,8 +118,8 @@ describe('tableFromIPC', () => {
     for (const { bytes, values } of data) {
       const column = tableFromIPC(bytes, { useProxy: true }).getChildAt(0);
       const proxies = column.toArray();
-      assert.strictEqual(proxies.every(p => p === null || p[RowIndex] >= 0), true);
-      assert.deepStrictEqual(proxies.map(p => p ? p.toJSON() : null), values);
+      expect(proxies.every(p => p === null || p[RowIndex] >= 0)).toBe(true);
+      expect(proxies.map(p => p ? p.toJSON() : null)).toStrictEqual(values);
     }
   });
 
@@ -128,8 +128,8 @@ describe('tableFromIPC', () => {
     for (const { bytes, runs, values } of data) {
       const column = valueTest(bytes, values);
       const ree = column.data[0].children;
-      assert.deepStrictEqual([...ree[0]], runs.counts);
-      assert.deepStrictEqual([...ree[1]], runs.values);
+      expect([...ree[0]]).toStrictEqual(runs.counts);
+      expect([...ree[1]]).toStrictEqual(runs.values);
     }
   });
   it('decodes run-end-encoded data with 64-bit run ends', async () => {
@@ -137,8 +137,8 @@ describe('tableFromIPC', () => {
     for (const { bytes, runs, values } of data) {
       const column = valueTest(bytes, values);
       const ree = column.data[0].children;
-      assert.deepStrictEqual([...ree[0]], runs.counts);
-      assert.deepStrictEqual([...ree[1]], runs.values);
+      expect([...ree[0]]).toStrictEqual(runs.counts);
+      expect([...ree[1]]).toStrictEqual(runs.values);
     }
   });
 
@@ -163,12 +163,12 @@ describe('tableFromIPC', () => {
     for (const { bytes } of data) {
       const table = tableFromIPC(bytes);
       table.schema.fields.map((f, i) => {
-        assert.deepStrictEqual(table.getChildAt(i).type, f.type);
+        expect(table.getChildAt(i).type).toStrictEqual(f.type);
       });
-      assert.strictEqual(table.numRows, 0);
-      assert.strictEqual(table.numCols, table.schema.fields.length);
-      assert.deepStrictEqual(table.toArray(), []);
-      assert.deepStrictEqual([...table], []);
+      expect(table.numRows).toBe(0);
+      expect(table.numCols).toBe(table.schema.fields.length);
+      expect(table.toArray()).toStrictEqual([]);
+      expect([...table]).toStrictEqual([]);
     }
   });
 });

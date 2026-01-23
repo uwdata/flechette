@@ -1,9 +1,9 @@
-import assert from 'node:assert';
+import { describe, it, expect } from "vitest";
 import { bool, dateDay, dictionary, fixedSizeList, float64, int16, int32, int64, int8, list, nullType, struct, timestamp, utf8 } from '../src/index.js';
 import { inferType } from '../src/build/infer-type.js';
 
-function matches(actual, expect) {
-  assert.deepStrictEqual(actual, expect);
+function matches(actual, expected) {
+  expect(actual).toStrictEqual(expected);
 }
 
 function infer(values) {
@@ -121,10 +121,10 @@ describe('inferType', () => {
   });
 
   it('throws on bigints that exceed 64 bits', () => {
-    assert.throws(() => infer([(1n << 200n)]));
+    expect(() => infer([(1n << 200n)])).toThrow();
   });
 
   it('throws on mixed types', () => {
-    assert.throws(() => infer([1, true, 'foo']));
+    expect(() => infer([1, true, 'foo'])).toThrow();
   });
 });

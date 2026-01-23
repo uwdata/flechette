@@ -1,4 +1,4 @@
-import assert from 'node:assert';
+import { describe, it, expect } from "vitest";
 import { columnFromValues, int32, nullType, utf8 } from '../src/index.js';
 
 function test(values, type, options) {
@@ -8,9 +8,9 @@ function test(values, type, options) {
 
 function compare(array, values, type, options) {
   const col = columnFromValues(values, type, options);
-  if (type) assert.deepEqual(col.type, type);
-  assert.strictEqual(col.length, array.length);
-  assert.deepStrictEqual(Array.from(col), array);
+  if (type) expect(col.type).toStrictEqual(type);
+  expect(col.length).toBe(array.length);
+  expect(Array.from(col)).toStrictEqual(array);
 }
 
 describe('columnFromValues', () => {
