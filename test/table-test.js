@@ -1,19 +1,21 @@
 /** @import { ValueArray } from '../src/types.js' */
 import assert from 'node:assert';
-import { arrowFromDuckDB } from './util/arrow-from-duckdb.js';
+import { readFile } from 'node:fs/promises';
 import { tableFromIPC } from '../src/index.js';
 import { Table } from '../src/table.js';
 
-const values = [
-  {a: 1, b: 'foo', c: [1, null, 3] },
-  null,
-  {a: 2, b: 'baz', c: [null, 5, 6] }
-];
+describe('Table', async () => {
+  const values = [
+    {a: 1, b: 'foo', c: [1, null, 3] },
+    null,
+    {a: 2, b: 'baz', c: [null, 5, 6] }
+  ];
 
-/** @type {Table<{ value: { a: number, b: string, c: ValueArray<number | null> }> }} */
-const table = tableFromIPC(await arrowFromDuckDB(values));
+  const bytes = new Uint8Array(await readFile(`test/data/table.arrows`));
 
-describe('Table', () => {
+  /** @type {Table<{ value: { a: number, b: string, c: ValueArray<number | null> }> }} */
+  const table = tableFromIPC(bytes);
+
   it('provides row count', () => {
     assert.deepStrictEqual(table.numRows, 3);
   });

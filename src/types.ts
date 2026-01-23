@@ -294,11 +294,11 @@ export interface Message {
  */
 export interface Block {
   /** The file byte offset to the message start. */
-  offset: number,
+  offset: number;
   /** The size of the message header metadata. */
-  metadataLength: number,
+  metadataLength: number;
   /** The size of the message body. */
-  bodyLength: number
+  bodyLength: number;
 }
 
 /**

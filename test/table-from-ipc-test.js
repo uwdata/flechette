@@ -1,6 +1,6 @@
 import assert from 'node:assert';
+import { readFile } from 'node:fs/promises';
 import { tableFromIPC } from '../src/index.js';
-import { arrowFromDuckDB } from './util/arrow-from-duckdb.js';
 import { binaryView, bool, dateDay, decimal, decimal32, decimal128, decimal256, decimal64, empty, fixedListInt32, fixedListUtf8, float32, float64, int16, int32, int64, int8, intervalMonthDayNano, largeListView, listInt32, listUtf8, listView, map, runEndEncoded32, runEndEncoded64, struct, timestampMicrosecond, timestampMillisecond, timestampNanosecond, timestampSecond, uint16, uint32, uint64, uint8, union, utf8, utf8View } from './util/data.js';
 import { RowIndex } from '../src/util/struct.js';
 
@@ -46,7 +46,7 @@ describe('tableFromIPC', () => {
       BigInt(Number.MAX_SAFE_INTEGER) - 1n,
       BigInt(Number.MAX_SAFE_INTEGER) + 1n
     ];
-    const bytes = await arrowFromDuckDB(values, 'BIGINT');
+    const bytes = new Uint8Array(await readFile(`test/data/bigint.arrows`));
 
     // coerced to numbers
     assert.throws(() => tableFromIPC(bytes).getChild('value').toArray());

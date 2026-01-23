@@ -7,7 +7,7 @@ const files = [
   'flights.arrows',
   'scrabble.arrows',
   'convert.arrows',
-  'decimal.arrows'
+  'decimal_test.arrows'
 ];
 
 describe('tableToIPC', () => {
