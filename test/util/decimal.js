@@ -20,6 +20,7 @@ export function decimalDataToEncode() {
         { offset: 0, length: 0 },
         { offset: 0, length: 48 }
       ],
+      compression: null,
       variadic: [],
       buffers: [
         Uint8Array.of(232,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,224,46,0,0,0,0,0,0,0,0,0,0,0,0,0,0,208,132,0,0,0,0,0,0,0,0,0,0,0,0,0,0)

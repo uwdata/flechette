@@ -1,12 +1,14 @@
 /**
- * @import { ArrowData, ExtractionOptions, Field, RecordBatch, Schema } from '../types.js'
+ * @import { ArrowData, BodyCompression, ExtractionOptions, Field, RecordBatch, Schema } from '../types.js'
  */
 import { batchType } from '../batch-type.js';
 import { columnBuilder } from '../column.js';
-import { Type, UnionMode, Version } from '../constants.js';
+import { decompressBuffer, getCompressionCodec } from '../compression.js';
+import { BodyCompressionMethod, CompressionType, Type, UnionMode, Version } from '../constants.js';
 import { invalidDataType } from '../data-types.js';
 import { Table } from '../table.js';
 import { int8Array } from '../util/arrays.js';
+import { keyFor } from '../util/objects.js';
 import { decodeIPC } from './decode-ipc.js';
 
 /**
@@ -112,7 +114,7 @@ function contextGenerator(options, version, dictionaryMap) {
    * @param {RecordBatch} batch
    */
   return batch => {
-    const { length, nodes, regions, variadic, body } = batch;
+    const { length, nodes, regions, compression, variadic, body } = batch;
     let nodeIndex = -1;
     let bufferIndex = -1;
     let variadicIndex = -1;
@@ -121,15 +123,36 @@ function contextGenerator(options, version, dictionaryMap) {
       length,
       node: () => nodes[++nodeIndex],
       buffer: (ArrayType) => {
-        const { length, offset } = regions[++bufferIndex];
+        const { bytes, length, offset } = maybeDecompress(body, regions[++bufferIndex], compression);
         return ArrayType
-          ? new ArrayType(body.buffer, body.byteOffset + offset, length / ArrayType.BYTES_PER_ELEMENT)
-          : body.subarray(offset, offset + length)
+          ? new ArrayType(bytes.buffer, bytes.byteOffset + offset, length / ArrayType.BYTES_PER_ELEMENT)
+          : bytes.subarray(offset, offset + length)
       },
       variadic: () => variadic[++variadicIndex],
       visit(children) { return children.map(f => visit(f.type, this)); }
     };
   };
+}
+
+/**
+ * Prepare an arrow buffer for use, potentially decompressing it.
+ * @param {Uint8Array} body
+ * @param {{offset: number, length: number}} region
+ * @param {BodyCompression} compression
+ */
+function maybeDecompress(body, region, compression) {
+  if (!compression) {
+    return { bytes: body, ...region };
+  } else if (compression.method !== BodyCompressionMethod.BUFFER) {
+    throw new Error(`Unknown compression method (${compression.method})`);
+  } else {
+    const id = compression.codec;
+    const codec = getCompressionCodec(id);
+    if (!codec) {
+      throw new Error(`Missing compression codec "${keyFor(CompressionType, id)}" (id ${id})`);
+    }
+    return decompressBuffer(body, region, codec);
+  }
 }
 
 /**

@@ -37,10 +37,12 @@
     "@rollup/plugin-terser": "^0.4.4",
     "apache-arrow": "^21.1.0",
     "eslint": "^9.39.2",
+    "lz4js": "0.2.0",
     "rimraf": "^6.1.2",
     "rollup": "^4.56.0",
     "rollup-plugin-bundle-size": "^1.0.3",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "zstd-codec": "0.1.5"
   }
 }

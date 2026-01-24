@@ -7,7 +7,9 @@ import {
   DateUnit,
   TimeUnit,
   IntervalUnit,
-  UnionMode
+  UnionMode,
+  CompressionType,
+  BodyCompressionMethod
 } from './constants.js';
 
 /** A valid Arrow version number. */
@@ -18,6 +20,12 @@ export type Endianness_ = typeof Endianness[keyof typeof Endianness];
 
 /** A valid message header type value. */
 export type MessageHeader_ = typeof MessageHeader[keyof typeof MessageHeader];
+
+/** A valid compression type. */
+export type CompressionType_ = typeof CompressionType[keyof typeof CompressionType];
+
+/** A valid body compression method. */
+export type BodyCompressionMethod_ = typeof BodyCompressionMethod[keyof typeof BodyCompressionMethod];
 
 /** A valid floating point precision value. */
 export type Precision_ = typeof Precision[keyof typeof Precision];
@@ -249,10 +257,36 @@ export interface RecordBatch {
   length?: number;
   nodes: {length: number, nullCount: number}[];
   regions: {offset: number, length: number}[];
+  compression?: BodyCompression | null;
   variadic: number[];
   body?: Uint8Array;
   buffers?: Uint8Array[];
   byteLength?: number;
+}
+
+/**
+ * Optional compression for the memory buffers constituting IPC message
+ * bodies. Intended for use with RecordBatch but could be used for other
+ * message types.
+ */
+export interface BodyCompression {
+  /**
+   * Compressor library.
+   * For LZ4_FRAME, each compressed buffer must consist of a single frame.
+   */
+  codec: CompressionType_;
+  /** Indicates the way the record batch body was compressed. */
+  method: BodyCompressionMethod_;
+}
+
+/**
+ * Codec for compressing and decompressing binary data.
+ */
+export interface Codec {
+  /** Decompress a byte buffer. */
+  decode(bytes: Uint8Array): Uint8Array;
+  /** Compress a byte buffer. */
+  encode(bytes: Uint8Array): Uint8Array;
 }
 
 /**
