@@ -20,13 +20,15 @@ title: API Reference
 
 Decode [Apache Arrow IPC data](https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc) and return a new [`Table`](table). The input binary data may be either an `ArrayBuffer` or `Uint8Array`. For Arrow data in the [IPC 'stream' format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format), an array of `Uint8Array` values is also supported.
 
+By default Flechette assumes input data is uncompressed. If input IPC data contains compressed buffers, an appropriate compression codec (for `CompressionType.LZ4_FRAME` or `CompressionType.ZSTD`) must be registered ahead of time using the [`setCompressionCodec`](#setCompressionCodec) method. Otherwise, an error is thrown.
+
 * *data* (`ArrayBuffer` \| `Uint8Array` \| `Uint8Array[]`): The source byte buffer, or an array of buffers. If an array, each byte array may contain one or more self-contained messages. Messages may NOT span multiple byte arrays.
 * *options* (`ExtractionOptions`): Options for controlling how values are transformed when extracted from an Arrow binary representation.
-  * *useBigInt* (`boolean`): If true, extract 64-bit integers as JavaScript `BigInt` values. Otherwise, coerce long integers to JavaScript number values (default `false`).
+  * *useBigInt* (`boolean`): If true, extract 64-bit integers as JavaScript `BigInt` values. Otherwise, coerce long integers to JavaScript number values (default `false`), raising an error if the integer can not be represented as a double precision floating point number.
   * *useDate* (`boolean`): If true, extract dates and timestamps as JavaScript `Date` objects. Otherwise, return numerical timestamp values (default `false`).
-  * *useDecimalInt* (`boolean`): If true, extract decimal-type data as scaled integer values, where fractional digits are scaled to integer positions. Returned integers are `BigInt` values for decimal bit widths of 64 bits or higher and 32-bit integers (as JavaScript `number`) otherwise. If false, decimals are converted to floating-point numbers (default).
+  * *useDecimalInt* (`boolean`): If true, extract decimal-type data as scaled integer values, where fractional digits are scaled to integer positions. Returned integers are `BigInt` values for decimal bit widths of 64 bits or higher and 32-bit integers (as JavaScript `number`) otherwise. If false, decimals are lossily converted to floating-point numbers (default).
   * *useMap* (`boolean`): If true, extract Arrow 'Map' values as JavaScript `Map` instances. Otherwise, return an array of [key, value] pairs compatible with both `Map` and `Object.fromEntries` (default `false`).
-  * *useProxy* (`boolean`): If true, extract Arrow 'Struct' values and table row objects using zero-copy proxy objects that extract data from underlying Arrow batches. The proxy objects can improve performance and reduce memory usage, but do not support property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`). Otherwise, use standard JS objects for structs and table rows (default `false`).
+  * *useProxy* (`boolean`): If true, extract Arrow 'Struct' values and table row objects using zero-copy proxy objects that extract data from underlying Arrow batches. The proxy objects can improve performance and reduce memory usage, but do not support property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`). Otherwise (default `false`), use standard JS objects for structs and table rows.
 
 ```js
 import { tableFromIPC } from '@uwdata/flechette';
