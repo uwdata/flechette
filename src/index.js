@@ -6,7 +6,8 @@ export {
   DateUnit,
   TimeUnit,
   IntervalUnit,
-  UnionMode
+  UnionMode,
+  CompressionType
 } from './constants.js';
 
 export {

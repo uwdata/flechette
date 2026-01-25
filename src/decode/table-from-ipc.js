@@ -3,12 +3,11 @@
  */
 import { batchType } from '../batch-type.js';
 import { columnBuilder } from '../column.js';
-import { decompressBuffer, getCompressionCodec } from '../compression.js';
-import { BodyCompressionMethod, CompressionType, Type, UnionMode, Version } from '../constants.js';
+import { decompressBuffer, getCompressionCodec, missingCodec } from '../compression.js';
+import { BodyCompressionMethod, Type, UnionMode, Version } from '../constants.js';
 import { invalidDataType } from '../data-types.js';
 import { Table } from '../table.js';
 import { int8Array } from '../util/arrays.js';
-import { keyFor } from '../util/objects.js';
 import { decodeIPC } from './decode-ipc.js';
 
 /**
@@ -148,9 +147,7 @@ function maybeDecompress(body, region, compression) {
   } else {
     const id = compression.codec;
     const codec = getCompressionCodec(id);
-    if (!codec) {
-      throw new Error(`Missing compression codec "${keyFor(CompressionType, id)}" (id ${id})`);
-    }
+    if (!codec) throw new Error(missingCodec(id));
     return decompressBuffer(body, region, codec);
   }
 }

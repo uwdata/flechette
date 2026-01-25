@@ -1,7 +1,8 @@
 /**
  * @import { Sink } from './sink.js';
+ * @import { CompressionType_ } from '../types.js';
  */
-import { EOS, MAGIC, MessageHeader } from '../constants.js';
+import { BodyCompressionMethod, EOS, MAGIC, MessageHeader } from '../constants.js';
 import { Builder } from './builder.js';
 import { encodeDictionaryBatch } from './dictionary-batch.js';
 import { writeFooter } from './footer.js';
@@ -19,9 +20,10 @@ const FILE = 'file';
  * @param {object} options Encoding options.
  * @param {Sink} [options.sink] IPC byte consumer.
  * @param {'stream' | 'file'} [options.format] Arrow stream or file format.
+ * @param {CompressionType_} [options.codec] Compression codec to apply.
  * @returns {Sink} The sink that was passed in.
  */
-export function encodeIPC(data, { sink, format = STREAM } = {}) {
+export function encodeIPC(data, { sink, format = STREAM, codec } = {}) {
   if (format !== STREAM && format !== FILE) {
     throw new Error(`Unrecognized Arrow IPC format: ${format}`);
   }
@@ -30,6 +32,9 @@ export function encodeIPC(data, { sink, format = STREAM } = {}) {
   const file = format === FILE;
   const dictBlocks = [];
   const recordBlocks = [];
+  const compression = codec != null
+    ? { codec, method: BodyCompressionMethod.BUFFER }
+    : null;
 
   if (file) {
     builder.addBuffer(MAGIC);
@@ -51,7 +56,7 @@ export function encodeIPC(data, { sink, format = STREAM } = {}) {
     writeMessage(
       builder,
       MessageHeader.DictionaryBatch,
-      encodeDictionaryBatch(builder, dict),
+      encodeDictionaryBatch(builder, dict, compression),
       data.byteLength,
       dictBlocks
     );
@@ -63,7 +68,7 @@ export function encodeIPC(data, { sink, format = STREAM } = {}) {
     writeMessage(
       builder,
       MessageHeader.RecordBatch,
-      encodeRecordBatch(builder, batch),
+      encodeRecordBatch(builder, batch, compression),
       batch.byteLength,
       recordBlocks
     );
