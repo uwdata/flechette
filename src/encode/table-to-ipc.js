@@ -28,7 +28,7 @@ export function tableToIPC(table, options) {
 
   // resolve compression codec
   const id = options?.codec;
-  const codec = getCompressionCodec(options?.codec);
+  const codec = getCompressionCodec(id);
   if (id != null && !codec) throw new Error(missingCodec(id));
 
   const columns = table.children;
