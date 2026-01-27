@@ -374,3 +374,35 @@ export const UnionMode = /** @type {const} */ ({
   /** Dense union layout with offsets into value arrays. */
   Dense: 1
 });
+
+/**
+ * Compression types.
+ */
+export const CompressionType = /** @type {const} */ ({
+  /**
+   * LZ4 frame compression.
+   * Not to be confused with "raw" (also called "block") format.
+   */
+  LZ4_FRAME: 0,
+  /** Zstandard compression. */
+  ZSTD: 1
+});
+
+/**
+ * Body compression methods.
+ * Provided for forward compatibility in case Arrow needs to support
+ * different strategies for compressing the IPC message body (like
+ * whole-body compression rather than buffer-level) in the future.
+ */
+export const BodyCompressionMethod = /** @type {const} */ ({
+  /**
+   * Each constituent buffer is first compressed with the indicated
+   * compressor, and then written with the uncompressed length in the first 8
+   * bytes as a 64-bit little-endian signed integer followed by the compressed
+   * buffer bytes (and then padding as required by the protocol). The
+   * uncompressed length may be set to -1 to indicate that the data that
+   * follows is not compressed, which can be useful for cases where
+   * compression does not yield appreciable savings.
+   */
+  BUFFER: 0
+});

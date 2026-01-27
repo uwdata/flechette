@@ -12,6 +12,12 @@ export function writeInt32(buf, index, value) {
   buf[index + 3] = value >> 24;
 }
 
+export function writeInt64(buf, index, value) {
+  const v = BigInt(value);
+  writeInt32(buf, index + 4, Number(BigInt.asIntN(32, v >> BigInt(32))));
+  writeInt32(buf, index + 0, Number(BigInt.asIntN(32, v)));
+}
+
 const INIT_SIZE = 1024;
 
 /** Flatbuffer binary builder. */
@@ -22,7 +28,7 @@ export class Builder {
    */
   constructor(sink) {
     /**
-     * Sink that consumes built byte buffers;
+     * Sink that consumes built byte buffers.
      * @type {Sink}
      */
     this.sink = sink;
@@ -95,9 +101,7 @@ export class Builder {
    * @param {number} value
    */
   writeInt64(value) {
-    const v = BigInt(value);
-    this.writeInt32(Number(BigInt.asIntN(32, v >> BigInt(32))));
-    this.writeInt32(Number(BigInt.asIntN(32, v)));
+    writeInt64(this.buf, this.space -= 8, value);
   }
 
   /**

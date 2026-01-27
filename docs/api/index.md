@@ -13,19 +13,22 @@ title: API Reference
 * [columnFromArray](#columnFromArray)
 * [columnFromValues](#columnFromValues)
 * [tableFromColumns](#tableFromColumns)
+* [setCompressionCodec](#setCompressionCodec)
 
 <hr/><a id="tableFromIPC" href="#tableFromIPC">#</a>
 <b>tableFromIPC</b>(<i>data</i>[, <i>options</i>])
 
 Decode [Apache Arrow IPC data](https://arrow.apache.org/docs/format/Columnar.html#serialization-and-interprocess-communication-ipc) and return a new [`Table`](table). The input binary data may be either an `ArrayBuffer` or `Uint8Array`. For Arrow data in the [IPC 'stream' format](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format), an array of `Uint8Array` values is also supported.
 
+By default Flechette assumes input data is uncompressed. If input IPC data contains compressed buffers, an appropriate compression codec (for `CompressionType.LZ4_FRAME` or `CompressionType.ZSTD`) must be registered ahead of time using the [`setCompressionCodec`](#setCompressionCodec) method. Otherwise, an error is thrown.
+
 * *data* (`ArrayBuffer` \| `Uint8Array` \| `Uint8Array[]`): The source byte buffer, or an array of buffers. If an array, each byte array may contain one or more self-contained messages. Messages may NOT span multiple byte arrays.
 * *options* (`ExtractionOptions`): Options for controlling how values are transformed when extracted from an Arrow binary representation.
-  * *useBigInt* (`boolean`): If true, extract 64-bit integers as JavaScript `BigInt` values. Otherwise, coerce long integers to JavaScript number values (default `false`).
+  * *useBigInt* (`boolean`): If true, extract 64-bit integers as JavaScript `BigInt` values. Otherwise, coerce long integers to JavaScript number values (default `false`), raising an error if the integer can not be represented as a double precision floating point number.
   * *useDate* (`boolean`): If true, extract dates and timestamps as JavaScript `Date` objects. Otherwise, return numerical timestamp values (default `false`).
-  * *useDecimalInt* (`boolean`): If true, extract decimal-type data as scaled integer values, where fractional digits are scaled to integer positions. Returned integers are `BigInt` values for decimal bit widths of 64 bits or higher and 32-bit integers (as JavaScript `number`) otherwise. If false, decimals are converted to floating-point numbers (default).
+  * *useDecimalInt* (`boolean`): If true, extract decimal-type data as scaled integer values, where fractional digits are scaled to integer positions. Returned integers are `BigInt` values for decimal bit widths of 64 bits or higher and 32-bit integers (as JavaScript `number`) otherwise. If false, decimals are lossily converted to floating-point numbers (default).
   * *useMap* (`boolean`): If true, extract Arrow 'Map' values as JavaScript `Map` instances. Otherwise, return an array of [key, value] pairs compatible with both `Map` and `Object.fromEntries` (default `false`).
-  * *useProxy* (`boolean`): If true, extract Arrow 'Struct' values and table row objects using zero-copy proxy objects that extract data from underlying Arrow batches. The proxy objects can improve performance and reduce memory usage, but do not support property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`). Otherwise, use standard JS objects for structs and table rows (default `false`).
+  * *useProxy* (`boolean`): If true, extract Arrow 'Struct' values and table row objects using zero-copy proxy objects that extract data from underlying Arrow batches. The proxy objects can improve performance and reduce memory usage, but do not support property enumeration (`Object.keys`, `Object.values`, `Object.entries`) or spreading (`{ ...object }`). Otherwise (default `false`), use standard JS objects for structs and table rows.
 
 ```js
 import { tableFromIPC } from '@uwdata/flechette';
@@ -37,15 +40,50 @@ const table = tableFromIPC(ipc);
 <hr/><a id="tableToIPC" href="#tableToIPC">#</a>
 <b>tableToIPC</b>(<i>table</i>[, <i>options</i>])
 
-Encode an Arrow table into Arrow IPC binary format and return the result as a `Uint8Array`. Both the IPC ['stream'](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format) and ['file'](https://arrow.apache.org/docs/format/Columnar.html#ipc-file-format) formats are supported.
+Encode an Arrow table into Arrow IPC binary format and return the result as a `Uint8Array`. Both the IPC ['stream'](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format) and ['file'](https://arrow.apache.org/docs/format/Columnar.html#ipc-file-format) formats are supported. By default Flechette encodes uncompressed data. To perform compression, register a compression codec plugin using [`setCompressionCodec`](#setCompressionCodec) and then set the *codec* option.
 
 * *table* (`Table`): The Arrow table to encode.
 * *options* (`object`): Encoding options object.
-  * *format* (`string`): Arrow `'stream'` (the default) or `'file'` format.
+  * *format* (`string`): Arrow `'stream'` (the default) or `'file'` (a.k.a. [Feather V2](https://arrow.apache.org/docs/python/feather.html)) format.
+  * *codec* (`number`): The compression codec type to apply. By default no compression is applied. If specified, this option must be one of the `CompressionType` values, and a corresponding codec plugin must already be registered using the [`setCompressionCodec`](#setCompressionCodec) method.
 
 ```js
 import { tableToIPC } from '@uwdata/flechette';
-const bytes = tableFromIPC(table, { format: 'stream' });
+const bytes = tableToIPC(table, { format: 'stream' });
+```
+
+```js
+import { CompressionType, setCompressionCodec, tableToIPC } from '@uwdata/flechette';
+import { ZstdCodec } from 'zstd-codec';
+
+// register zstd compression codec
+await new Promise((resolve) => {
+  ZstdCodec.run((zstd) => {
+    const codec = new zstd.Simple();
+    setCompressionCodec(CompressionType.ZSTD, {
+      encode: (data) => codec.compress(data),
+      decode: (data) => codec.decompress(data)
+    });
+    resolve();
+  });
+});
+
+// generate bytes in IPC stream format, with zstd compression of buffers
+const bytes = tableToIPC(table, { codec: CompressionType.ZSTD });
+```
+
+```js
+import { CompressionType, setCompressionCodec, tableToIPC } from '@uwdata/flechette';
+import * as lz4 from 'lz4js';
+
+// register lz4_frame compression codec
+setCompressionCodec(CompressionType.LZ4_FRAME, {
+  encode: (data) => lz4.compress(data),
+  decode: (data) => lz4.decompress(data)
+});
+
+// generate bytes in IPC stream format, with lz4_frame compression of buffers
+const bytes = tableToIPC(table, { codec: CompressionType.LZ4_FRAME });
 ```
 
 <hr/><a id="tableFromArrays" href="#tableFromArrays">#</a>
@@ -164,5 +202,41 @@ import { columnFromArray, tableFromColumns } from '@uwdata/flechette';
 const table = tableFromColumns({
   bools: columnFromArray([true, true, null, false, true]),
   floats: columnFromArray([1.1, 2.2, 3.3, 4.4, 5.5])
+});
+```
+
+<hr/><a id="setCompressionCodec" href="#setCompressionCodec">#</a>
+<b>setCompressionCodec</b>(<i>type</i>, <i>codec</i>)
+
+Register a compression codec for compressing or decompressing Arrow bufferdata. Flechette does not include compression codecs by default, but can be extended via plugins to handle compressed data. If an appropriate codec implementation is not registered, an error is thrown when attempting to compress or decompress data.
+
+* *type* (`number`): The codec type id, one of the values of the `CompressionType` object.
+* *codec* (`object`): The codec implementation as an object with `encode` (to compress) and `decode` (to decompress) functions, each of which take a `Uint8Array` as input and return a `Uint8Array` as output.
+
+```js
+import { CompressionType, setCompressionCodec } from '@uwdata/flechette';
+import { ZstdCodec } from 'zstd-codec';
+
+// register zstd compression codec
+await new Promise((resolve) => {
+  ZstdCodec.run((zstd) => {
+    const codec = new zstd.Simple();
+    setCompressionCodec(CompressionType.ZSTD, {
+      encode: (data) => codec.compress(data),
+      decode: (data) => codec.decompress(data)
+    });
+    resolve();
+  });
+});
+```
+
+```js
+import { CompressionType, setCompressionCodec } from '@uwdata/flechette';
+import * as lz4 from 'lz4js';
+
+// register lz4_frame compression codec
+setCompressionCodec(CompressionType.LZ4_FRAME, {
+  encode: (data) => lz4.compress(data),
+  decode: (data) => lz4.decompress(data)
 });
 ```

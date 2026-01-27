@@ -3,6 +3,7 @@
  */
 import { Version } from '../constants.js';
 import { readInt64, readObject, readOffset, readVector } from '../util/read.js';
+import { decodeBodyCompression } from './body-compression.js';
 
 /**
  * Decode a record batch.
@@ -15,12 +16,9 @@ export function decodeRecordBatch(buf, index, version) {
   //  4: length
   //  6: nodes
   //  8: buffers
-  // 10: compression (not supported)
+  // 10: compression (requires codec plug-in)
   // 12: variadicBuffers (buffer counts for view-typed fields)
   const get = readObject(buf, index);
-  if (get(10, readOffset, 0)) {
-    throw new Error('Record batch compression not implemented');
-  }
 
   // If an Arrow buffer was written before version 4,
   // advance 8 bytes to skip the now-removed page_id field
@@ -36,6 +34,7 @@ export function decodeRecordBatch(buf, index, version) {
       offset: readInt64(buf, pos + offset),
       length: readInt64(buf, pos + offset + 8)
     })),
+    compression: get(10, decodeBodyCompression),
     variadic: readVector(buf, get(12, readOffset), 8, readInt64)
   };
 }
