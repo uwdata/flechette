@@ -1,6 +1,6 @@
 {
   "name": "@uwdata/flechette",
-  "version": "2.2.7",
+  "version": "2.3.0",
   "description": "Fast, lightweight access to Apache Arrow data.",
   "keywords": [
     "arrow",
@@ -39,7 +39,7 @@
     "eslint": "^9.39.2",
     "lz4js": "0.2.0",
     "rimraf": "^6.1.2",
-    "rollup": "^4.56.0",
+    "rollup": "^4.57.0",
     "rollup-plugin-bundle-size": "^1.0.3",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18",
