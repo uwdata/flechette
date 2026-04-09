@@ -30,7 +30,7 @@
     "postbuild": "npm run types",
     "lint": "eslint src test",
     "test:unit": "vitest",
-		"test": "vitest --run",
+    "test": "vitest --run",
     "prepublishOnly": "npm run test && npm run lint && npm run build"
   },
   "devDependencies": {

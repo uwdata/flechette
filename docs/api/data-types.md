@@ -21,7 +21,7 @@ The table below provides an overview of all data types supported by the Apache A
 |   7 | [Decimal](#decimal)                 | ✅ | ✅ | ✅ | `number`, or scaled integers via the `useDecimalInt` flag |
 |   8 | [Date](#date)                       | ✅ | ✅ | ✅ | `number`, or `Date` via the `useDate` flag. |
 |   9 | [Time](#time)                       | ✅ | ✅ | ✅ | `number`, or `bigint` for 64-bit values via the `useBigInt` flag |
-|  10 | [Timestamp](#timestamp)             | ✅ | ✅ | ✅ | `number`, or `Date` via the `useDate` flag. |
+|  10 | [Timestamp](#timestamp)             | ✅ | ✅ | ✅ | `number`, `bigint` via `useBigIntTimestamp` flag, or `Date` via the `useDate` flag. |
 |  11 | [Interval](#interval)               | ✅ | ✅ | ✅ | depends on the interval unit |
 |  12 | [List](#list)                       | ✅ | ✅ | ✅ | `Array` or `TypedArray` of child type |
 |  13 | [Struct](#struct)                   | ✅ | ✅ | ✅ | `object`, properties depend on child types |
@@ -398,7 +398,8 @@ timeNanosecond()
 
 Create a Timestamp data type instance. Timestamp values are 64-bit signed integers representing an elapsed time since a fixed epoch, stored in either of four *unit*s: seconds, milliseconds, microseconds or nanoseconds, and are optionally annotated with a *timezone*. Timestamp values do not include any leap seconds (in other words, all days are considered 86400 seconds long).
 
-Timestamp values are stored in a `BigInt64Array` and converted to millisecond-based JavaScript `number` values (potentially with fractional digits) upon extraction. An error is raised if a value exceeds either `Number.MIN_SAFE_INTEGER` or `Number.MAX_SAFE_INTEGER`. Pass the `useDate` extraction option (e.g., to [`tableFromIPC`](/flechette/api/#tableFromIPC) or [`tableFromArrays`](/flechette/api/#tableFromArrays)) to instead extract timestamp values as JavaScript `Date` objects.
+Timestamp values are stored in a `BigInt64Array` and converted to millisecond-based JavaScript `number` values (potentially with fractional digits) upon extraction. An error is raised if a value exceeds either `Number.MIN_SAFE_INTEGER` or `Number.MAX_SAFE_INTEGER`. Pass the `useDate` extraction option (e.g., to [`tableFromIPC`](/flechette/api/#tableFromIPC) or [`tableFromArrays`](/flechette/api/#tableFromArrays)) to instead extract timestamp values as JavaScript `Date` objects. Alternatively, pass the `useBigIntTimestamp` extraction option to extract timestamp values as JavaScript `bigint` (bypass float conversion).
+
 
 * *unit* (`number`): The time unit, one of `TimeUnit.SECOND`, `TimeUnit.MILLISECOND` (default), `TimeUnit.MICROSECOND`, or `TimeUnit.NANOSECOND`.
 * *timezone* (`string`): An optional string for the name of a timezone. If provided, the value should either be a string as used in the Olson timezone database (the "tz database" or "tzdata"), such as "America/New_York", or an absolute timezone offset of the form "+XX:XX" or "-XX:XX", such as "+07:30". Whether a timezone string is present indicates different semantics about the data. That said, Flechette does not process the timezone information.
