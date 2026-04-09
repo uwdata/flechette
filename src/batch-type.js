@@ -24,12 +24,12 @@ export function batchType(type, options = {}) {
     case Type.Float:
       return precision ? DirectBatch : Float16Batch;
     case Type.Date:
-      return useBigIntTimestamp ? DirectBatch : wrap(
+      return wrap(
         unit === DateUnit.DAY ? DateDayBatch : DateDayMillisecondBatch,
         useDate && DateBatch
       );
     case Type.Timestamp:
-      return wrap(
+      return useBigIntTimestamp ? DirectBatch : wrap(
         unit === TimeUnit.SECOND ? TimestampSecondBatch
           : unit === TimeUnit.MILLISECOND ? TimestampMillisecondBatch
           : unit === TimeUnit.MICROSECOND ? TimestampMicrosecondBatch
