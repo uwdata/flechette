@@ -117,7 +117,7 @@ const table = tableFromIPC(ipc, {
   useDate: true,            // map dates and timestamps to Date objects
   useDecimalInt: true,      // use BigInt for decimals, do not coerce to number
   useBigInt: true,          // use BigInt for 64-bit ints, do not coerce to number
-  useBigIntTimestamp: true, // use BigInt for timestamps, do not coerce to float
+  useBigIntTimestamp: true, // use BigInt for timestamps, do not coerce to millisecond number
   useMap: true,             // create Map objects for [key, value] pair lists
   useProxy: true            // use zero-copy proxies for struct and table row objects
 });
