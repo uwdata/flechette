@@ -21,7 +21,7 @@ The table below provides an overview of all data types supported by the Apache A
 |   7 | [Decimal](#decimal)                 | ✅ | ✅ | ✅ | `number`, or scaled integers via the `useDecimalInt` flag |
 |   8 | [Date](#date)                       | ✅ | ✅ | ✅ | `number`, or `Date` via the `useDate` flag. |
 |   9 | [Time](#time)                       | ✅ | ✅ | ✅ | `number`, or `bigint` for 64-bit values via the `useBigInt` flag |
-|  10 | [Timestamp](#timestamp)             | ✅ | ✅ | ✅ | `number`, `bigint` via `useBigIntTimestamp` flag, or `Date` via the `useDate` flag. |
+|  10 | [Timestamp](#timestamp)             | ✅ | ✅ | ✅ | `number`, `Date` via the `useDate` flag, or `bigint` via `useBigIntTimestamp` flag. |
 |  11 | [Interval](#interval)               | ✅ | ✅ | ✅ | depends on the interval unit |
 |  12 | [List](#list)                       | ✅ | ✅ | ✅ | `Array` or `TypedArray` of child type |
 |  13 | [Struct](#struct)                   | ✅ | ✅ | ✅ | `object`, properties depend on child types |

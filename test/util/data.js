@@ -9,7 +9,7 @@ async function loadData(data, name, jsValues) {
     return {
       values,
       bytes: new Uint8Array(await readFile(`test/data/${name}_${i}.arrows`)),
-      nullCount: values.reduce((nc, v) => v == null ? ++nc : nc, 0)
+      nullCount: values.reduce((nc, v) => v == null ? nc + 1 : nc, 0)
     };
   }));
 }
