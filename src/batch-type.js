@@ -12,7 +12,7 @@ import { invalidDataType } from './data-types.js';
  */
 export function batchType(type, options = {}) {
   const { typeId, bitWidth, mode, precision, unit } = /** @type {any} */(type);
-  const { useBigInt, useDate, useDecimalInt, useMap, useProxy } = options;
+  const { useBigInt, useBigIntTimestamp, useDate, useDecimalInt, useMap, useProxy } = options;
 
   switch (typeId) {
     case Type.Null: return NullBatch;
@@ -29,7 +29,7 @@ export function batchType(type, options = {}) {
         useDate && DateBatch
       );
     case Type.Timestamp:
-      return wrap(
+      return useBigIntTimestamp ? DirectBatch : wrap(
         unit === TimeUnit.SECOND ? TimestampSecondBatch
           : unit === TimeUnit.MILLISECOND ? TimestampMillisecondBatch
           : unit === TimeUnit.MICROSECOND ? TimestampMicrosecondBatch

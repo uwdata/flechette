@@ -151,6 +151,36 @@ export function timestampSecond() {
   return loadData(data, 'timestampSecond', vals);
 }
 
+export function timestampNanosecondBigInt() {
+  const ns = [456789n, 738209n];
+  const ts = ['1992-09-20T11:30:00.123456789Z', '2002-12-13T07:28:56.564738209Z'];
+  const data = [ts, ts.concat(null)];
+  const vals = data.map(v => v.map((d, i) => d === null ? null : BigInt(+new Date(d)) * 1000000n + ns[i]));
+  return loadData(data, 'timestampNanosecond', vals);
+}
+
+export function timestampMicrosecondBigInt() {
+  const us = [457000n, 738000n];
+  const ts = ['1992-09-20T11:30:00.123457Z', '2002-12-13T07:28:56.564738Z'];
+  const data = [ts, ts.concat(null)];
+  const vals = data.map(v => v.map((d, i) => d === null ? null : BigInt(+new Date(d)) * 1000000n + us[i]));
+  return loadData(data, 'timestampMicrosecond', vals);
+}
+
+export function timestampMillisecondBigInt() {
+  const ts = ['1992-09-20T11:30:00.123Z', '2002-12-13T07:28:56.565Z'];
+  const data = [ts, ts.concat(null)];
+  const vals = data.map(v => v.map(d =>  d === null ? null : BigInt(+new Date(d))));
+  return loadData(data, 'timestampMillisecond', vals);
+}
+
+export function timestampSecondBigInt() {
+  const ts = ['1992-09-20T11:30:00Z', '2002-12-13T07:28:57Z'];
+  const data = [ts, ts.concat(null)];
+  const vals = data.map(v => v.map(d => d === null ? null : BigInt(+new Date(d)) / 1000n));
+  return loadData(data, 'timestampSecond', vals);
+}
+
 export function intervalMonthDayNano() {
   return loadData([
     ['2 years', null, '12 years 2 month 1 day 5 seconds', '1 microsecond']
@@ -215,18 +245,18 @@ export function union() {
 export function map() {
   return loadData([
     [
-      new Map([ ['foo', 1], ['bar', 2] ]),
-      new Map([ ['foo', null], ['baz', 3] ])
+      new Map([['foo', 1], ['bar', 2]]),
+      new Map([['foo', null], ['baz', 3]])
     ]
   ], 'map');
 }
 
 export function struct() {
   return loadData([
-    [ {a: 1, b: 'foo'}, {a: 2, b: 'baz'} ],
-    [ {a: 1, b: 'foo'}, null, {a: 2, b: 'baz'} ],
-    [ {a: null, b: 'foo'}, {a: 2, b: null} ],
-    [ {a: ['a', 'b'], b: Math.E}, {a: ['c', 'd'], b: Math.PI} ]
+    [{ a: 1, b: 'foo' }, { a: 2, b: 'baz' }],
+    [{ a: 1, b: 'foo' }, null, { a: 2, b: 'baz' }],
+    [{ a: null, b: 'foo' }, { a: 2, b: null }],
+    [{ a: ['a', 'b'], b: Math.E }, { a: ['c', 'd'], b: Math.PI }]
   ], 'struct');
 }
 

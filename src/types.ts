@@ -359,6 +359,11 @@ export interface ExtractionOptions {
    */
   useBigInt?: boolean;
   /**
+   * If true, extract 64-bit timestamps as JavaScript `BigInt` values.
+   * Otherwise, coerce timestamps to float milliseconds.
+   */
+  useBigIntTimestamp?: boolean;
+  /**
    * If true, extract Arrow 'Map' values as JavaScript `Map` instances.
    * Otherwise, return an array of [key, value] pairs compatible with
    * both `Map` and `Object.fromEntries` (default).

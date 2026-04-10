@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFile } from 'node:fs/promises';
 import { tableFromIPC } from '../src/index.js';
-import { binaryView, bool, dateDay, decimal, decimal32, decimal128, decimal256, decimal64, empty, fixedListInt32, fixedListUtf8, float32, float64, int16, int32, int64, int8, intervalMonthDayNano, largeListView, listInt32, listUtf8, listView, map, runEndEncoded32, runEndEncoded64, struct, timestampMicrosecond, timestampMillisecond, timestampNanosecond, timestampSecond, uint16, uint32, uint64, uint8, union, utf8, utf8View } from './util/data.js';
+import { binaryView, bool, dateDay, decimal, decimal32, decimal128, decimal256, decimal64, empty, fixedListInt32, fixedListUtf8, float32, float64, int16, int32, int64, int8, intervalMonthDayNano, largeListView, listInt32, listUtf8, listView, map, runEndEncoded32, runEndEncoded64, struct, timestampMicrosecond, timestampMillisecond, timestampNanosecond, timestampSecond, uint16, uint32, uint64, uint8, union, utf8, utf8View, timestampNanosecondBigInt, timestampMicrosecondBigInt, timestampMillisecondBigInt, timestampSecondBigInt } from './util/data.js';
 import { RowIndex } from '../src/util/struct.js';
 
 const toBigInt = v => BigInt(v);
@@ -95,6 +95,10 @@ describe('tableFromIPC', () => {
   it('decodes timestamp microsecond data to dates', () => test(timestampMicrosecond, Array, { useDate: true }, toDate));
   it('decodes timestamp millisecond data to dates', () => test(timestampMillisecond, Array, { useDate: true }, toDate));
   it('decodes timestamp second data to dates', () => test(timestampSecond, Array, { useDate: true }, toDate));
+  it('decodes timestamp nanosecond data to bigint', () => test(timestampNanosecondBigInt, BigInt64Array, { useBigIntTimestamp: true }));
+  it('decodes timestamp microsecond data to bigint', () => test(timestampMicrosecondBigInt, BigInt64Array, { useBigIntTimestamp: true }));
+  it('decodes timestamp millisecond data to bigint', () => test(timestampMillisecondBigInt, BigInt64Array, { useBigIntTimestamp: true }));
+  it('decodes timestamp second data to bigint', () => test(timestampSecondBigInt, BigInt64Array, { useBigIntTimestamp: true }));
 
   it('decodes interval year/month/nano data', () => test(intervalMonthDayNano));
 

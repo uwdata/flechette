@@ -179,6 +179,22 @@ describe('columnFromArray', () => {
     test(ms, timestamp(TimeUnit.MILLISECOND));
     test(ms.map(ts => ts + 0.001), timestamp(TimeUnit.MICROSECOND));
     test(ms.map(ts => ts + 0.000001), timestamp(TimeUnit.NANOSECOND));
+
+    // bigint timestamps
+    const msBigInt = ms.map(BigInt);
+    test(msBigInt, timestamp(TimeUnit.MILLISECOND), { useBigIntTimestamp: true });
+    test([...msBigInt, null], timestamp(TimeUnit.MILLISECOND), { useBigIntTimestamp: true });
+
+    const secCol = columnFromArray(ms, timestamp(TimeUnit.SECOND), { useBigIntTimestamp: true });
+    expect(Array.from(secCol)).toStrictEqual(ms.map(t => BigInt(t) / 1000n));
+
+    const usMs = ms.map(t => t + 0.001);
+    const usCol = columnFromArray(usMs, timestamp(TimeUnit.MICROSECOND), { useBigIntTimestamp: true });
+    expect(Array.from(usCol)).toStrictEqual(usMs.map(t => BigInt(Math.round(t * 1000))));
+
+    const ns = [0, 8640000, -8640000];
+    const nsCol = columnFromArray(ns, timestamp(TimeUnit.NANOSECOND), { useBigIntTimestamp: true });
+    expect(Array.from(nsCol)).toStrictEqual(ns.map(t => BigInt(t) * 1000000n));
   });
 
   it('builds interval year-month columns', () => {
