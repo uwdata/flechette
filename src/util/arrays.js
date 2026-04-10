@@ -12,6 +12,10 @@ export const int64Array = BigInt64Array;
 export const float32Array = Float32Array;
 export const float64Array = Float64Array;
 
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
 function objectToString(value) {
   return Object.prototype.toString.call(value);
 }
@@ -23,8 +27,8 @@ function objectToString(value) {
  * @returns {data is ArrayBufferLike}
  */
 export function isArrayBufferLike(data) {
-  return objectToString(data) === '[object ArrayBuffer]' ||
-    objectToString(data) === '[object SharedArrayBuffer]';
+  return objectToString(data) === '[object ArrayBuffer]'
+    || objectToString(data) === '[object SharedArrayBuffer]';
 }
 
 /**
