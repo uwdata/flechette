@@ -13,15 +13,31 @@ export const float32Array = Float32Array;
 export const float64Array = Float64Array;
 
 /**
- * Check if an input value is an ArrayBuffer or SharedArrayBuffer.
+ * @param {unknown} value
+ * @returns {string}
+ */
+function objectToString(value) {
+  return Object.prototype.toString.call(value);
+}
+
+/**
+ * Check if an input value is an ArrayBuffer or SharedArrayBuffer,
+ * applicable cross-realms. 
  * @param {unknown} data
  * @returns {data is ArrayBufferLike}
  */
 export function isArrayBufferLike(data) {
-  return data instanceof ArrayBuffer || (
-    typeof SharedArrayBuffer !== 'undefined' &&
-    data instanceof SharedArrayBuffer
-  );
+  return objectToString(data) === '[object ArrayBuffer]'
+    || objectToString(data) === '[object SharedArrayBuffer]';
+}
+
+/**
+ * Check in an input value is a Uint8Array, applicable cross-realms. 
+ * @param {unknown} value 
+ * @returns {value is Uint8Array}
+ */
+export function isUint8Array(value) {
+  return objectToString(value) === '[object Uint8Array]';
 }
 
 /**
@@ -40,17 +56,15 @@ export function intArrayType(bitWidth, signed) {
   )[i];
 }
 
-/** Shared prototype for typed arrays. */
-const TypedArray = Object.getPrototypeOf(Int8Array);
-
 /**
- * Check if a value is a typed array.
- * @param {*} value The value to check.
+ * Check if a value is a typed array, applicable cross-realms.
+ * @param {unknown} value The value to check.
  * @returns {value is TypedArray}
  *  True if value is a typed array, false otherwise.
  */
 export function isTypedArray(value) {
-  return value instanceof TypedArray;
+  return ArrayBuffer.isView(value)
+    && objectToString(value) !== '[object DataView]';
 }
 
 /**

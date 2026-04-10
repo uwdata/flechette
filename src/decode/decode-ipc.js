@@ -2,7 +2,7 @@
  * @import { ArrowData, Version_ } from '../types.js'
  */
 import { MAGIC, MessageHeader, Version } from '../constants.js';
-import { isArrayBufferLike } from '../util/arrays.js';
+import { isArrayBufferLike, isUint8Array } from '../util/arrays.js';
 import { readInt16, readInt32, readObject } from '../util/read.js';
 import { decodeBlocks } from './block.js';
 import { decodeMessage } from './message.js';
@@ -27,7 +27,7 @@ import { decodeSchema } from './schema.js';
  */
 export function decodeIPC(data) {
   const source = isArrayBufferLike(data) ? new Uint8Array(data) : data;
-  return source instanceof Uint8Array && isArrowFileFormat(source)
+  return isUint8Array(source) && isArrowFileFormat(source)
     ? decodeIPCFile(source)
     : decodeIPCStream(source);
 }
@@ -62,7 +62,7 @@ export function decodeIPCStream(data) {
 
   // consume each message in the stream
   for (const buf of stream) {
-    if (!(buf instanceof Uint8Array)) {
+    if (!isUint8Array(buf)) {
       throw new Error(`IPC data batch was not a Uint8Array.`);
     }
     let offset = 0;
