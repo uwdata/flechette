@@ -38,5 +38,8 @@ export function decimalDataDecoded() {
   record.body = record.buffers[0];
   delete record.byteLength;
   delete record.buffers;
+  // `decodeIPC` populates one entry per record batch indicating how many
+  // dictionary batches preceded it in the stream/file.
+  data.dictsBeforeRecord = data.records.map(() => 0);
   return data;
 }

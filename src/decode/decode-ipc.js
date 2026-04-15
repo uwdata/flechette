@@ -59,6 +59,13 @@ export function decodeIPCStream(data) {
   let schema;
   const records = [];
   const dictionaries = [];
+  // Parallel to `records`: for each record batch, how many dictionary batches
+  // were already in `dictionaries` when the record batch arrived. Lets
+  // `createTable` walk dict and record batches in their original stream
+  // order, which is required to honor non-delta dictionary REPLACEMENT
+  // messages (each replacement only applies to record batches that come
+  // AFTER it in the stream).
+  const dictsBeforeRecord = [];
 
   // consume each message in the stream
   for (const buf of stream) {
@@ -80,6 +87,7 @@ export function decodeIPCStream(data) {
           break;
         case MessageHeader.RecordBatch:
           records.push(m.content);
+          dictsBeforeRecord.push(dictionaries.length);
           break;
         case MessageHeader.DictionaryBatch:
           dictionaries.push(m.content);
@@ -89,7 +97,7 @@ export function decodeIPCStream(data) {
   }
 
   return /** @type {ArrowData} */ (
-    { schema, dictionaries, records, metadata: null }
+    { schema, dictionaries, records, dictsBeforeRecord, metadata: null }
   );
 }
 
@@ -117,10 +125,20 @@ export function decodeIPCFile(data) {
   const dicts = get(8, decodeBlocks, []);
   const recs = get(10, decodeBlocks, []);
 
+  // Compute, for each record block, the number of dictionary blocks that
+  // appear BEFORE it in the file by byte offset. This preserves the
+  // original stream order for files that interleave dictionary and record
+  // blocks (and degrades to "all dicts before all records" when the file
+  // follows the conventional layout).
+  const dictsBeforeRecord = recs.map(
+    rec => dicts.filter(d => d.offset < rec.offset).length
+  );
+
   return /** @type {ArrowData} */ ({
     schema: get(6, (buf, index) => decodeSchema(buf, index, version)),
     dictionaries: dicts.map(({ offset }) => decodeMessage(data, offset).content),
     records: recs.map(({ offset }) => decodeMessage(data, offset).content),
+    dictsBeforeRecord,
     metadata: get(12, decodeMetadata)
   });
 }
