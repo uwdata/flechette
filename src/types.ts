@@ -306,6 +306,16 @@ export interface ArrowData {
   schema?: Schema;
   dictionaries: DictionaryBatch[] | null;
   records: RecordBatch[] | null;
+  /**
+   * For each record batch (parallel to `records`), the number of dictionary
+   * batches that preceded it in the original IPC stream / file. Used by
+   * `createTable` to honor per-record-batch dictionary state when a stream
+   * carries dictionary REPLACEMENT messages (non-delta dictionary batches
+   * that overwrite a previously-transmitted dictionary for the same id).
+   * If null, all dictionary batches are treated as preceding all record
+   * batches (the legacy behavior).
+   */
+  dictsBeforeRecord?: number[] | null;
   metadata: Metadata | null;
 }
 

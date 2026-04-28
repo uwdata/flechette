@@ -2,7 +2,7 @@
  * @import { ArrowData, BodyCompression, ExtractionOptions, Field, RecordBatch, Schema } from '../types.js'
  */
 import { batchType } from '../batch-type.js';
-import { columnBuilder } from '../column.js';
+import { Column, columnBuilder } from '../column.js';
 import { decompressBuffer, getCompressionCodec, missingCodec } from '../compression.js';
 import { BodyCompressionMethod, Type, UnionMode, Version } from '../constants.js';
 import { invalidDataType } from '../data-types.js';
@@ -40,8 +40,15 @@ export function tableFromIPC(data, options) {
  * @returns {Table} A Table instance.
  */
 export function createTable(data, options = {}) {
-  const { schema = { fields: [] }, dictionaries, records } = data;
+  const { schema = { fields: [] }, dictionaries, records, dictsBeforeRecord } = data;
   const { version, fields } = schema;
+  // `dictionaryMap` is closed over by `context()` and read by `visit()` when
+  // it encounters a Dictionary-typed field on a record batch. Each record
+  // batch captures whatever Column reference is current in `dictionaryMap`
+  // at the time it is decoded — exactly mirroring how arrow-js's
+  // `_loadDictionaryBatch` calls `this.dictionaries.set(header.id, vector)`
+  // and how `_loadRecordBatch` then resolves dict references against the
+  // current `this.dictionaries` Map.
   const dictionaryMap = new Map;
   const context = contextGenerator(options, version, dictionaryMap);
 
@@ -54,30 +61,61 @@ export function createTable(data, options = {}) {
     }
   });
 
-  // decode dictionaries, build dictionary column map
-  const dicts = new Map;
-  for (const dict of dictionaries) {
-    const { id, data, isDelta, body } = dict;
+  /**
+   * Process a single dictionary batch by either replacing or extending the
+   * Column currently registered for its id in `dictionaryMap`. A fresh
+   * Column instance is always created (never mutated in place) so that any
+   * record batch that previously captured the old Column reference is
+   * unaffected.
+   *
+   * Mirrors arrow-js's `_loadDictionaryBatch`:
+   *   return (dictionary && isDelta
+   *     ? dictionary.concat(new Vector(data))
+   *     : new Vector(data)).memoize();
+   * @param {import('../types.js').DictionaryBatch} dict
+   */
+  const processDict = (dict) => {
+    const { id, data: dictData, isDelta, body } = dict;
     const type = dictionaryTypes.get(id);
-    const batch = visit(type, context({ ...data, body }));
-    if (!dicts.has(id)) {
+    const batch = visit(type, context({ ...dictData, body }));
+    const existing = dictionaryMap.get(id);
+    if (!existing) {
       if (isDelta) {
         throw new Error('Delta update can not be first dictionary batch.');
       }
-      dicts.set(id, columnBuilder(type).add(batch));
+      dictionaryMap.set(id, new Column([batch], type));
+    } else if (isDelta) {
+      // delta — append to the existing dictionary column
+      dictionaryMap.set(id, new Column([...existing.data, batch], type));
     } else {
-      const dict = dicts.get(id);
-      if (!isDelta) dict.clear();
-      dict.add(batch);
+      // non-delta replacement — start fresh
+      dictionaryMap.set(id, new Column([batch], type));
     }
-  }
-  dicts.forEach((value, key) => dictionaryMap.set(key, value.done()));
+  };
 
-  // decode column fields
+  // Decode dictionary and record batches in their original stream order so
+  // that each record batch sees the dictionaries that were current at its
+  // position. `dictsBeforeRecord[i]` is the number of dictionary batches
+  // that preceded record batch `i` in the stream/file; if it is missing
+  // (legacy callers building `ArrowData` by hand), fall back to processing
+  // all dictionary batches before any record batch.
   const cols = fields.map(f => columnBuilder(f.type));
-  for (const batch of records) {
-    const ctx = context(batch);
-    fields.forEach((f, i) => cols[i].add(visit(f.type, ctx)));
+  let dictIdx = 0;
+  for (let i = 0; i < records.length; i++) {
+    const target = dictsBeforeRecord ? dictsBeforeRecord[i] : dictionaries.length;
+    while (dictIdx < target) {
+      processDict(dictionaries[dictIdx++]);
+    }
+
+    const ctx = context(records[i]);
+    fields.forEach((f, idx) => cols[idx].add(visit(f.type, ctx)));
+  }
+  // Drain any dictionary batches that come after the last record batch in
+  // the stream. These can't affect any already-decoded record batch, but
+  // processing them surfaces any malformed-dict errors that the caller
+  // would expect to see.
+  while (dictIdx < dictionaries.length) {
+    processDict(dictionaries[dictIdx++]);
   }
 
   return new Table(schema, cols.map(c => c.done()), options.useProxy);
