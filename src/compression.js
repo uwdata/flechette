@@ -50,7 +50,7 @@ export function decompressBuffer(body, { offset, length }, codec) {
   }
   const ulen = readInt64(body, offset); // uncompressed length
   const buf = body.subarray(offset + COMPRESS_LENGTH_PREFIX, offset + length);
-  const bytes = (ulen === LENGTH_NO_COMPRESSED_DATA) ? buf : codec.decode(buf);
+  const bytes = (ulen === LENGTH_NO_COMPRESSED_DATA) ? buf : codec.decode(buf, ulen);
   return { bytes, offset: 0, length: bytes.length };
 }
 

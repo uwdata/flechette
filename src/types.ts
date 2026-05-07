@@ -284,7 +284,7 @@ export interface BodyCompression {
  */
 export interface Codec {
   /** Decompress a byte buffer. */
-  decode(bytes: Uint8Array): Uint8Array;
+  decode(bytes: Uint8Array, uncompressedLength: number): Uint8Array;
   /** Compress a byte buffer. */
   encode(bytes: Uint8Array): Uint8Array;
 }

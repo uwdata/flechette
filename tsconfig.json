@@ -3,11 +3,13 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
+    "strict": false,
     "declaration": true,
     "emitDeclarationOnly": true,
     "esModuleInterop": true,
     "module": "node16",
     "moduleResolution": "node16",
+    "rootDir": "./src",
     "outDir": "dist/types",
     "target": "es2022",
     "skipLibCheck": true
