@@ -153,7 +153,7 @@ export class Builder {
    * Add a flatbuffer object (vtable).
    * @param {number} numFields The maximum number of fields
    *  this object may include.
-   * @param {(tableBuilder: ReturnType<objectBuilder>) => void} [addFields]
+   * @param {(tableBuilder: ReturnType<typeof objectBuilder>) => void} [addFields]
    *  A callback function that writes all fields using an object builder.
    * @returns {number} The object offset.
    */

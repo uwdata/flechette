@@ -233,7 +233,7 @@ function assembleRecordBatch(columns, batchIndex = 0, codec) {
  * Visit a column batch, assembling buffer data.
  * @param {DataType} type The data type.
  * @param {Batch} batch The column batch.
- * @param {ReturnType<assembleContext>} ctx The assembly context.
+ * @param {ReturnType<typeof assembleContext>} ctx The assembly context.
  */
 function visit(type, batch, ctx) {
   const { typeId } = type;

@@ -1,12 +1,13 @@
 /**
  * @import { DataType, ExtractionOptions } from '../types.js'
+ * @import { BuilderContext, DictionaryContext } from './types.js'
  * @import { BatchBuilder } from './builders/batch.js'
  */
 import { batchType } from '../batch-type.js';
 import { IntervalUnit, Type } from '../constants.js';
 import { invalidDataType } from '../data-types.js';
 import { isInt64ArrayType } from '../util/arrays.js';
-import { toBigInt, toDateDay, toDecimal32, toFloat16, toTimestamp } from '../util/numbers.js';
+import { toDateDay, toDateMillisecond, toDecimal32, toFloat16, toTimestamp } from '../util/numbers.js';
 import { BinaryBuilder } from './builders/binary.js';
 import { BoolBuilder } from './builders/bool.js';
 import { DecimalBuilder } from './builders/decimal.js';
@@ -25,8 +26,8 @@ import { DirectBuilder, Int64Builder, TransformBuilder } from './builders/values
 /**
  * Create a context object for shared builder state.
  * @param {ExtractionOptions} [options]  Batch extraction options.
-* @param {ReturnType<dictionaryContext>} [dictionaries]
- *  Context object for tracking dictionaries.
+ * @param {DictionaryContext} [dictionaries] Context object for tracking dictionaries.
+ * @returns {BuilderContext}
  */
 export function builderContext(
   options = {},
@@ -43,7 +44,7 @@ export function builderContext(
 /**
  * Returns a batch builder for the given type and builder context.
  * @param {DataType} type A data type.
- * @param {ReturnType<builderContext>} [ctx] A builder context.
+ * @param {BuilderContext} [ctx] A builder context.
  * @returns {BatchBuilder}
  */
 export function builder(type, ctx = builderContext()) {
@@ -72,7 +73,7 @@ export function builder(type, ctx = builderContext()) {
         ? new TransformBuilder(type, ctx, toDecimal32(type.scale))
         : new DecimalBuilder(type, ctx);
     case Type.Date:
-      return new TransformBuilder(type, ctx, type.unit ? toBigInt : toDateDay);
+      return new TransformBuilder(type, ctx, type.unit ? toDateMillisecond : toDateDay);
     case Type.Timestamp:
       return new TransformBuilder(type, ctx, toTimestamp(type.unit));
     case Type.Interval:

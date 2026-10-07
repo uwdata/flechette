@@ -16,7 +16,7 @@ import { columnFromValues } from './column-from-values.js';
  *  If not specified, type inference is attempted.
  * @param {ColumnBuilderOptions} [options]
  *  Builder options for the generated column.
- * @param {ReturnType<dictionaryContext>} [dicts]
+ * @param {ReturnType<typeof dictionaryContext>} [dicts]
  *  Builder context object, for internal use only.
  * @returns {Column<T>} The generated column.
  */
