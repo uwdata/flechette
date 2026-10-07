@@ -18,7 +18,7 @@ import { isIterable } from '../util/objects.js';
  * @param {DataType} [type] The data type.
  * @param {ColumnBuilderOptions} [options]
  *  Builder options for the generated column.
- * @param {ReturnType<dictionaryContext>} [dicts]
+ * @param {ReturnType<typeof dictionaryContext>} [dicts]
  *  Dictionary context object, for internal use only.
  * @returns {Column<T>} The generated column.
  */

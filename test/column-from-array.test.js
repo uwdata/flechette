@@ -2,15 +2,16 @@ import { describe, it, expect } from "vitest";
 import { IntervalUnit, TimeUnit, UnionMode, binary, bool, columnFromArray, dateDay, dateMillisecond, decimal, dictionary, duration, field, fixedSizeBinary, fixedSizeList, float16, float32, float64, int16, int32, int64, int8, interval, largeBinary, largeList, largeUtf8, list, map, nullType, runEndEncoded, struct, time, timeMicrosecond, timeMillisecond, timeNanosecond, timeSecond, timestamp, uint16, uint32, uint64, uint8, union, utf8 } from '../src/index.js';
 import { isTypedArray } from '../src/util/arrays.js';
 
-function test(values, type, options) {
-  const col = columnFromArray(values, type, options);
+function test(values, type, options = {}) {
+  const { expected = values, ...opt } = options;
+  const col = columnFromArray(values, type, opt);
   if (type) expect(col.type).toBe(type);
   if (!type && isTypedArray(values)) {
     // check that inferred data type maintains input array type
     expect(col.data[0].values.constructor).toBe(values.constructor);
   }
-  expect(col.length).toBe(values.length);
-  expect(Array.from(col)).toStrictEqual(Array.from(values));
+  expect(col.length).toBe(expected.length);
+  expect(Array.from(col)).toStrictEqual(Array.from(expected));
   return col;
 }
 
@@ -127,13 +128,20 @@ describe('columnFromArray', () => {
   it('builds date columns', () => {
     const dates = [
       new Date(Date.UTC(2000, 0, 1)),
+      new Date(Date.UTC(1700, 6, 30, 12)),
+      new Date(Date.UTC(1973, 3, 20, 12)),
+      new Date(Date.UTC(1989, 4, 5))
+    ];
+    const expected = [
+      new Date(Date.UTC(2000, 0, 1)),
+      new Date(Date.UTC(1700, 6, 30)),
       new Date(Date.UTC(1973, 3, 20)),
       new Date(Date.UTC(1989, 4, 5))
     ];
-    test(dates.map(v => +v), dateDay());
-    test(dates.map(v => +v), dateMillisecond());
-    test(dates, dateDay(), { useDate: true });
-    test(dates, dateMillisecond(), { useDate: true });
+    test(dates.map(Number), dateDay(), { expected: expected.map(Number) });
+    test(dates, dateDay(), { useDate: true, expected });
+    test(dates.map(Number), dateMillisecond(), { expected: expected.map(Number) });
+    test(dates, dateMillisecond(), { useDate: true, expected });
   });
 
   it('builds time columns', () => {
@@ -163,7 +171,8 @@ describe('columnFromArray', () => {
   it('builds timestamp columns', () => {
     const dates = [
       new Date(Date.UTC(2000, 0, 1)),
-      new Date(Date.UTC(1973, 3, 20)),
+      new Date(Date.UTC(1700, 6, 30, 12)),
+      new Date(Date.UTC(1973, 3, 20, 12)),
       new Date(Date.UTC(1989, 4, 5))
     ];
 

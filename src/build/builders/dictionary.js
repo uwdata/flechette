@@ -1,6 +1,6 @@
 /**
- * @import { builderContext } from '../builder.js'
  * @import { DictionaryType, ExtractionOptions } from '../../types.js'
+ * @import { BuilderContext, DictionaryContext, DictionaryValues } from '../types.js'
  */
 import { Column } from '../../column.js';
 import { keyString } from '../../util/strings.js';
@@ -10,6 +10,7 @@ import { ValidityBuilder } from './validity.js';
 
 /**
  * Create a context object for managing dictionary builders.
+ * @returns {DictionaryContext}
  */
 export function dictionaryContext() {
   const idMap = new Map;
@@ -17,10 +18,9 @@ export function dictionaryContext() {
   return {
     /**
      * Get a dictionary values builder for the given dictionary type.
-     * @param {DictionaryType} type
-     *  The dictionary type.
-     * @param {*} ctx The builder context.
-     * @returns {ReturnType<dictionaryValues>}
+     * @param {DictionaryType} type The dictionary type.
+     * @param {BuilderContext} ctx The builder context.
+     * @returns {DictionaryValues}
      */
     get(type, ctx) {
       // if a dictionary has a non-negative id, assume it was set
@@ -49,13 +49,12 @@ export function dictionaryContext() {
 
 /**
  * Builder helper for creating dictionary values.
- * @param {DictionaryType} type
- *  The dictionary data type.
- * @param {ReturnType<builderContext>} ctx
- *  The builder context.
+ * @param {DictionaryType} type The dictionary data type.
+ * @param {BuilderContext} ctx The builder context.
+ * @returns {DictionaryValues}
  */
 export function dictionaryValues(type, ctx) {
-  const keys = Object.create(null);
+  const keys = /** @type {Record<string, number>} */ (Object.create(null));
   const values = ctx.builder(type.dictionary);
   const batches = [];
 

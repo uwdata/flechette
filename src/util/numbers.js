@@ -45,7 +45,16 @@ export function toOffset(type) {
  * @returns {number} The number of days.
  */
 export function toDateDay(value) {
-  return (value / 864e5) | 0;
+  return Math.floor(value / 864e5);
+}
+
+/**
+ * Returns a day-divisible value from a millisecond timestamp.
+ * @param {number} value The millisecond timestamp.
+ * @returns {bigint} A UTC date-aligned millisecond timestamp.
+ */
+export function toDateMillisecond(value) {
+  return toBigInt(864e5 * toDateDay(value));
 }
 
 /**
