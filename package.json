@@ -31,7 +31,8 @@
     "lint": "eslint src test",
     "test:unit": "vitest",
     "test": "vitest --run",
-    "prepublishOnly": "npm run test && npm run lint && npm run build"
+    "prepublishOnly": "npm run test && npm run lint && npm run build",
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
