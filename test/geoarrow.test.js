@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { geoJSONToWKB, geoJSONToWKT } from '@uwdata/wk-geojson';
-import { Table, binary, binaryView, columnFromArray, field, largeBinary, largeUtf8, struct, tableFromIPC, tableToIPC, utf8, utf8View } from '../src/index.js';
+import { Table, binary, columnFromArray, field, largeBinary, largeUtf8, struct, tableFromIPC, tableToIPC, utf8 } from '../src/index.js';
 
 const geoms = [
   { type: 'Point', coordinates: [1, 2] },
