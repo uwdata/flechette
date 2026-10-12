@@ -1,6 +1,7 @@
 {
   "name": "@uwdata/flechette",
-  "version": "2.6.0",
+  "version": "2.7.0",
+  "packageManager": "pnpm@12.11.2",
   "description": "Fast, lightweight access to Apache Arrow data.",
   "keywords": [
     "arrow",
@@ -46,6 +47,5 @@
     "typescript": "^7.0.2",
     "vitest": "^5.0.3",
     "zstd-codec": "0.1.5"
-  },
-  "packageManager": "pnpm@12.11.2"
+  }
 }
