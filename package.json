@@ -34,6 +34,9 @@
     "prepublishOnly": "pnpm run test && pnpm run lint && pnpm run build",
     "prepare": "pnpm run build"
   },
+  "dependencies": {
+    "@uwdata/wk-geojson": "^0.0.1"
+  },
   "devDependencies": {
     "apache-arrow": "^21.2.0",
     "lz4js": "0.2.0",

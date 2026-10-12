@@ -1,7 +1,9 @@
 /**
+ * @import { Geometry } from '@uwdata/wk-geojson'
  * @import { Column } from './column.js'
  * @import { DataType, DecimalType, IntegerArray, OffsetArray, TypedArray, TypedArrayConstructor, ValueArray } from './types.js'
  */
+import { wkbToGeoJSON, wktToGeoJSON } from '@uwdata/wk-geojson';
 import { bisect, float64Array } from './util/arrays.js';
 import { divide, fromDecimal128, fromDecimal256, fromDecimal64, toNumber } from './util/numbers.js';
 import { decodeBit, readInt32, readInt64 } from './util/read.js';
@@ -512,6 +514,54 @@ export class LargeUtf8Batch extends ArrayBatch {
    */
   value(index) {
     return decodeUtf8(offset64(this, index));
+  }
+}
+
+/**
+ * A batch of geometry values in well-known binary (WKB) format that are
+ * decoded and returned as GeoJSON geometry objects. This batch wraps a
+ * source batch that provides WKB byte arrays.
+ * @extends {ArrayBatch<Geometry>}
+ */
+export class WKBGeoJSONBatch extends ArrayBatch {
+  /**
+   * Create a new WKB to GeoJSON batch.
+   * @param {Batch<Uint8Array>} batch A batch of WKB byte arrays.
+   */
+  constructor(batch) {
+    super(batch);
+    this.source = batch;
+  }
+
+  /**
+   * @param {number} index The value index
+   */
+  value(index) {
+    return wkbToGeoJSON(this.source.value(index));
+  }
+}
+
+/**
+ * A batch of geometry values in well-known text (WKT) format that are
+ * decoded and returned as GeoJSON geometry objects. This batch wraps a
+ * source batch that provides WKT strings.
+ * @extends {ArrayBatch<Geometry>}
+ */
+export class WKTGeoJSONBatch extends ArrayBatch {
+  /**
+   * Create a new WKT to GeoJSON batch.
+   * @param {Batch<string>} batch A batch of WKT strings.
+   */
+  constructor(batch) {
+    super(batch);
+    this.source = batch;
+  }
+
+  /**
+   * @param {number} index The value index
+   */
+  value(index) {
+    return wktToGeoJSON(this.source.value(index));
   }
 }
 

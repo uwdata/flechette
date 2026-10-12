@@ -108,7 +108,7 @@ export function createTable(data, options = {}) {
     }
 
     const ctx = context(records[i]);
-    fields.forEach((f, idx) => cols[idx].add(visit(f.type, ctx)));
+    fields.forEach((f, idx) => cols[idx].add(visit(f.type, ctx, f.metadata)));
   }
   // Drain any dictionary batches that come after the last record batch in
   // the stream. These can't affect any already-decoded record batch, but
@@ -166,7 +166,7 @@ function contextGenerator(options, version, dictionaryMap) {
           : bytes.subarray(offset, offset + length)
       },
       variadic: () => variadic[++variadicIndex],
-      visit(children) { return children.map(f => visit(f.type, this)); }
+      visit(children) { return children.map(f => visit(f.type, this, f.metadata)); }
     };
   };
 }
@@ -193,10 +193,10 @@ function maybeDecompress(body, region, compression) {
 /**
  * Visit a field, instantiating views of buffer regions.
  */
-function visit(type, ctx) {
+function visit(type, ctx, metadata = null) {
   const { typeId } = type;
   const { options, node, buffer, variadic, version } = ctx;
-  const BatchType = batchType(type, options);
+  const BatchType = batchType(type, options, metadata);
 
   // extract the next { length, nullCount } field node - ALL fields have field nodes
   const base = { ...node(), type };
