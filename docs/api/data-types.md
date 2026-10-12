@@ -15,8 +15,8 @@ The table below provides an overview of all data types supported by the Apache A
 |   1 | [Null](#null)                       | ✅ | ✅ | ✅ | `null` |
 |   2 | [Int](#int)                         | ✅ | ✅ | ✅ | `number`, or `bigint` for 64-bit values via the `useBigInt` flag |
 |   3 | [Float](#float)                     | ✅ | ✅ | ✅ | `number` |
-|   4 | [Binary](#binary)                   | ✅ | ✅ | ✅ | `Uint8Array` |
-|   5 | [Utf8](#utf8)                       | ✅ | ✅ | ✅ | `string` |
+|   4 | [Binary](#binary)                   | ✅ | ✅ | ✅ | `Uint8Array`, or GeoJSON for GeoArrow geometries via the `useGeoJSON` flag |
+|   5 | [Utf8](#utf8)                       | ✅ | ✅ | ✅ | `string`, or GeoJSON for GeoArrow geometries via the `useGeoJSON` flag |
 |   6 | [Bool](#bool)                       | ✅ | ✅ | ✅ | `boolean` |
 |   7 | [Decimal](#decimal)                 | ✅ | ✅ | ✅ | `number`, or scaled integers via the `useDecimalInt` flag |
 |   8 | [Date](#date)                       | ✅ | ✅ | ✅ | `number`, or `Date` via the `useDate` flag. |
@@ -30,12 +30,12 @@ The table below provides an overview of all data types supported by the Apache A
 |  16 | [FixedSizeList](#fixedSizeList)     | ✅ | ✅ | ✅ | `Array` or `TypedArray` of child type |
 |  17 | [Map](#map)                         | ✅ | ✅ | ✅ | `[key, value][]`, or `Map` via the `useMap` flag |
 |  18 | [Duration](#duration)               | ✅ | ✅ | ✅ | `number`, or `bigint` via the `useBigInt` flag |
-|  19 | [LargeBinary](#largeBinary)         | ✅ | ✅ | ✅ | `Uint8Array` |
-|  20 | [LargeUtf8](#largeUtf8)             | ✅ | ✅ | ✅ | `string` |
+|  19 | [LargeBinary](#largeBinary)         | ✅ | ✅ | ✅ | `Uint8Array`, or GeoJSON for GeoArrow geometries via the `useGeoJSON` flag |
+|  20 | [LargeUtf8](#largeUtf8)             | ✅ | ✅ | ✅ | `string`, or GeoJSON for GeoArrow geometries via the `useGeoJSON` flag |
 |  21 | [LargeList](#largeList)             | ✅ | ✅ | ✅ | `Array` or `TypedArray` of child type |
 |  22 | [RunEndEncoded](#runEndEncoded)     | ✅ | ✅ | ✅ | depends on child type |
-|  23 | [BinaryView](#binaryView)           | ✅ | ✅ | ❌ | `Uint8Array` |
-|  24 | [Utf8View](#utf8View)               | ✅ | ✅ | ❌ | `string` |
+|  23 | [BinaryView](#binaryView)           | ✅ | ✅ | ❌ | `Uint8Array`, or GeoJSON for GeoArrow geometries via the `useGeoJSON` flag |
+|  24 | [Utf8View](#utf8View)               | ✅ | ✅ | ❌ | `string`, or GeoJSON for GeoArrow geometries via the `useGeoJSON` flag |
 |  25 | [ListView](#listView)               | ✅ | ✅ | ❌ | `Array` or `TypedArray` of child type |
 |  26 | [LargeListView](#largeListView)     | ✅ | ✅ | ❌ | `Array` or `TypedArray` of child type |
 

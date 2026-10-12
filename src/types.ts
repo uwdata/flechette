@@ -374,6 +374,14 @@ export interface ExtractionOptions {
    */
   useBigIntTimestamp?: boolean;
   /**
+   * If true, extract geometry data in GeoArrow well-known binary (WKB) or
+   * well-known text (WKT) formats as GeoJSON geometry objects. Geometry
+   * columns are identified by the field metadata key
+   * `ARROW:extension:name` with value `geoarrow.wkb` or `geoarrow.wkt`.
+   * Otherwise, return raw WKB byte arrays or WKT strings (default).
+   */
+  useGeoJSON?: boolean;
+  /**
    * If true, extract Arrow 'Map' values as JavaScript `Map` instances.
    * Otherwise, return an array of [key, value] pairs compatible with
    * both `Map` and `Object.fromEntries` (default).

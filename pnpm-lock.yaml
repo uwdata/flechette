@@ -165,6 +165,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@uwdata/wk-geojson':
+        specifier: ^0.0.1
+        version: 0.0.1
     devDependencies:
       apache-arrow:
         specifier: ^21.2.0
@@ -558,6 +562,9 @@ packages:
     engines: {node: '>=16.20.0'}
     cpu: [x64]
     os: [win32]
+
+  '@uwdata/wk-geojson@0.0.1':
+    resolution: {integrity: sha512-4RpnKbdrphwzP+BwgzuGRqA/s03oT1rzHAKdU43Ozn8J1BCTwS+2iAGQ7YQAnrCkCi213WtQ7VYaFjVtvZotPQ==}
 
   '@vitest/mocker@5.0.3':
     resolution: {integrity: sha512-T8sWAIbkSyAjkwTcaEc3Iu0o9A27X1/kdXrizhZkGuSKScRQtRzclfAMpOTcGdXCsqxeWlpGy3XjqaW8CpLORg==}
@@ -1084,6 +1091,8 @@ snapshots:
 
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
+
+  '@uwdata/wk-geojson@0.0.1': {}
 
   '@vitest/mocker@5.0.3(vite@8.3.3(@types/node@25.9.9))':
     dependencies:

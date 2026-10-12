@@ -118,6 +118,7 @@ const table = tableFromIPC(ipc, {
   useDecimalInt: true,      // use scaled ints for decimals, not floating point
   useBigInt: true,          // use BigInt for 64-bit ints, do not coerce to number
   useBigIntTimestamp: true, // use BigInt for timestamps, do not coerce to millisecond number
+  useGeoJSON: true,         // decode GeoArrow WKB/WKT geometry columns to GeoJSON objects
   useMap: true,             // create Map objects for [key, value] pair lists
   useProxy: true            // use zero-copy proxies for struct and table row objects
 });
