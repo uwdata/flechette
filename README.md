@@ -127,8 +127,12 @@ The same extraction options can be passed to `tableFromArrays`. For more, see th
 
 ## Build Instructions
 
-To build and develop Flechette locally:
+This project uses [pnpm](https://pnpm.io/).
 
-- Clone https://github.com/uwdata/flechette.
-- Run `npm i` to install dependencies.
-- Run `npm test` to run test cases, `npm run perf` to run performance benchmarks, and `npm run build` to build output files.
+```sh
+pnpm install
+pnpm test   # run unit tests (vitest)
+pnpm lint   # check lint rules (oxlint)
+pnpm build  # compile and build output bundles into dist/
+pnpm perf   # run performance benchmarks
+```
