@@ -130,5 +130,5 @@ The same extraction options can be passed to `tableFromArrays`. For more, see th
 To build and develop Flechette locally:
 
 - Clone https://github.com/uwdata/flechette.
-- Run `npm i` to install dependencies.
-- Run `npm test` to run test cases, `npm run perf` to run performance benchmarks, and `npm run build` to build output files.
+- Run `pnpm i` to install dependencies.
+- Run `pnpm test` to run test cases, `pnpm run perf` to run performance benchmarks, and `pnpm run build` to build output files.
