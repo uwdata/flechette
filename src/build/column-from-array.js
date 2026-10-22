@@ -1,5 +1,5 @@
 /**
- * @import { ColumnBuilderOptions, DataType, TypedArray, TypedArrayConstructor } from '../types.js'
+ * @import { ColumnBuilderOptions, ColumnBuilderType, DataType, TypedArray, TypedArrayConstructor } from '../types.js'
  * @import { dictionaryContext } from './builders/dictionary.js'
  */
 import { float32Array, float64Array, int16Array, int32Array, int64Array, int8Array, isInt64ArrayType, isTypedArray, uint16Array, uint32Array, uint64Array, uint8Array } from '../util/arrays.js';
@@ -12,7 +12,7 @@ import { columnFromValues } from './column-from-values.js';
  * Create a new column from a provided data array.
  * @template T
  * @param {Array | TypedArray} array The input data.
- * @param {DataType} [type] The data type.
+ * @param {ColumnBuilderType} [type] The data type.
  *  If not specified, type inference is attempted.
  * @param {ColumnBuilderOptions} [options]
  *  Builder options for the generated column.

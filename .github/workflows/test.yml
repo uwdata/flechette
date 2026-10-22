@@ -36,3 +36,6 @@ jobs:
 
       - name: Run tests
         run: pnpm run test
+
+      - name: Check Arrow JS numeric type compatibility
+        run: pnpm exec tsc --ignoreConfig --noEmit --strict --skipLibCheck --target es2022 --module node16 test/types/arrow-numeric.ts

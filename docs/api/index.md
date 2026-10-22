@@ -137,8 +137,10 @@ const table = tableFromArrays({
 
 Create a new column from a provided data array. The data types for the column can be automatically inferred or specified using the *type* argument.
 
+The *type* argument also accepts Apache Arrow JS integer and floating-point descriptors, such as `new Int32()` or `new Float64()` from `apache-arrow`. These are normalized to Flechette data types, so the returned column's `type` is a new Flechette descriptor. Native Flechette types retain their identity. This compatibility also applies to `columnFromValues` and the `types` option of `tableFromArrays`; other data types must use Flechette's [type constructors](data-types).
+
 * *array* (`Array | TypedArray`): The input data as an Array or TypedArray.
-* *type*: (`DataType`): The [data type](data-types) for the column. If not specified, type inference is attempted.
+* *type*: (`ColumnBuilderType`): The [data type](data-types) for the column. If not specified, type inference is attempted.
 * *options* (`object`): Options for building new columns and controlling how values are transformed when extracted from an Arrow binary representation.
   * *maxBatchRows* (`number`): The maximum number of rows to include in a single record batch. If the array length exceeds this number, the resulting column will consist of multiple record batches.
   * In addition, all [tableFromIPC](#tableFromIPC) extraction options are supported.
@@ -165,7 +167,7 @@ columnFromArray(
 Create a new column by iterating over provided *values*. The *values* argument can either be an iterable collection or a visitor function that applies a callback to successive data values (akin to `Array.forEach`). The data types for the column can be automatically inferred or specified using the *type* argument.
 
 * *values* (`Iterable | (callback: (value: any) => void) => void`): An iterable object or a visitor function that applies a callback to successive data values (akin to `Array.forEach`). In most cases, providing a visitor function will be more efficient than an iterator, so is recommended for larger datasets.
-* *type*: (`DataType`): The [data type](data-types) for the column. If not specified, type inference is attempted.
+* *type*: (`ColumnBuilderType`): The [data type](data-types) for the column. If not specified, type inference is attempted.
 * *options* (`object`): Options for building new columns and controlling how values are transformed when extracted from an Arrow binary representation.
   * *maxBatchRows* (`number`): The maximum number of rows to include in a single record batch. If the number of values exceeds this number, the resulting column will consist of multiple record batches.
   * In addition, all [tableFromIPC](#tableFromIPC) extraction options are supported.

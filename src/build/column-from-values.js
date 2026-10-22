@@ -1,5 +1,5 @@
 /**
- * @import { ColumnBuilderOptions, DataType, NullType } from '../types.js'
+ * @import { ColumnBuilderOptions, ColumnBuilderType, DataType, NullType } from '../types.js'
  * @import { dictionaryContext } from './builders/dictionary.js'
  */
 import { NullBatch } from '../batch.js';
@@ -7,6 +7,7 @@ import { Column } from '../column.js';
 import { inferType } from './infer-type.js';
 import { builder, builderContext } from './builder.js';
 import { Type } from '../constants.js';
+import { float, int } from '../data-types.js';
 import { isIterable } from '../util/objects.js';
 
 /**
@@ -15,7 +16,7 @@ import { isIterable } from '../util/objects.js';
  * @param {Iterable | ((callback: (value: any) => void) => void)} values
  *  Either an iterable object or a visitor function that applies a callback
  *  to successive data values (akin to Array.forEach).
- * @param {DataType} [type] The data type.
+ * @param {ColumnBuilderType} [type] The data type.
  * @param {ColumnBuilderOptions} [options]
  *  Builder options for the generated column.
  * @param {ReturnType<typeof dictionaryContext>} [dicts]
@@ -27,17 +28,17 @@ export function columnFromValues(values, type, options = {}, dicts) {
     ? callback => { for (const value of values) callback(value); }
     : values;
 
-  type ??= inferType(visit);
+  const dataType = normalizeType(type ?? inferType(visit));
   const { maxBatchRows = Infinity, ...opt } = options;
   let data;
 
-  if (type.typeId === Type.Null) {
+  if (dataType.typeId === Type.Null) {
     let length = 0;
     visit(() => ++length);
-    data = nullBatches(type, length, maxBatchRows);
+    data = nullBatches(dataType, length, maxBatchRows);
   } else {
     const ctx = builderContext(opt, dicts);
-    const b = builder(type, ctx).init();
+    const b = builder(dataType, ctx).init();
     const next = b => data.push(b.batch());
     data = [];
 
@@ -55,7 +56,25 @@ export function columnFromValues(values, type, options = {}, dicts) {
     ctx.finish();
   }
 
-  return new Column(data, type);
+  return new Column(data, dataType);
+}
+
+/**
+ * Normalize Arrow JS numeric descriptors without mutating the input. Derive
+ * the backing array from the logical type instead of trusting ArrayType.
+ * @param {ColumnBuilderType} type
+ * @returns {DataType}
+ */
+function normalizeType(type) {
+  if (type.typeId === Type.Int && !('values' in type) && 'isSigned' in type) {
+    return int(type.bitWidth, type.isSigned);
+  }
+  if (type.typeId === Type.Float && !('values' in type) && 'precision' in type) {
+    return float(type.precision);
+  }
+  // The numeric input types have broad typeId declarations to accommodate
+  // Arrow JS typings. All other inputs use Flechette's representation.
+  return /** @type {DataType} */ (type);
 }
 
 /**
