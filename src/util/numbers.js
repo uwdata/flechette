@@ -59,14 +59,16 @@ export function toDateMillisecond(value) {
 
 /**
  * Return a timestamp conversion method for the given time unit.
+ * Number inputs use milliseconds; bigint inputs already use the target unit,
+ * matching values extracted with useBigIntTimestamp.
  * @param {TimeUnit_} unit The time unit.
- * @returns {(value: number) => bigint} The conversion method.
+ * @returns {(value: number | bigint) => bigint} The conversion method.
  */
 export function toTimestamp(unit) {
-  return unit === TimeUnit.SECOND ? value => toBigInt(value / 1e3)
+  return unit === TimeUnit.SECOND ? value => typeof value === 'bigint' ? value : toBigInt(value / 1e3)
     : unit === TimeUnit.MILLISECOND ? toBigInt
-    : unit === TimeUnit.MICROSECOND ? value => toBigInt(value * 1e3)
-    : value => toBigInt(value * 1e6);
+    : unit === TimeUnit.MICROSECOND ? value => typeof value === 'bigint' ? value : toBigInt(value * 1e3)
+    : value => typeof value === 'bigint' ? value : toBigInt(value * 1e6);
 }
 
 /**
