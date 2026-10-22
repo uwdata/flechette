@@ -165,6 +165,8 @@ export class Builder {
 
   /**
    * Add a flatbuffer vector (list).
+   * Empty arrays produce a present, zero-length vector. Only null or undefined
+   * inputs omit the vector; Arrow readers require Schema.fields to be present.
    * @template T
    * @param {T[]} items An array of items to write.
    * @param {number} itemSize The size in bytes of a serialized item.
@@ -174,8 +176,8 @@ export class Builder {
    * @returns {number} The vector offset.
    */
   addVector(items, itemSize, alignment, writeItem) {
-    const n = items?.length;
-    if (!n) return 0;
+    if (items == null) return 0;
+    const n = items.length;
     prep(this, SIZEOF_INT, itemSize * n);
     prep(this, alignment, itemSize * n); // Just in case alignment > int.
     for (let i = n; --i >= 0;) {
