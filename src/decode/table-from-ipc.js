@@ -118,7 +118,11 @@ export function createTable(data, options = {}) {
     processDict(dictionaries[dictIdx++]);
   }
 
-  return new Table(schema, cols.map(c => c.done()), options.useProxy);
+  const table = new Table(schema, cols.map(c => c.done()), options.useProxy);
+  if (records.some(r => r.metadata)) {
+    table.batchMetadata = records.map(r => r.metadata ?? null);
+  }
+  return table;
 }
 
 /**

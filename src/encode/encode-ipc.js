@@ -6,6 +6,7 @@ import { BodyCompressionMethod, EOS, MAGIC, MessageHeader } from '../constants.j
 import { Builder } from './builder.js';
 import { encodeDictionaryBatch } from './dictionary-batch.js';
 import { writeFooter } from './footer.js';
+import { encodeMetadata } from './metadata.js';
 import { encodeRecordBatch } from './record-batch.js';
 import { encodeSchema } from './schema.js';
 import { writeMessage } from './message.js';
@@ -65,12 +66,14 @@ export function encodeIPC(data, { sink, format = STREAM, codec } = {}) {
 
   // write record batch messages
   for (const batch of records) {
+    const metadataOffset = encodeMetadata(builder, batch.metadata);
     writeMessage(
       builder,
       MessageHeader.RecordBatch,
       encodeRecordBatch(builder, batch, compression),
       batch.byteLength,
-      recordBlocks
+      recordBlocks,
+      metadataOffset
     );
     writeBuffers(builder, batch.buffers);
   }
