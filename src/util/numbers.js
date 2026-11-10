@@ -49,12 +49,14 @@ export function toDateDay(value) {
 }
 
 /**
- * Returns a day-divisible value from a millisecond timestamp.
- * @param {number} value The millisecond timestamp.
- * @returns {bigint} A UTC date-aligned millisecond timestamp.
+ * Returns a day-divisible value from a millisecond timestamp. A bigint input
+ * already represents the stored millisecond value and is returned unchanged.
+ * @param {number | bigint} value The millisecond timestamp.
+ * @returns {bigint} A UTC date-aligned millisecond timestamp, or the bigint
+ *  input value.
  */
 export function toDateMillisecond(value) {
-  return toBigInt(864e5 * toDateDay(value));
+  return typeof value === 'bigint' ? value : toBigInt(864e5 * toDateDay(value));
 }
 
 /**

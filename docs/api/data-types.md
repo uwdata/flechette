@@ -295,6 +295,8 @@ Create a Date data type instance. Date values are 32-bit or 64-bit signed intege
 
 By default, extracted date values are converted to JavaScript `number` values representing milliseconds since the UNIX epoch. Pass the `useDate` extraction option (e.g., to [`tableFromIPC`](/flechette/api/#tableFromIPC) or [`tableFromArrays`](/flechette/api/#tableFromArrays)) to instead extract date values as JavaScript `Date` objects.
 
+When building millisecond date columns, `number` and `Date` inputs are aligned to the start of their UTC day. A `bigint` input already represents the stored 64-bit value and is stored without conversion, so existing Date64 data can be copied losslessly, including values written by other Arrow implementations that are not day-aligned.
+
 * *unit* (`number`): The date unit, one of `DateUnit.DAY` or `DateUnit.MILLISECOND`.
 
 ```js
