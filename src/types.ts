@@ -262,6 +262,8 @@ export interface RecordBatch {
   body?: Uint8Array;
   buffers?: Uint8Array[];
   byteLength?: number;
+  /** Custom metadata for this record batch. */
+  metadata?: Metadata | null;
 }
 
 /**

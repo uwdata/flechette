@@ -48,6 +48,7 @@ Encode an Arrow table into Arrow IPC binary format and return the result as a `U
 * *options* (`object`): Encoding options object.
   * *format* (`string`): Arrow `'stream'` (the default) or `'file'` (a.k.a. [Feather V2](https://arrow.apache.org/docs/python/feather.html)) format.
   * *codec* (`number`): The compression codec type to apply. By default no compression is applied. If specified, this option must be one of the `CompressionType` values, and a corresponding codec plugin must already be registered using the [`setCompressionCodec`](#setCompressionCodec) method.
+  * *batchMetadata* (`(Map<string, string> | null)[]`): Custom metadata for each record batch, indexed by batch. Entry *i* is written to the *i*-th record batch message; `null` or `undefined` entries write no metadata. It is an error to provide more entries than the table has record batches. Defaults to the table's [`batchMetadata`](table#batchMetadata) property.
 
 ```js
 import { tableToIPC } from '@uwdata/flechette';

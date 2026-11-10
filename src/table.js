@@ -1,6 +1,6 @@
 /**
  * @import { Column } from './column.js'
- * @import { Schema, StructFactory, TypeMap, ValueArray } from './types.js'
+ * @import { Metadata, Schema, StructFactory, TypeMap, ValueArray } from './types.js'
  */
 import { bisect } from './util/arrays.js';
 import { objectFactory, proxyFactory } from './util/struct.js';
@@ -44,6 +44,13 @@ export class Table {
      * @readonly
      */
     this.factory = useProxy ? proxyFactory : objectFactory;
+    /**
+     * Custom metadata for each record batch, indexed by batch. An entry is
+     * null if the corresponding batch has no metadata. Null if the table
+     * has no record batch metadata.
+     * @type {(Metadata | null)[] | null}
+     */
+    this.batchMetadata = null;
 
     // lazily created row object generators
     const gen = [];
@@ -114,7 +121,7 @@ export class Table {
   selectAt(indices, as = []) {
     const { children, factory, schema } = this;
     const { fields } = schema;
-    return new Table(
+    const table = new Table(
       {
         ...schema,
         fields: indices.map((i, j) => renameField(fields[i], as[j]))
@@ -122,6 +129,9 @@ export class Table {
       indices.map(i => children[i]),
       factory === proxyFactory
     );
+    // selected columns share this table's record batches
+    table.batchMetadata = this.batchMetadata;
+    return table;
   }
 
   /**

@@ -12,6 +12,7 @@ A table consists of named data [columns](#column) (or 'children'). To extract ta
 * [constructor](#constructor)
 * [numCols](#numCols)
 * [numRows](#numRows)
+* [batchMetadata](#batchMetadata)
 * [getChildAt](#getChildAt)
 * [getChild](#getChild)
 * [selectAt](#selectAt)
@@ -40,6 +41,11 @@ The number of columns in the table.
 Table.<b>numRows</b>
 
 The number of rows in the table.
+
+<hr/><a id="batchMetadata" href="#batchMetadata">#</a>
+Table.<b>batchMetadata</b>
+
+Custom metadata for each record batch, as an array of `Map<string, string>` instances indexed by batch, with `null` entries for batches without metadata. The value is `null` if the table has no record batch metadata. [`tableFromIPC`](/flechette/api/#tableFromIPC) sets this property when decoded record batch messages carry custom metadata, and [`tableToIPC`](/flechette/api/#tableToIPC) writes it by default. Record batches correspond to the batches of the table's columns.
 
 <hr/><a id="getChildAt" href="#getChildAt">#</a>
 Table.<b>getChildAt</b>(<i>index</i>)

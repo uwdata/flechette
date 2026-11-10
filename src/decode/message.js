@@ -5,6 +5,7 @@ import { MessageHeader, Version } from '../constants.js';
 import { keyFor } from '../util/objects.js';
 import { SIZEOF_INT, readInt16, readInt32, readInt64, readObject, readOffset, readUint8 } from '../util/read.js';
 import { decodeDictionaryBatch } from './dictionary-batch.js';
+import { decodeMetadata } from './metadata.js';
 import { decodeRecordBatch } from './record-batch.js';
 import { decodeSchema } from './schema.js';
 
@@ -49,6 +50,7 @@ export function decodeMessage(buf, index) {
   //  6: headerType
   //  8: headerIndex
   // 10: bodyLength
+  // 12: custom_metadata
   const get = readObject(head, 0);
   const version = /** @type {Version_} */
     (get(4, readInt16, Version.V1));
@@ -66,6 +68,11 @@ export function decodeMessage(buf, index) {
       : null;
     if (!decoder) throw new Error(invalidMessageType(type));
     content = decoder(head, offset, version);
+    const metadata = type === MessageHeader.RecordBatch ? get(12, decodeMetadata) : null;
+    if (metadata) {
+      // @ts-ignore
+      content.metadata = metadata;
+    }
 
     // extract message body
     if (bodyLength > 0) {
