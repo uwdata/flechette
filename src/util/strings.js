@@ -1,7 +1,9 @@
 import { isArray } from './arrays.js';
 import { isDate } from './objects.js';
 
-const textDecoder = new TextDecoder('utf-8');
+// ignoreBOM: true preserves a leading U+FEFF, which is valid string content
+// in Arrow data. The default (false) silently strips it on every decode.
+const textDecoder = new TextDecoder('utf-8', { ignoreBOM: true });
 const textEncoder = new TextEncoder();
 
 /**
